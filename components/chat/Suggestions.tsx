@@ -1,127 +1,117 @@
-"use client"
-import React, { useState } from "react"
-import { Card } from "@/components/ui/card"
-import Image from "next/image"
-import { cn } from "@/lib/utils"
-import { Button } from "../ui/button"
+"use client";
 
-interface SuggestionCardProps {
-  img: string
-  title: string
-  selected: boolean
-  className?: string
+import React from "react";
+import Image from "next/image";
+import { cn } from "@/lib/utils";
+import { Button } from "../ui/button";
+import {
+  MagnifyingGlassIcon,
+  BuildingOffice2Icon,
+  ChartBarIcon,
+} from "@heroicons/react/24/outline";
+
+export type TabKey = "research" | "profiles" | "analysis";
+
+export const SUGGESTION_BANK: Record<TabKey, string[]> = {
+  research: [
+    "Summarize recent news on the European luxury goods sector",
+    "What are the current trends shaping the global data center market",
+    "Summarize recent news related to M&A activity in the semiconductor sector",
+  ],
+  profiles: [
+    "Create a company profile of Tesla",
+    "Create a company profile of Selux AG",
+    "Create an investor profile of Investindustrial",
+  ],
+  analysis: [
+    "List of companies in the pet food industry that are based in Germany",
+    "List of private equity investors with car parts manufacture in their portfolio",
+    "Create a precedent transaction analysis on gym chain deals",
+  ],
+};
+
+type IconType = React.ComponentType<React.SVGProps<SVGSVGElement>>;
+const TABS: Array<{ key: string; label: string; Icon: IconType }> = [
+  { key: "research", label: "Research", Icon: MagnifyingGlassIcon },
+  { key: "profiles", label: "Profiles", Icon: BuildingOffice2Icon },
+  { key: "analysis", label: "Analysis", Icon: ChartBarIcon },
+];
+
+interface SuggestionsProps {
+  activeTab: TabKey;
+  onTabChange: (tab: TabKey) => void;
+  className?: string;
 }
-
-export const SuggestionCard: React.FC<SuggestionCardProps> = ({
-  img,
-  title,
-  selected,
+export const Suggestions: React.FC<SuggestionsProps> = ({
+  activeTab,
+  onTabChange,
   className,
-}) => (
-  <Card
-    className={cn(
-      "flex flex-col p-4 gap-2 shadow-none hover:shadow transition-all duration-200 cursor-pointer",
-      { "border-primary/70 shadow-lg": selected },
-      className
-    )}
-  >
-    <div className="">
-      <Image src={img} alt={title} height={30} width={30} />
-    </div>
-    <p className="text-sm">{title}</p>
-  </Card>
-)
-
-export const Suggestions = () => {
-  const [selectedSuggestion, setSelectedSuggestion] = useState<number | null>(null)
-  const suggestions = [
-    {
-      img: "/images/suggest/building.png",
-      title: "Generate Company Profile",
-    },
-    {
-      img: "/images/suggest/ziel.png",
-      title: "Generate Target List",
-    },
-    {
-      img: "/images/suggest/munze.png",
-      title: "Generate Financial Sponsor List",
-    },
-    {
-      img: "/images/suggest/company.png",
-      title: "Create Company Strip Profiles",
-    },
-    {
-      img: "/images/suggest/web-search.png",
-      title: "Conduct Market Web Research",
-    },
-    {
-      img: "/images/suggest/scale.png",
-      title: "Benchmarking Analysis",
-    },
-  ]
-
+}) => {
   return (
-    <div className="flex flex-col w-full items-center justify-center bg-white my-8">
-      <div className="">
-        <Image
-          src="/images/logo_small.jpg"
-          alt="logo"
-          width={40}
-          height={40}
-          className=""
-        />
-      </div>
+    <div
+      className={cn(
+        "flex flex-col w-full items-center justify-center bg-white my-8",
+        className
+      )}
+    >
+      <Image src="/images/logo_small.jpg" alt="logo" width={40} height={40} />
       <h1
         className="text-2xl font-normal text-gray-800 my-6 text-center"
         style={{ fontFamily: "Times New Roman" }}
       >
         Instant Corporate Finance Workflows
       </h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
-        {suggestions.map((suggestion, index) => (
-          <div
-            key={index}
-            onClick={() => setSelectedSuggestion(index)}
-            className="w-full"
-          >
-            <SuggestionCard
-              key={index}
-              img={suggestion.img}
-              title={suggestion.title}
-              selected={selectedSuggestion === index}
-            />
-          </div>
-        ))}
+      <div className="w-full max-w-2xl">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {TABS.map(({ key, label, Icon }) => {
+            const isActive = activeTab === key
+            return (
+              <Button
+                key={key}
+                onClick={() => onTabChange(key)}
+                variant={isActive ? "default" : "outline"}
+                className={cn(
+                  "h-12 w-full px-4 gap-3 rounded-2xl text-base font-medium justify-center",
+                  !isActive && "bg-muted/60",
+                  isActive && "shadow-sm"
+                )}
+              >
+                <Icon className="w-7 h-7" />
+                <span className="tracking-tight">{label}</span>
+              </Button>
+            );
+          })}
+        </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
 interface BottomSuggestionsProps {
-  setInput: (input: string) => void
-  className?: string
+  setInput: (input: string) => void;
+  items?: string[];
+  className?: string;
 }
-export const BottomSuggestions = ({ setInput, className }: BottomSuggestionsProps) => {
-  const shortSuggestions = [
-    "Company Profile of Siemens",
-    "Give me an intro to SAP",
-    "Volkswagen AG",
-    "Profile of Bosch",
-    "Give me an Overview of Daimler",
-  ]
-  return (
-    <div className={cn("w-full flex flex-wrap gap-4 justify-center", className)}>
-      {shortSuggestions.map((suggestion, index) => (
-        <Button
-          key={index}
-          onClick={() => setInput(suggestion)}
-          className="w-fit text-xs h-8 border cursor-pointer text-muted-foreground bg-secondary"
-          variant="ghost"
-        >
-          {suggestion}
-        </Button>
+export const BottomSuggestions: React.FC<BottomSuggestionsProps> = ({
+  setInput,
+  items = [],
+  className,
+}) => (
+  <div className={cn("w-full max-w-3xl", className)}>
+    <ul className="rounded-xl border-b bg-muted/20 divide-y divide-border">
+      {items.map((suggestion, idx) => (
+        <li key={idx}>
+          <Button
+            type="button"
+            onClick={() => setInput(suggestion)}
+            variant="ghost"
+            className="w-full justify-start h-12 px-4 text-left text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+            aria-label={`Use suggestion: ${suggestion}`}
+          >
+            <span className="truncate">{suggestion}</span>
+          </Button>
+        </li>
       ))}
-    </div>
-  )
-}
+    </ul>
+  </div>
+);
