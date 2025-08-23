@@ -22,6 +22,12 @@ type Company = {
   similarity_score: number;
 };
 
+type CompanyCardData = {
+  name: string;
+  city: string;
+  country: string;
+};
+
 const backendURL =
   process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
@@ -43,7 +49,9 @@ const Chat = () => {
   const [canvasData, setCanvasData] = useState<Record<string, any> | null>(
     null
   );
-   const [streamingCanvasContent, setStreamingCanvasContent] = useState<string>("");
+  const [streamingCanvasContent, setStreamingCanvasContent] =
+    useState<string>("");
+    const [companyCard, setCompanyCard] = useState<CompanyCardData | null>(null);
 
   const handleCardClick = (data: any) => {
     setCanvasData(data);
@@ -83,8 +91,10 @@ const Chat = () => {
     setIsProfileStreaming(false);
     setCanvasOpen(false);
     setCanvasData(null);
+    setCompanyCard(null);
 
     let companyProfileSections: Record<string, any> = {};
+    let isProfileStreamDetected = false;
 
     try {
       // Add timeout to the fetch request
@@ -175,30 +185,10 @@ const Chat = () => {
             continue;
           }
 
-          const { data, event: eventType } = parsed;
-
-          // Handle entity profile stages
-          if (
-            eventType === "company_profile" &&
-            data?.meta?.stage === "processing"
-          ) {
-            const message = data.text || "";
-
-            const matchedIndex = PROFILESTAGES.findIndex((stage) =>
-              stage.match.test(message)
-            );
-            if (
-              matchedIndex !== -1 &&
-              matchedIndex > (activeStageIndex ?? -1)
-            ) {
-              setActiveStageIndex(matchedIndex);
-            }
-          }
+          const { data, event: eventType } = parsed;         
 
           // Handle text streaming during processing
           if (eventType === "text") {
-            setIsProfileStreaming(true);
-            setCanvasOpen(true);
             if (data?.meta?.stage === "processing") {
               const newText = data?.text || "";
               setStreamingMessage((prev) => prev + newText);
@@ -210,6 +200,20 @@ const Chat = () => {
             }
           }
 
+          if (eventType === "company_profile_card") {
+            const newCompanyCardData: CompanyCardData = {
+              name: data?.company_name,
+              city: data?.company_city,
+              country: data?.company_country,
+            };
+            setCompanyCard(newCompanyCardData);
+            append({
+                role: "company_profile_card",
+                content: "",
+                data: newCompanyCardData,
+                createdAt: new Date(),
+            });}
+
           // Handle company profile messages
           if (eventType === "company_profile") {
             const stage = data?.meta?.stage;
@@ -220,16 +224,7 @@ const Chat = () => {
             setCanvasOpen(true);
             setStreamingCanvasContent((prev) => prev + text);
 
-            const matchedIndex = PROFILESTAGES.findIndex((stage) =>
-              stage.match.test(text)
-            );
-            if (
-              matchedIndex !== -1 &&
-              matchedIndex > (activeStageIndex ?? -1)
-            ) {
-              setActiveStageIndex(matchedIndex);
-            }
-           
+
             // Update the state for the canvas with the new section data
             setCanvasData((prevData) => {
               const newData = { ...prevData, ...sectionData };
@@ -263,61 +258,7 @@ const Chat = () => {
         }
       }
     } catch (error) {
-      // Handle structured section data directly from the new format
-      // if (section && sectionData) {
-      //   if (section === "company_news_item") {
-      //     if (!companyProfileSections["company_news"]) {
-      //       companyProfileSections["company_news"] = [];
-      //     }
-      //     companyProfileSections["company_news"].push(sectionData);
-      //   } else if (section === "financial_information_year") {
-      //     if (!companyProfileSections["financial_information"]) {
-      //       companyProfileSections["financial_information"] = [];
-      //     }
-      //     companyProfileSections["financial_information"].push(
-      //       sectionData
-      //     );
-      //   } else {
-      //     companyProfileSections[section] = sectionData;
-      //   }
-      // }
-
-      // Handle the final complete profile
-      // if (stage === "final" && section === "complete_profile") {
-      //   console.log("🎯 Final company profile received");
-      //   // append({
-      //   //   role: "company-profile",
-      //   //   content: "",
-      //   //   data: companyProfileSections,
-      //   // })
-
-      //   // reset buffer and stop streaming
-      //   // companyProfileSections = {}
-      //   // setActiveStageIndex(null)
-      //   // setIsStreaming(false)
-      //   // setStreamingMessage("")
-      //   // scrollToBottom()
-      // }
-
-      // Fallback: if we have accumulated profile data and get a final stage, consider it complete
-      // if (stage === "final") {
-      // console.log("🎯 Final company profile received (fallback)")
-      // append({
-      //   role: "company-profile",
-      //   content: "",
-      //   data: companyProfileSections,
-      // })
-      // reset buffer and stop streaming
-      // companyProfileSections = {}
-      // setActiveStageIndex(null)
-      // setIsStreaming(false)
-      // setStreamingMessage("")
-      // scrollToBottom()
-      // }
-      //     }
-      //   }
-      // }
-      // }
+    
       console.error("❌ Error during streaming:", error);
 
       if (error instanceof Error) {
@@ -427,11 +368,7 @@ const Chat = () => {
             </button>
           </div>
 
-          <ProfileMessages
-    isProfileStreaming={isProfileStreaming}
-    activeStageIndex={activeStageIndex}
-    streamingMarkdownContent={streamingCanvasContent}
-/>
+          <ProfileMessages streamingMarkdownContent={streamingCanvasContent} />
         </div>
       )}
     </div>
