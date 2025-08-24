@@ -50,7 +50,7 @@ export const Suggestions: React.FC<SuggestionsProps> = ({
   return (
     <div
       className={cn(
-        "flex flex-col w-full items-center justify-center bg-white my-8",
+        "flex flex-col w-full items-center justify-center  my-8",
         className
       )}
     >

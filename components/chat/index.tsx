@@ -9,12 +9,12 @@ import {
   Suggestions,
   TabKey,
 } from "./Suggestions";
-import { ActiveProjects } from "./ActiveProjects";
 import { Messages } from "./Messages";
 import { useChatStore } from "@/store/chatStore";
 import { PROFILESTAGES } from "@/lib/chat-helpers";
 import { ProfileMessages } from "./Profile";
 import { XMarkIcon } from "@heroicons/react/24/outline";
+import { AnimatePresence, motion } from "framer-motion";
 
 type Company = {
   company_name: string;
@@ -33,7 +33,6 @@ const backendURL =
 
 const Chat = () => {
   const { user, loading } = useAuth();
-  //  const userId = "aa227293-c91c-4b03-91db-0d2048ee73e7"
   const userId = user?.user_id ?? "";
 
   const { messages, input, append, setInput } = useChatStore();
@@ -46,12 +45,15 @@ const Chat = () => {
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isCanvasOpen, setCanvasOpen] = useState<boolean>(false);
   const [isProfileStreaming, setIsProfileStreaming] = useState<boolean>(false);
-  const [canvasData, setCanvasData] = useState<Record<string, any> | null>(
-    null
-  );
-  const [streamingCanvasContent, setStreamingCanvasContent] =
-    useState<string>("");
-    const [companyCard, setCompanyCard] = useState<CompanyCardData | null>(null);
+  const [canvasData, setCanvasData] = useState<Record<string, any> | null>(null);
+  const [streamingCanvasContent, setStreamingCanvasContent] = useState<string>("");
+  const [companyCard, setCompanyCard] = useState<CompanyCardData | null>(null);
+  const [Sources, setSources] = useState<
+    Array<{ id: number; title: string; url: string }>
+  >([]);
+
+  // Overlay for Sources over the LEFT pane
+  const [sourcesOpen, setSourcesOpen] = useState(false);
 
   const handleCardClick = (data: any) => {
     setCanvasData(data);
@@ -59,11 +61,7 @@ const Chat = () => {
   };
 
   const scrollToBottom = useCallback(() => {
-    // Throttle scroll calls to prevent excessive DOM updates
-    if (scrollTimeoutRef.current) {
-      return;
-    }
-
+    if (scrollTimeoutRef.current) return;
     scrollTimeoutRef.current = setTimeout(() => {
       const end = endRef.current;
       if (end) {
@@ -97,12 +95,11 @@ const Chat = () => {
     let isProfileStreamDetected = false;
 
     try {
-      // Add timeout to the fetch request
       const controller = new AbortController();
       const timeoutId = setTimeout(() => {
-        console.log("⏰ Request timeout after 30 seconds");
+        console.log("Request timeout after 30 seconds");
         controller.abort();
-      }, 30000); // 30 second timeout
+      }, 30000);
 
       const response = await fetch(`${backendURL}/chat`, {
         method: "POST",
@@ -120,11 +117,6 @@ const Chat = () => {
       });
 
       clearTimeout(timeoutId);
-      console.log(
-        "📥 Response received:",
-        response.status,
-        response.statusText
-      );
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -133,17 +125,13 @@ const Chat = () => {
       const reader = response.body?.getReader();
       if (!reader) throw new Error("No reader available.");
 
-      console.log("📖 Starting to read stream...");
       const decoder = new TextDecoder();
       let parsed: any;
-      let chunkCount = 0;
 
       while (true) {
         const { done, value } = await reader.read();
-        chunkCount++;
 
         if (done) {
-          // console.log("✅ Stream completed after", chunkCount, "chunks")
           if (processingBuffer.trim()) {
             append({ role: "assistant", content: processingBuffer });
           }
@@ -152,7 +140,6 @@ const Chat = () => {
           if (parsed?.data?.session_id) {
             setSessionId(parsed.data.session_id);
           }
-          //-------- appending profile here because sometimes im not getting meta stage final in response-------------
 
           if (
             companyProfileSections &&
@@ -169,6 +156,7 @@ const Chat = () => {
           setStreamingMessage("");
           scrollToBottom();
           setIsProfileStreaming(false);
+          
           break;
         }
 
@@ -185,15 +173,14 @@ const Chat = () => {
             continue;
           }
 
-          const { data, event: eventType } = parsed;         
+          const { data, event: eventType } = parsed;
 
-          // Handle text streaming during processing
           if (eventType === "text") {
             if (data?.meta?.stage === "processing") {
               const newText = data?.text || "";
               setStreamingMessage((prev) => prev + newText);
               processingBuffer += newText;
-              // Throttle scroll during text streaming
+
               if (processingBuffer.length % 50 === 0) {
                 scrollToBottom();
               }
@@ -208,27 +195,24 @@ const Chat = () => {
             };
             setCompanyCard(newCompanyCardData);
             append({
-                role: "company_profile_card",
-                content: "",
-                data: newCompanyCardData,
-                createdAt: new Date(),
-            });}
+              role: "company_profile_card",
+              content: "",
+              data: newCompanyCardData,
+              createdAt: new Date(),
+            });
+          }
 
-          // Handle company profile messages
           if (eventType === "company_profile") {
-            const stage = data?.meta?.stage;
             const section = data?.section;
             const sectionData = data?.data;
             const text = data?.text || "";
+
             setIsProfileStreaming(true);
             setCanvasOpen(true);
             setStreamingCanvasContent((prev) => prev + text);
 
-
-            // Update the state for the canvas with the new section data
             setCanvasData((prevData) => {
               const newData = { ...prevData, ...sectionData };
-              // Special handling for array-based sections
               if (section === "company_news_item") {
                 const news = prevData?.company_news || [];
                 return { ...newData, company_news: [...news, sectionData] };
@@ -242,23 +226,16 @@ const Chat = () => {
               }
               return { ...newData, [section]: sectionData };
             });
-          } else if (eventType === "text") {
-            // This condition is for regular text streaming
-            setIsProfileStreaming(false); // Ensure profile streaming is off for text responses
-            if (data?.meta?.stage === "processing") {
-              const newText = data?.text || "";
-              setStreamingMessage((prev) => prev + newText);
-              processingBuffer += newText;
-              // Throttle scroll during text streaming
-              if (processingBuffer.length % 50 === 0) {
-                scrollToBottom();
-              }
-            }
+          }
+
+          if (eventType === "sources") {
+            const incoming = Array.isArray(data?.sources) ? data.sources : [];
+            console.log(incoming);
+            setSources(incoming);
           }
         }
       }
     } catch (error) {
-    
       console.error("❌ Error during streaming:", error);
 
       if (error instanceof Error) {
@@ -285,7 +262,6 @@ const Chat = () => {
       setStreamingMessage("");
       setIsProfileStreaming(false);
 
-      // Cleanup scroll timeout on error
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current);
         scrollTimeoutRef.current = null;
@@ -302,25 +278,27 @@ const Chat = () => {
     };
   }, []);
 
-  // console.log(activeStageIndex);
-
   return (
-    <div className={cn("h-screen flex bg-white")}>
-      <div
-        className={cn(
-          "flex flex-col h-screen",
-          isCanvasOpen ? "w-2/5" : "w-full"
-        )}
+    <div className="flex h-screen overflow-hidden bg-gray-50">
+      {/* LEFT PANE: messages + prompt */}
+      <motion.div
+        className="flex flex-col flex-1 h-screen relative z-0"
+        initial={false} // no animation on first render
+        animate={{ width: isCanvasOpen ? "35%" : "100%" }}
+        transition={{ type: "spring", stiffness: 250, damping: 25 }}
+        layout
       >
+        {/* Suggestions (centered look based on your original) */}
         {messages.length <= 0 && (
-          <div className="max-w-3xl mx-auto w-full px-2">
+          <div className="max-w-3xl pt-10 mx-auto w-full px-2">
             <Suggestions activeTab={activeTab} onTabChange={setActiveTab} />
           </div>
         )}
+
+        {/* Messages area */}
         <div className="flex-1 flex flex-col max-w-3xl w-full mx-auto overflow-hidden">
           {messages.length > 0 && (
             <div className="flex-1 min-h-0 flex flex-col">
-              {/* {!isProfileStreaming && ( */}
               <Messages
                 messages={messages}
                 isStreaming={isStreaming}
@@ -330,11 +308,12 @@ const Chat = () => {
                 isProfileStreaming={isProfileStreaming}
                 onCardClick={handleCardClick}
               />
-              {/* )} */}
             </div>
           )}
         </div>
-        <div className="w-full max-w-3xl mx-auto bg-white z-10">
+
+        {/* Prompt box */}
+        <div className="w-full max-w-3xl mx-auto  z-10">
           <PromptField
             handleSend={handleSend}
             input={input}
@@ -345,32 +324,98 @@ const Chat = () => {
             messages={messages}
           />
         </div>
+
+        {/* Bottom suggestions (just like your screenshot) */}
         {messages.length <= 0 && (
-          <div className="w-full max-w-3xl text-muted-foreground mx-auto px-2">
+          <div className="w-full max-w-3xl pb-24 text-muted-foreground mx-auto px-2">
             <BottomSuggestions
               items={SUGGESTION_BANK[activeTab] ?? []}
               setInput={setInput}
             />
           </div>
         )}
-      </div>
 
-      {isCanvasOpen && (
-        <div className="w-3/5 overflow-auto bg-gray-100 p-4 border-l relative">
-          <div className="border-b p-2 mb-2">
-            <h1>Canvas</h1>
-            <button
-              onClick={() => setCanvasOpen(false)}
-              className="absolute top-4 right-4 z-20 p-1"
-              aria-label="Close canvas"
+        
+        {sourcesOpen && (
+          <div
+            className="absolute inset-0 z-50"
+            onClick={() => setSourcesOpen(false)}
+          >
+            <div className="absolute inset-0 bg-black/10" />
+            <div
+              className="relative bg-white w-full h-full shadow-lg"
+              onClick={(e) => e.stopPropagation()}
             >
-              <XMarkIcon className="h-5 w-5 cursor-pointer text-gray-800 hover:text-black ease-in-out transition-colors duration-200 hover:scale-125" />
-            </button>
+              <div className="flex items-center justify-between px-4 py-3 border-b sticky top-0 bg-white">
+                <h2 className="font-semibold">Sources</h2>
+                <button
+                  className="text-gray-600 hover:text-black"
+                  onClick={() => setSourcesOpen(false)}
+                  aria-label="Close"
+                >
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              </div>
+              <div className="h-[calc(100%-52px)] overflow-y-auto px-4 py-3">
+                {Sources.length ? (
+                  <ul className="list-decimal pl-5 space-y-2">
+                    {Sources.map((s, i) => (
+                      <li key={s.id ?? i}>
+                        <a
+                          href={s.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
+                          {s.title || s.url}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-gray-500">No sources available</p>
+                )}
+              </div>
+            </div>
           </div>
+        )}
+      </motion.div>
 
-          <ProfileMessages streamingMarkdownContent={streamingCanvasContent} />
-        </div>
-      )}
+      {/* RIGHT PANE: canvas */}
+      <AnimatePresence initial={false}> 
+        {isCanvasOpen && (
+          <motion.div
+            className="flex flex-col bg-gray-50 p-6 border-l shadow-xl"
+            style={{ width: "65%" }}  
+            initial={{ opacity: 0 }}   
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}      
+            transition={{ type: "spring", stiffness: 250, damping: 25 }}
+            layout
+          >
+            <div className="border-b pb-4 mb-4 flex items-center justify-between sticky top-0 bg-gray-50 z-10">
+              <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">
+                Company Profile
+              </h1>
+              <button
+                onClick={() => setCanvasOpen(false)}
+                className="p-2 text-gray-500 hover:text-gray-800 transition-colors duration-200"
+                aria-label="Close canvas"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-1 scrollbar-hide">
+              <ProfileMessages
+                streamingMarkdownContent={streamingCanvasContent}
+                sources={Sources}
+                onOpenSources={() => setSourcesOpen(true)} 
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

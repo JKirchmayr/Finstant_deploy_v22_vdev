@@ -1,17 +1,18 @@
 import React from "react";
 import { cn } from "../../lib/utils";
 import { Markdown } from "../markdown";
-import { Streamdown } from "streamdown";
+
 import TypingDots from "../TypingDots";
-import { Building2Icon, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import CompanyProfileCard from "../company-profile/CompanyProfileCard";
 import { PROFILESTAGES } from "@/lib/chat-helpers";
 import StageProgress from "../StageProgress";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
+import { BuildingOffice2Icon } from "@heroicons/react/24/outline";
+import Streamdown from "streamdown";
 
 type Message = {
-  role: "user" | "assistant" | "system" | "company-profile" | "data" | "company_profile_card";
+  role: "user" | "assistant" | "system" | "company-profile" | "data" |"company_profile_card";
   content: string;
   data?: any;
   createdAt?: Date;
@@ -47,7 +48,6 @@ export const Messages = ({
         const isAssistant = m.role === "assistant";
         const isCompanyProfile = m.role === "company-profile";
         const isCompanyCard = m.role === "company_profile_card";
-
         if (isProfileStreaming && (isAssistant || isCompanyProfile)) {
           return null;
         }
@@ -64,34 +64,24 @@ export const Messages = ({
               className={cn(
                 "max-w-full text-sm leading-relaxed px-1 py-1 rounded-md",
                 {
-                  "ml-auto bg-secondary/40 border font-normal px-4 py-1 rounded-md max-w-xs": isUser,
+                  "ml-auto bg-secondary/40 border font-normal px-4 py-1 rounded-md max-w-xs  ":
+                    isUser,
                   "text-gray-800 mr-auto border-none rounded-md": !isUser,
                 }
               )}
             >
-              {isCompanyProfile && m.data ? (
-                <>
-                  {/* <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="cursor-pointer hover:shadow-lg transition-shadow duration-200"
-                    onClick={() => onCardClick(m.data)}
-                  >
-                    <CompanyProfileCard data={m.data} />
-                  </motion.div> */}
-                </>
-              ) : isCompanyCard && m.data ? (
+              
+              {isCompanyCard && m.data ? (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.2 }}
-                  className="cursor-pointer hover:shadow-lg transition-shadow duration-200"
+                  className="cursor-pointer "
                   onClick={() => onCardClick(m.data)}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center p-4 hover:scale-115 gap-3">
                     <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <Building2Icon className="w-4 h-4 text-gray-700" />
+                      <BuildingOffice2Icon className="w-4 h-4 text-gray-700" />
                     </div>
                     <div className="flex-1">
                       <div className="font-semibold text-sm text-gray-900">
@@ -102,35 +92,42 @@ export const Messages = ({
                       </div>
                     </div>
                   </div>
+                 
                 </motion.div>
               ) : (
-                <>
-                  <Markdown>{m.role !== "data" && m.content}</Markdown>
-                </>
+                <Streamdown>{m.content}</Streamdown>
               )}
             </div>
           </div>
         );
       })}
-      {isStreaming && streamingMessage && !isProfileStreaming && (
+
+      {isStreaming && streamingMessage && (
         <div className="flex justify-start">
           <div className="max-w-full text-sm leading-relaxed px-1 py-1 mr-auto border-none rounded-md">
-            <Streamdown>{streamingMessage}</Streamdown>
+            <Markdown>{streamingMessage}</Markdown>
           </div>
         </div>
       )}
+
       {isStreaming && (
         <div className="flex justify-start">
           <div className="rounded-2xl text-sm text-gray-600 max-w-[75%]">
-            {isProfileStreaming && (
+            
               <div className="px-2">
                 <TypingDots />
               </div>
-            )}
+            
           </div>
         </div>
       )}
-      <div ref={endRef} />
+
+      {messages.length > 1 && (
+        <div
+          className={cn("h-1 opacity-0", { "h-5": messages.length > 1 })}
+          ref={endRef}
+        />
+      )}
     </div>
   );
 };

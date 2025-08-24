@@ -256,3 +256,33 @@ body {
 .range-slider .range-slider__range{
   background: black !important;
 }
+
+.streamdown-images img {
+  @apply rounded-md; 
+}
+
+/* Styling for citation links (applied via the 'source-citation' class) */
+.source-citation {
+    /* Ensures the color is inherited from surrounding text (not blue) */
+    color: inherit; 
+    /* Removes the default underline */
+    text-decoration: none; 
+    /* Indicates clickability */
+    cursor: pointer;
+}
+
+/* Adds the opening bracket [ */
+.source-citation::before {
+    content: "[";
+}
+
+/* Adds the closing bracket ] */
+.source-citation::after {
+    content: "]";
+}
+
+/* Adds the underline back only on hover */
+.source-citation:hover {
+    text-decoration: underline;
+    
+}
