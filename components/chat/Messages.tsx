@@ -1,7 +1,7 @@
 import React from "react";
 import { cn } from "../../lib/utils";
 import { Markdown } from "../markdown";
-
+import { FileCard } from "./CompanyProfileCard";
 import TypingDots from "../TypingDots";
 import { Loader2 } from "lucide-react";
 import CompanyProfileCard from "../company-profile/CompanyProfileCard";
@@ -10,9 +10,16 @@ import StageProgress from "../StageProgress";
 import { AnimatePresence, motion } from "framer-motion";
 import { BuildingOffice2Icon } from "@heroicons/react/24/outline";
 import Streamdown from "streamdown";
+import { useFileStore } from "@/store/useCompanyProfile";
 
 type Message = {
-  role: "user" | "assistant" | "system" | "company-profile" | "data" |"company_profile_card";
+  role:
+    | "user"
+    | "assistant"
+    | "system"
+    | "company-profile"
+    | "data"
+    | "company_profile_card";
   content: string;
   data?: any;
   createdAt?: Date;
@@ -24,7 +31,7 @@ type MessagesProps = {
   streamingMessage: string | null;
   activeStageIndex: number | null;
   endRef: React.RefObject<HTMLDivElement>;
-  isProfileStreaming: boolean;
+  // isProfileStreaming: boolean;
   onCardClick: (data: any) => void;
 };
 
@@ -34,9 +41,10 @@ export const Messages = ({
   streamingMessage,
   activeStageIndex,
   endRef,
-  isProfileStreaming,
+  // isProfileStreaming,
   onCardClick,
 }: MessagesProps) => {
+  const { isProfileStreaming } = useFileStore();
   return (
     <div
       className={cn(
@@ -70,30 +78,35 @@ export const Messages = ({
                 }
               )}
             >
-              
               {isCompanyCard && m.data ? (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="cursor-pointer "
+                // <motion.div
+                //   initial={{ opacity: 0, y: 10 }}
+                //   animate={{ opacity: 1, y: 0 }}
+                //   transition={{ duration: 0.2 }}
+                //   className="cursor-pointer "
+                //   onClick={() => onCardClick(m.data)}
+                // >
+                //   <div className="flex items-center p-4 hover:scale-115 gap-3">
+                //     <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                //       <BuildingOffice2Icon className="w-4 h-4 text-gray-700" />
+                //     </div>
+                //     <div className="flex-1">
+                //       <div className="font-semibold text-sm text-gray-900">
+                //         <span>{m.data.name}</span>
+                //       </div>
+                //       <div className="text-xs text-gray-500">
+                //         {m.data.city && m.data.country ? `${m.data.city}, ${m.data.country}` : ''}
+                //       </div>
+                //     </div>
+                //   </div>
+
+                // </motion.div>
+                <FileCard
+                  name={m.data.name}
+                  city={m.data.city}
+                  country={m.data.country}
                   onClick={() => onCardClick(m.data)}
-                >
-                  <div className="flex items-center p-4 hover:scale-115 gap-3">
-                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <BuildingOffice2Icon className="w-4 h-4 text-gray-700" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="font-semibold text-sm text-gray-900">
-                        <span>{m.data.name}</span>
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {m.data.city && m.data.country ? `${m.data.city}, ${m.data.country}` : ''}
-                      </div>
-                    </div>
-                  </div>
-                 
-                </motion.div>
+                />
               ) : (
                 <Streamdown>{m.content}</Streamdown>
               )}
@@ -113,11 +126,9 @@ export const Messages = ({
       {isStreaming && (
         <div className="flex justify-start">
           <div className="rounded-2xl text-sm text-gray-600 max-w-[75%]">
-            
-              <div className="px-2">
-                <TypingDots />
-              </div>
-            
+            <div className="px-2">
+              <TypingDots />
+            </div>
           </div>
         </div>
       )}

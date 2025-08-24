@@ -1,4 +1,5 @@
 import { AppSidebar } from "@/components/app-sidebar"
+import { TopNavbar } from "@/components/NavBar"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import React, { ReactNode } from "react"
 
@@ -7,7 +8,10 @@ export default function layout({ children }: { children: ReactNode }) {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <main className="h-dvh overflow-auto">{children}</main>
+        <div className="h-dvh flex flex-col">
+          <TopNavbar />
+        <main className="flex-1 overflow-auto">{children}</main>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   )

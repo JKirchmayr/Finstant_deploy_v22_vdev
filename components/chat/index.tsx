@@ -15,6 +15,7 @@ import { PROFILESTAGES } from "@/lib/chat-helpers";
 import { ProfileMessages } from "./Profile";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { AnimatePresence, motion } from "framer-motion";
+import { useFileStore } from "@/store/useCompanyProfile";
 
 type Company = {
   company_name: string;
@@ -44,13 +45,18 @@ const Chat = () => {
   const endRef = useRef<HTMLDivElement>(null);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isCanvasOpen, setCanvasOpen] = useState<boolean>(false);
-  const [isProfileStreaming, setIsProfileStreaming] = useState<boolean>(false);
-  const [canvasData, setCanvasData] = useState<Record<string, any> | null>(null);
-  const [streamingCanvasContent, setStreamingCanvasContent] = useState<string>("");
-  const [companyCard, setCompanyCard] = useState<CompanyCardData | null>(null);
+  //const [isProfileStreaming, setIsProfileStreaming] = useState<boolean>(false);
+  const [canvasData, setCanvasData] = useState<Record<string, any> | null>(
+    null
+  );
+  const [streamingCanvasContent, setStreamingCanvasContent] =
+    useState<string>("");
+  //const [companyCard, setCompanyCard] = useState<CompanyCardData | null>(null);
   const [Sources, setSources] = useState<
     Array<{ id: number; title: string; url: string }>
   >([]);
+
+  const { addFile, setIsProfileStreaming } = useFileStore();
 
   // Overlay for Sources over the LEFT pane
   const [sourcesOpen, setSourcesOpen] = useState(false);
@@ -86,10 +92,11 @@ const Chat = () => {
     setInput("");
     scrollToBottom();
     setIsStreaming(true);
-    setIsProfileStreaming(false);
+    //setIsProfileStreaming(false);
     setCanvasOpen(false);
     setCanvasData(null);
-    setCompanyCard(null);
+    //setCompanyCard(null);
+    setSources([]);
 
     let companyProfileSections: Record<string, any> = {};
     let isProfileStreamDetected = false;
@@ -126,6 +133,7 @@ const Chat = () => {
       if (!reader) throw new Error("No reader available.");
 
       const decoder = new TextDecoder();
+
       let parsed: any;
 
       while (true) {
@@ -156,7 +164,7 @@ const Chat = () => {
           setStreamingMessage("");
           scrollToBottom();
           setIsProfileStreaming(false);
-          
+
           break;
         }
 
@@ -193,7 +201,8 @@ const Chat = () => {
               city: data?.company_city,
               country: data?.company_country,
             };
-            setCompanyCard(newCompanyCardData);
+            // setCompanyCard(newCompanyCardData);
+            addFile(newCompanyCardData);
             append({
               role: "company_profile_card",
               content: "",
@@ -226,12 +235,12 @@ const Chat = () => {
               }
               return { ...newData, [section]: sectionData };
             });
-          }
-
-          if (eventType === "sources") {
-            const incoming = Array.isArray(data?.sources) ? data.sources : [];
-            console.log(incoming);
-            setSources(incoming);
+            if (data?.meta?.stage === "sources") {
+              console.log("sources recieved");
+              const incoming = Array.isArray(data?.sources) ? data.sources : [];
+              console.log(incoming);
+              setSources(incoming);
+            }
           }
         }
       }
@@ -305,7 +314,7 @@ const Chat = () => {
                 streamingMessage={streamingMessage}
                 activeStageIndex={activeStageIndex}
                 endRef={endRef}
-                isProfileStreaming={isProfileStreaming}
+                // isProfileStreaming={isProfileStreaming}
                 onCardClick={handleCardClick}
               />
             </div>
@@ -335,7 +344,6 @@ const Chat = () => {
           </div>
         )}
 
-        
         {sourcesOpen && (
           <div
             className="absolute inset-0 z-50"
@@ -359,15 +367,20 @@ const Chat = () => {
               <div className="h-[calc(100%-52px)] overflow-y-auto px-4 py-3">
                 {Sources.length ? (
                   <ul className="list-decimal pl-5 space-y-2">
-                    {Sources.map((s, i) => (
-                      <li key={s.id ?? i}>
+                    {Sources.map((s) => (
+                      <li key={s.id} className="text-sm">
+                        {" "}
+                        {/* Added key={s.id} for better performance */}
+                        <div className="font-semibold text-gray-800">
+                          {s.title}
+                        </div>
                         <a
                           href={s.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline"
+                          className="text-gray-800 hover:underline break-all" 
                         >
-                          {s.title || s.url}
+                          {s.url}
                         </a>
                       </li>
                     ))}
@@ -382,14 +395,14 @@ const Chat = () => {
       </motion.div>
 
       {/* RIGHT PANE: canvas */}
-      <AnimatePresence initial={false}> 
+      <AnimatePresence initial={false}>
         {isCanvasOpen && (
           <motion.div
             className="flex flex-col bg-gray-50 p-6 border-l shadow-xl"
-            style={{ width: "65%" }}  
-            initial={{ opacity: 0 }}   
+            style={{ width: "65%" }}
+            initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}      
+            exit={{ opacity: 0 }}
             transition={{ type: "spring", stiffness: 250, damping: 25 }}
             layout
           >
@@ -410,7 +423,7 @@ const Chat = () => {
               <ProfileMessages
                 streamingMarkdownContent={streamingCanvasContent}
                 sources={Sources}
-                onOpenSources={() => setSourcesOpen(true)} 
+                onOpenSources={() => setSourcesOpen(true)}
               />
             </div>
           </motion.div>

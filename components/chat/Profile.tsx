@@ -12,12 +12,12 @@ type Source = {
 type ProfileMessagesProps = {
   streamingMarkdownContent: string;
   sources: Array<Source>;
-  onOpenSources?: () => void; // 🔔 trigger overlay in LEFT pane
+  onOpenSources?: () => void; 
 };
 
 export const ProfileMessages = ({
   streamingMarkdownContent,
-  sources, // kept for typing parity, even if not used here
+  sources, 
   onOpenSources,
 }: ProfileMessagesProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -26,7 +26,7 @@ export const ProfileMessages = ({
     const root = containerRef.current;
     if (!root) return;
 
-    // Walk text nodes and wrap [n] with a clickable span.
+    
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
       acceptNode: (node) => {
         const text = node.nodeValue || "";
@@ -44,7 +44,7 @@ export const ProfileMessages = ({
 
     nodesToProcess.forEach((textNode) => {
       const text = textNode.nodeValue || "";
-      const re = /\[(\d+)\]/g; // fresh regex for this node
+      const re = /\[(\d+)\]/g; 
       let match: RegExpExecArray | null;
       let lastIndex = 0;
 
