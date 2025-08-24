@@ -1,59 +1,47 @@
 "use client";
 
-import {
-  ChevronRight,
-  Home,
-  LogOut,
-  Settings,
-  type LucideIcon,
-} from "lucide-react";
+
+import { ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import {
   SidebarGroup,
-  SidebarGroupLabel,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
+  SidebarMenuButton,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const items = [
-  { name: "Assistant", url: "/copilot", icon: "/images/chat.png" },
-  { name: "Search", url: "#", icon: "/images/search.png" },
-  { name: "Projects", url: "#", icon: "/images/projects.png" },
-];
 
-// group-data-[collapsible=icon]:hidden
+const items = [
+  { name: "New Chat", url: "/", Icon: ChatBubbleLeftIcon },
+  
+];
 
 export function NavMain({}) {
   const pathname = usePathname();
-  // console.log(pathname)
+
   return (
-    <SidebarGroup className="">
+    <SidebarGroup>
       <SidebarMenu>
-        {items.map((item) => (
-          <SidebarMenuItem key={item.name}>
-            <SidebarMenuButton
-              asChild
-              tooltip={item.name}
-              isActive={pathname === item.url}
-            >
-              <Link href={item.url}>
-                <img src={item.icon} alt={item.name} className="size-4" />
-                <span className="mb-0.5">{item.name}</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        ))}
+        {items.map((item) => {
+          const { Icon } = item;
+          return (
+            <SidebarMenuItem key={item.name}>
+              <SidebarMenuButton
+                asChild
+                tooltip={item.name}
+                isActive={pathname === item.url}
+              >
+                <Link href={item.url}>
+                  
+                  <Icon className="size-5" /> 
+                  <span className="mb-0.5">{item.name}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          );
+        })}
       </SidebarMenu>
     </SidebarGroup>
   );
