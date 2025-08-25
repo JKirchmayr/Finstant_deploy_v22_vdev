@@ -21,34 +21,29 @@ import { FileCard } from "./chat/CompanyProfileCard"
 
 // Files dropdown component
 const FilesDropdown = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const { files } = useFileStore(); // 3. Get the files from the global store
+  const [isOpen, setIsOpen] = useState(false)
+  const { files } = useFileStore() // 3. Get the files from the global store
 
   return (
     <div className="relative">
       <Button
-        variant="ghost"
+        variant="secondary"
         size="icon"
         onClick={() => setIsOpen(!isOpen)}
-        className="h-8 w-8 hover:bg-gray-100 relative"
+        className="h-8 w-8 hover:bg-gray-100 relative rounded-full"
       >
         <FolderOpen className="h-4 w-4" />
         {/* 4. Dynamic indicator badge */}
         {files.length > 0 && (
           <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-gray-700 rounded-full flex items-center justify-center border-2 border-white">
-            <span className="text-[8px] text-white font-bold">
-              {files.length}
-            </span>
+            <span className="text-[8px] text-white font-bold">{files.length}</span>
           </div>
         )}
       </Button>
 
       {isOpen && (
         <>
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setIsOpen(false)}
-          />
+          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
           <div className="absolute right-0 top-full mt-4 w-80 h-[28rem] bg-white border border-gray-200 rounded-lg shadow-lg z-50 flex flex-col">
             <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
               <h3 className="text-sm font-medium text-gray-900">Files</h3>
@@ -88,8 +83,8 @@ const FilesDropdown = () => {
         </>
       )}
     </div>
-  );
-};
+  )
+}
 
 // User avatar component
 const UserAvatar = () => {
@@ -174,9 +169,9 @@ const UserAvatar = () => {
 
 // Main navbar component
 export const TopNavbar = () => {
-    const { isProfileStreaming } = useFileStore();
+  const { isProfileStreaming } = useFileStore()
   return (
-    <div className="h-12 border-b border-gray-200 bg-white flex items-center justify-end px-4 gap-2">
+    <div className="h-12 border-b border-gray-200 bg-white flex items-center justify-end px-4 gap-4">
       {/* {isProfileStreaming && <FilesDropdown />} */}
       <FilesDropdown />
       <UserAvatar />

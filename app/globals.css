@@ -1,5 +1,6 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@source "../node_modules/streamdown/dist/index.js";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -65,7 +66,7 @@
   --muted-foreground: oklch(0.72 0 0);
   --accent: oklch(0.32 0 0);
   --accent-foreground: oklch(1 0 0);
-  --destructive: oklch(0.69 0.20 23.91);
+  --destructive: oklch(0.69 0.2 23.91);
   --destructive-foreground: oklch(0 0 0);
   --border: oklch(0.26 0 0);
   --input: oklch(0.32 0 0);
@@ -150,6 +151,38 @@
   --shadow-2xl: var(--shadow-2xl);
 }
 
+/* Sidebar expand-on-hover transitions */
+.group-data-[collapsible='expand-on-hover'] * {
+  transition-property: all;
+  transition-duration: 200ms;
+  transition-timing-function: ease-linear;
+}
+
+/* Ensure smooth width transitions for expand-on-hover */
+.group-data-[collapsible='expand-on-hover'] [data-slot='sidebar-gap'] {
+  transition: width 200ms ease-linear;
+}
+
+.group-data-[collapsible='expand-on-hover'] [data-slot='sidebar-container'] {
+  transition: width 200ms ease-linear;
+}
+
+/* Smooth opacity transitions for content */
+.group-data-[collapsible='expand-on-hover'] [data-slot='sidebar-content'] {
+  transition: opacity 200ms ease-linear;
+}
+
+/* Smooth transitions for text content in expand-on-hover mode */
+.group-data-[collapsible='expand-on-hover'] [data-slot='sidebar-menu-button'] span {
+  transition: opacity 200ms ease-linear, width 200ms ease-linear;
+}
+
+/* Ensure proper spacing when collapsed */
+.group-data-[state='collapsed'].group-data-[collapsible='expand-on-hover']
+  [data-slot='sidebar-menu-button'] {
+  justify-content: center;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -199,7 +232,7 @@ body {
 }
 
 .inputStyle {
-  @apply bg-white border border-gray-300 rounded-sm px-2 py-1
+  @apply bg-white border border-gray-300 rounded-sm px-2 py-1;
 }
 
 @keyframes animloader {
@@ -245,7 +278,7 @@ body {
     background-position: 0% 50%, 50% 50%, 100% 100%;
   }
 }
-.range-slider{
+.range-slider {
   height: 4px !important;
 }
 .range-slider .range-slider__thumb {
@@ -253,12 +286,10 @@ body {
   height: 15px !important;
   background: rgb(0, 0, 0) !important;
 }
-.range-slider .range-slider__range{
+.range-slider .range-slider__range {
   background: black !important;
 }
 
 .streamdown-images img {
-  @apply rounded-md; 
+  @apply rounded-md;
 }
-
-

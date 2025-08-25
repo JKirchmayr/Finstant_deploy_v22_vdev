@@ -5,12 +5,12 @@ import React, { ReactNode } from "react"
 
 export default function layout({ children }: { children: ReactNode }) {
   return (
-    <SidebarProvider>
-      <AppSidebar />
+    <SidebarProvider defaultOpen={false}>
+      <AppSidebar collapsible="expand-on-hover" />
       <SidebarInset>
         <div className="h-dvh flex flex-col">
           <TopNavbar />
-        <main className="flex-1 overflow-auto">{children}</main>
+          <main className="flex-1 overflow-auto">{children}</main>
         </div>
       </SidebarInset>
     </SidebarProvider>
