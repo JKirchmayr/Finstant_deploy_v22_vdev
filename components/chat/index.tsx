@@ -81,9 +81,10 @@ const Chat = () => {
     }, 100)
   }, [])
 
-  let processingBuffer = ''
+  // let processingBuffer = ''
 
   const handleSend = async (e: React.FormEvent) => {
+    let processingBuffer = ''
     e.preventDefault()
 
     if (!input.trim()) return
@@ -194,6 +195,11 @@ const Chat = () => {
           }
 
           if (eventType === 'company_profile_card') {
+            if (processingBuffer.trim()) {
+              append({ role: 'assistant', content: processingBuffer })
+              processingBuffer = ''
+              setStreamingMessage('')
+            }
             const newCompanyCardData: InlineCardData = {
               name: data?.company_name,
               city: data?.company_city,
@@ -211,6 +217,11 @@ const Chat = () => {
           }
 
           if (eventType === 'investor_profile_card') {
+            if (processingBuffer.trim()) {
+              append({ role: 'assistant', content: processingBuffer })
+              processingBuffer = ''
+              setStreamingMessage('')
+            }
             const newCompanyCardData: InlineCardData = {
               name: data?.investor_name,
               city: data?.investor_city,
