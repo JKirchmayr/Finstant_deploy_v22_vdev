@@ -29,7 +29,6 @@ const FilesDropdown = () => {
 
   console.log(inlineCards, 'inlineCards')
 
-  return
   return (
     <div className="relative">
       <Button
@@ -73,6 +72,8 @@ const FilesDropdown = () => {
                     city={card.data?.city}
                     country={card.data?.country}
                     content={card.content}
+                    isStreaming={false}
+                    onClick={() => setIsOpen(false)}
                   />
                 ))
               ) : (

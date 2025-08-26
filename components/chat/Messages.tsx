@@ -45,17 +45,18 @@ export const Messages = ({
                 'text-gray-800 mr-auto border-none rounded-md': !isUser,
               })}
             >
+              
+              {isChatMessage && <Markdown>{m.content}</Markdown>}
               {isInlineCard && m.data && (
                 <InlineCard
                   name={m.data.name}
                   city={m.data.city}
                   country={m.data.country}
                   content={m.content}
-                  onClick={() => onCardClick(m.data)}
+                  onClick={() => onCardClick(m.content)}
                   isStreaming={isStreaming}
                 />
               )}
-              {isChatMessage && <Markdown>{m.content}</Markdown>}
             </div>
           </div>
         )

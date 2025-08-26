@@ -31,6 +31,7 @@ export const InlineCard = ({
       setMarkdown(content || '')
       setIsCanvasOpen(true)
     }
+    onClick?.()
   }
 
   return (
