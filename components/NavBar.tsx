@@ -1,29 +1,35 @@
-"use client"
+'use client'
 
-import React, { useState } from "react"
-import { FolderOpen, X, User, Settings, LogOut, Building2 } from "lucide-react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import React, { useState } from 'react'
+import { FolderOpen, X, User, Settings, LogOut, Building2 } from 'lucide-react'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
   DropdownMenuItem,
   DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu"
-import { Button } from "@/components/ui/button"
-import { useAuth } from "@/hooks/useAuth"
-import { createClient } from "@/lib/supabase/client"
-import { useRouter } from "next/navigation"
-import { toast } from "sonner"
-import { useAuthStore } from "@/store/authStore"
-import { useFileStore } from "@/store/useCompanyProfile"
-import { FileCard } from "./chat/CompanyProfileCard"
+} from '@/components/ui/dropdown-menu'
+import { Button } from '@/components/ui/button'
+import { useAuth } from '@/hooks/useAuth'
+import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
+import { useAuthStore } from '@/store/authStore'
+import { useFileStore } from '@/store/useCompanyProfile'
+import { InlineCard } from './chat/InlineCard'
+import { useChatStore } from '@/store/chatStore'
 
 // Files dropdown component
 const FilesDropdown = () => {
   const [isOpen, setIsOpen] = useState(false)
-  const { files } = useFileStore() // 3. Get the files from the global store
+  const { messages } = useChatStore()
 
+  const inlineCards = messages.filter(m => m.role === 'inline_card') || []
+
+  console.log(inlineCards, 'inlineCards')
+
+  return
   return (
     <div className="relative">
       <Button
@@ -34,9 +40,9 @@ const FilesDropdown = () => {
       >
         <FolderOpen className="h-4 w-4" />
         {/* 4. Dynamic indicator badge */}
-        {files.length > 0 && (
+        {inlineCards.length > 0 && (
           <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-gray-700 rounded-full flex items-center justify-center border-2 border-white">
-            <span className="text-[8px] text-white font-bold">{files.length}</span>
+            <span className="text-[8px] text-white font-bold">{inlineCards.length}</span>
           </div>
         )}
       </Button>
@@ -59,18 +65,14 @@ const FilesDropdown = () => {
 
             {/* 5. Dynamic Content Area */}
             <div className="flex-1 p-2 overflow-y-auto space-y-2">
-              {files.length > 0 ? (
-                files.map((file, index) => (
-                  <FileCard
-                    key={index}
-                    name={file.name}
-                    city={file.city}
-                    country={file.country}
-                    date={new Date().toLocaleDateString("en-US", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
+              {inlineCards.length > 0 ? (
+                inlineCards.map((card, index) => (
+                  <InlineCard
+                    key={card.id || index}
+                    name={card.data?.name}
+                    city={card.data?.city}
+                    country={card.data?.country}
+                    content={card.content}
                   />
                 ))
               ) : (
@@ -95,16 +97,16 @@ const UserAvatar = () => {
 
   // Get user initials
   const getInitials = (name: string) => {
-    if (!name) return "U"
+    if (!name) return 'U'
     return name
-      .split(" ")
+      .split(' ')
       .map(word => word.charAt(0))
-      .join("")
+      .join('')
       .toUpperCase()
       .slice(0, 2)
   }
 
-  const userName = user?.user_metadata?.full_name || user?.email || "User"
+  const userName = user?.user_metadata?.full_name || user?.email || 'User'
   const userInitials = getInitials(userName)
 
   // Handle logout
@@ -113,18 +115,18 @@ const UserAvatar = () => {
       const { error } = await supabase.auth.signOut()
 
       if (error) {
-        toast.error("Error while logging out. Please try again.")
+        toast.error('Error while logging out. Please try again.')
         return
       }
 
       // Clear user from store
       setUser(null)
 
-      toast.success("Logged out successfully!")
-      router.push("/login")
+      toast.success('Logged out successfully!')
+      router.push('/login')
     } catch (error) {
-      toast.error("Failed to log out. Please try again.")
-      console.error("Logout Error:", error)
+      toast.error('Failed to log out. Please try again.')
+      console.error('Logout Error:', error)
     }
   }
 

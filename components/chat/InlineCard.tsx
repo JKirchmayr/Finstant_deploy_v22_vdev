@@ -2,6 +2,8 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 import { BuildingOffice2Icon } from '@heroicons/react/24/outline'
+import { useChatStore } from '@/store/chatStore'
+import { Source } from './chat.types'
 
 type FileCardProps = {
   name: string
@@ -9,16 +11,39 @@ type FileCardProps = {
   country: string
   onClick?: () => void
   date?: string
+  content?: string
+  isStreaming: boolean
 }
 
-export const FileCard = ({ name, city, country, onClick, date }: FileCardProps) => {
+export const InlineCard = ({
+  name,
+  city,
+  country,
+  onClick,
+  content,
+  isStreaming,
+}: FileCardProps) => {
+  const { setMarkdown, setMarkdownSources, setIsCanvasOpen } = useChatStore()
+
+  const onClickHandler = () => {
+    if (isStreaming) return
+    if (!!content && content?.trim().length > 0) {
+      setMarkdown(content || '')
+      setIsCanvasOpen(true)
+    }
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
-      className="flex w-full items-center gap-3 p-3 px-6 bg-gray-100 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors"
-      onClick={onClick}
+      className={`flex w-full items-center gap-3 p-3 px-6 bg-gray-100 rounded-lg ${
+        !isStreaming ? 'cursor-pointer hover:bg-gray-200' : 'cursor-default'
+      } transition-colors`}
+      role="button"
+      tabIndex={isStreaming ? -1 : 0}
+      onClick={onClickHandler}
     >
       <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center flex-shrink-0">
         <BuildingOffice2Icon className="h-4 w-4 text-gray-800" />

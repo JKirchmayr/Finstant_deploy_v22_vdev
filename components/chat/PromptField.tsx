@@ -16,18 +16,16 @@ export const PromptField = ({
   handleInputChange,
   isLoading,
   messages,
+  onStop,
 }: {
   handleSend: any
   input: string
   handleInputChange: any
   isLoading: any
+  onStop: () => void
   messages: any
 }) => {
   const textareaRef = useRef<any>(null)
-
-  const [isWeb, setIsWeb] = useState<boolean>(true)
-  const [isNorthData, setIsNorthData] = useState<boolean>(true)
-
   useEffect(() => {
     const textarea = textareaRef.current
     if (textarea) {
@@ -36,9 +34,6 @@ export const PromptField = ({
     }
   }, [input])
 
-  useEffect(() => {
-    textareaRef.current?.focus()
-  }, [])
   const internalHandleSend = (e: React.FormEvent) => {
     e.preventDefault()
     if (!input.trim()) return
@@ -81,13 +76,16 @@ export const PromptField = ({
           <div className="flex justify-between gap-2 pb-2 px-2">
             <div className="ml-auto flex items-center gap-1">
               <button
-                className="inline-flex shrink-0 cursor-pointer select-none items-center text-xs font-normal justify-center gap-1.5 whitespace-nowrap text-nowrap border-none outline-none transition-all disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-600 [&>svg]:pointer-events-none [&>svg]:size-4 [&_svg]:shrink-0  text-background bg-foreground hover:bg-gray-700 px-3 py-1 rounded"
-                type="submit"
-                disabled={isLoading || !input.trim().length}
-                onClick={internalHandleSend}
+                className="inline-flex shrink-0 cursor-pointer select-none items-center text-xs font-normal justify-center gap-1.5 whitespace-nowrap text-nowrap border-none outline-none transition-all  [&>svg]:pointer-events-none [&>svg]:size-4 [&_svg]:shrink-0  text-background bg-foreground hover:bg-gray-700 px-3 py-1 rounded"
+                type={isLoading ? 'button' : 'submit'}
+                disabled={!input.trim().length && !isLoading}
+                onClick={isLoading ? onStop : internalHandleSend}
               >
                 {isLoading ? (
-                  <Loader2 className="animate-spin w-5 h-5 text-black [animation-duration:0.3s]" />
+                  <span className="flex items-center gap-1">
+                    <Loader2 className="animate-spin size-4 [animation-duration:0.3s]" />
+                    <span>Stop</span>
+                  </span>
                 ) : (
                   'Ask Finstant'
                 )}

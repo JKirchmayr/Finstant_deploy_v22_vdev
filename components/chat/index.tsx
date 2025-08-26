@@ -6,25 +6,12 @@ import { PromptField } from '@/components/chat/PromptField'
 import { BottomSuggestions, SUGGESTION_BANK, Suggestions, TabKey } from './Suggestions'
 import { Messages } from './Messages'
 import { useChatStore } from '@/store/chatStore'
-import { PROFILESTAGES } from '@/lib/chat-helpers'
-import { ProfileMessages } from './Profile'
-import { XMarkIcon } from '@heroicons/react/24/outline'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useFileStore } from '@/store/useCompanyProfile'
 import { CanvasPanel } from './CanvasPanel'
 import SourcesComponent from './Sources'
-
-type Company = {
-  company_name: string
-  company_description: string
-  similarity_score: number
-}
-
-type CompanyCardData = {
-  name: string
-  city: string
-  country: string
-}
+import { v4 } from 'uuid'
+import { InlineCardData } from './chat.types'
 
 const backendURL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
 
@@ -32,29 +19,55 @@ const Chat = () => {
   const { user, loading } = useAuth()
   const userId = user?.user_id ?? ''
 
-  const { messages, input, append, setInput } = useChatStore()
+  const {
+    messages,
+    input,
+    append,
+    setInput,
+    updateMessage,
+    markdown,
+    setMarkdown,
+    markdownSources,
+    setMarkdownSources,
+    isCanvasOpen,
+    setIsCanvasOpen,
+    isStreaming,
+    setIsStreaming,
+    sourcesOpen,
+    setSourcesOpen,
+  } = useChatStore()
+
   const [sessionId, setSessionId] = useState<string | null>(null)
-  const [isStreaming, setIsStreaming] = useState(false)
   const [streamingMessage, setStreamingMessage] = useState<string>('')
-  const [activeStageIndex, setActiveStageIndex] = useState<number | null>(null)
   const [activeTab, setActiveTab] = useState<TabKey>('research')
   const endRef = useRef<HTMLDivElement>(null)
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const [isCanvasOpen, setCanvasOpen] = useState<boolean>(false)
-  //const [isProfileStreaming, setIsProfileStreaming] = useState<boolean>(false);
-  const [canvasData, setCanvasData] = useState<Record<string, any> | null>(null)
+  const [streamId, setStreamId] = useState<string>('')
   const [streamingCanvasContent, setStreamingCanvasContent] = useState<string>('')
-  //const [companyCard, setCompanyCard] = useState<CompanyCardData | null>(null);
-  const [Sources, setSources] = useState<Array<{ id: number; title: string; url: string }>>([])
+  const [sources, setSources] = useState<Array<{ id: number; title: string; url: string }>>([])
 
   const { addFile, setIsProfileStreaming } = useFileStore()
 
-  // Overlay for Sources over the LEFT pane
-  const [sourcesOpen, setSourcesOpen] = useState(false)
-
   const handleCardClick = (data: any) => {
-    setCanvasData(data)
-    setCanvasOpen(true)
+    setMarkdown(data)
+    setIsCanvasOpen(true)
+  }
+
+  // Create controller for request cancellation
+  const controllerRef = useRef<AbortController | null>(null)
+
+  const handleStopStreaming = () => {
+    if (controllerRef.current) {
+      controllerRef.current.abort()
+      controllerRef.current = null
+    }
+    setIsStreaming(false)
+    setStreamingMessage('')
+    setIsProfileStreaming(false)
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current)
+      scrollTimeoutRef.current = null
+    }
   }
 
   const scrollToBottom = useCallback(() => {
@@ -83,22 +96,15 @@ const Chat = () => {
     setInput('')
     scrollToBottom()
     setIsStreaming(true)
-    //setIsProfileStreaming(false);
-    setCanvasOpen(false)
-    setCanvasData(null)
-    //setCompanyCard(null);
-    setSources([])
+    setIsCanvasOpen(false)
+    setMarkdown('')
+    setMarkdownSources([])
 
-    let companyProfileSections: Record<string, any> = {}
-    let isProfileStreamDetected = false
+    // Create new controller for this request
+    controllerRef.current = new AbortController()
+    const uuid = v4()
 
     try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => {
-        console.log('Request timeout after 30 seconds')
-        controller.abort()
-      }, 30000)
-
       const response = await fetch(`${backendURL}/chat`, {
         method: 'POST',
         headers: {
@@ -111,10 +117,10 @@ const Chat = () => {
           user_id: userId,
           session_id: sessionId,
         }),
-        signal: controller.signal,
+        signal: controllerRef.current.signal,
       })
 
-      clearTimeout(timeoutId)
+      // clearTimeout(timeoutId)
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
@@ -135,24 +141,13 @@ const Chat = () => {
             append({ role: 'assistant', content: processingBuffer })
           }
           setIsStreaming(false)
-          setActiveStageIndex(null)
           if (parsed?.data?.session_id) {
             setSessionId(parsed.data.session_id)
           }
-
-          if (companyProfileSections && Object.keys(companyProfileSections).length > 0) {
-            append({
-              role: 'company-profile',
-              content: '',
-              data: companyProfileSections,
-            })
-          }
-
-          companyProfileSections = {}
           setStreamingMessage('')
           scrollToBottom()
           setIsProfileStreaming(false)
-
+          controllerRef.current = null
           break
         }
 
@@ -173,17 +168,14 @@ const Chat = () => {
 
           // Check for final stage to end streaming
           if (data?.meta?.stage === 'final') {
-            // if (processingBuffer.trim()) {
-            //   append({ role: "assistant", content: processingBuffer })
-            // }
+            if (eventType === 'text' && data?.meta?.type === 'text' && streamingMessage.trim()) {
+              append({ role: 'assistant', content: streamingMessage })
+            }
             setIsStreaming(false)
-            setActiveStageIndex(null)
+
             if (parsed?.data?.session_id) {
               setSessionId(parsed.data.session_id)
             }
-
-            companyProfileSections = {}
-            setStreamingMessage('')
             scrollToBottom()
             setIsProfileStreaming(false)
             break
@@ -202,35 +194,68 @@ const Chat = () => {
           }
 
           if (eventType === 'company_profile_card') {
-            const newCompanyCardData: CompanyCardData = {
+            const newCompanyCardData: InlineCardData = {
               name: data?.company_name,
               city: data?.company_city,
               country: data?.company_country,
             }
-            // setCompanyCard(newCompanyCardData);
+            setStreamId(uuid)
+
             addFile(newCompanyCardData)
             append({
-              role: 'company_profile_card',
+              id: uuid,
+              role: 'inline_card',
               content: '',
               data: newCompanyCardData,
-              createdAt: new Date(),
             })
           }
 
-          if (eventType === 'company_profile') {
-            const section = data?.section
-            const sectionData = data?.data
-            const text = data?.text || ''
+          if (eventType === 'investor_profile_card') {
+            const newCompanyCardData: InlineCardData = {
+              name: data?.investor_name,
+              city: data?.investor_city,
+              country: data?.investor_country,
+            }
+            console.log(data)
+            setStreamId(uuid)
 
-            if (data?.meta?.stage === 'streaming') {
+            addFile(newCompanyCardData)
+            append({
+              id: uuid,
+              role: 'inline_card',
+              content: '',
+              data: newCompanyCardData,
+            })
+          }
+
+          //--------Company Profile ----------
+          if (eventType === 'company_profile') {
+            const text = data?.text || ''
+            const stage = data?.meta?.stage
+
+            if (stage === 'streaming') {
               setIsProfileStreaming(true)
-              setCanvasOpen(true)
+              setIsCanvasOpen(true)
               setStreamingCanvasContent(prev => prev + text)
             }
-            if (data?.meta?.stage === 'sources') {
-              console.log('sources recieved')
+            if (stage === 'sources') {
               const incoming = Array.isArray(data?.sources) ? data.sources : []
-              console.log(incoming)
+              setSources(incoming)
+            }
+          }
+
+          //--------Investor Profile ----------
+          if (eventType === 'investor_profile') {
+            const text = data?.text || ''
+            const stage = data?.meta?.stage
+
+            if (stage === 'streaming') {
+              setIsProfileStreaming(true)
+              setIsCanvasOpen(true)
+              setStreamingCanvasContent(prev => prev + text)
+            }
+            if (stage === 'sources') {
+              const incoming = Array.isArray(data?.sources) ? data.sources : []
               setSources(incoming)
             }
           }
@@ -238,12 +263,11 @@ const Chat = () => {
       }
     } catch (error) {
       console.error('❌ Error during streaming:', error)
-
       if (error instanceof Error) {
         if (error.name === 'AbortError') {
           append({
             role: 'assistant',
-            content: 'Request timed out. Please try again.',
+            content: 'Manually stopped the request.',
           })
         } else {
           append({
@@ -259,9 +283,9 @@ const Chat = () => {
       }
 
       setIsStreaming(false)
-      setActiveStageIndex(null)
       setStreamingMessage('')
       setIsProfileStreaming(false)
+      controllerRef.current = null
 
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current)
@@ -270,7 +294,6 @@ const Chat = () => {
     }
   }
 
-  // Cleanup scroll timeout on unmount
   useEffect(() => {
     return () => {
       if (scrollTimeoutRef.current) {
@@ -279,11 +302,20 @@ const Chat = () => {
     }
   }, [])
 
+  useEffect(() => {
+    if (!!streamingCanvasContent && !isStreaming && streamId) {
+      const messageToUpdate = messages.find(message => message.id === streamId)
+      if (messageToUpdate) {
+        updateMessage(streamId, streamingCanvasContent, sources)
+      }
+    }
+  }, [streamingCanvasContent, isStreaming, streamId, updateMessage, sources])
+
   return (
     <div className="flex h-full overflow-hidden">
       {/* LEFT PANE: messages + prompt */}
       <motion.div
-        className="flex flex-col flex-1 min-h-min relative z-0"
+        className="flex flex-col flex-1 min-h-min relative z-0 "
         initial={false} // no animation on first render
         animate={{ width: isCanvasOpen ? '35%' : '100%' }}
         transition={{ type: 'spring', stiffness: 250, damping: 25 }}
@@ -304,7 +336,6 @@ const Chat = () => {
                 messages={messages}
                 isStreaming={isStreaming}
                 streamingMessage={streamingMessage}
-                activeStageIndex={activeStageIndex}
                 endRef={endRef}
                 // isProfileStreaming={isProfileStreaming}
                 onCardClick={handleCardClick}
@@ -321,6 +352,7 @@ const Chat = () => {
             handleInputChange={(e: React.ChangeEvent<HTMLInputElement>) => setInput(e.target.value)}
             isLoading={isStreaming}
             messages={messages}
+            onStop={handleStopStreaming}
           />
         </div>
 
@@ -336,7 +368,7 @@ const Chat = () => {
             <SourcesComponent
               open={sourcesOpen}
               onClose={() => setSourcesOpen(false)}
-              sources={Sources}
+              sources={sources}
               isStreaming={isStreaming}
             />
           )}
@@ -347,12 +379,9 @@ const Chat = () => {
       <AnimatePresence initial={false}>
         {isCanvasOpen && (
           <CanvasPanel
-            isCanvasOpen={isCanvasOpen}
-            setCanvasOpen={setCanvasOpen}
-            streamingCanvasContent={streamingCanvasContent}
-            sources={Sources}
+            streamingCanvasContent={markdown || streamingCanvasContent}
+            sources={markdownSources || sources}
             setSourcesOpen={setSourcesOpen}
-            isStreaming={isStreaming}
           />
         )}
       </AnimatePresence>

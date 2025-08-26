@@ -1,7 +1,10 @@
-import { create } from "zustand"
+import { create } from 'zustand'
+import { v4 as uuidv4 } from 'uuid'
+import { Role, Source } from '@/components/chat/chat.types'
 
 export type ChatMessage = {
-  role: "user" | "assistant" | "system" | 'company-profile' |'data'|'company_profile_card'
+  id: string
+  role: Role
   content: string
   createdAt: Date
 }
@@ -9,21 +12,60 @@ export type ChatMessage = {
 type ChatStore = {
   messages: ChatMessage[]
   input: string
+  isStreaming: boolean
+  setIsStreaming: (isStreaming: boolean) => void
   setInput: (input: string) => void
-  append: ({ role, content }: { role: ChatMessage["role"]; content: string, data?:any  , createdAt?:any}) => void
+  markdown: string
+  setMarkdown: (markdown: string) => void
+  markdownSources: Source[]
+  setMarkdownSources: (sources: Source[]) => void
+  isCanvasOpen: boolean
+  setIsCanvasOpen: (isCanvasOpen: boolean) => void
+  sourcesOpen: boolean
+  setSourcesOpen: (sourcesOpen: boolean) => void
+  append: ({
+    id,
+    role,
+    content,
+  }: {
+    id?: string
+    role: ChatMessage['role']
+    content: string
+    data?: any
+    sources?: Source[]
+    createdAt?: any
+  }) => void
+  updateMessage: (id: string, content: string, sources: Source[]) => void
   clearMessages: () => void
+  inlineCards: ChatMessage[]
 }
 
-export const useChatStore = create<ChatStore>((set) => ({
+export const useChatStore = create<ChatStore>((set, get) => ({
   messages: [],
-  input: "",
-  setInput: (input) => set({ input }),
-  append: ({ role, content, data }) =>
-    set((state) => ({
-      messages: [
-        ...state.messages,
-        { role, content, createdAt: new Date(), data },
-      ],
+  markdown: '',
+  markdownSources: [],
+  isCanvasOpen: false,
+  isStreaming: false,
+  setIsStreaming: isStreaming => set({ isStreaming }),
+  setMarkdownSources: sources => set({ markdownSources: sources }),
+  setMarkdown: markdown => set({ markdown }),
+  setIsCanvasOpen: isCanvasOpen => set({ isCanvasOpen }),
+  sourcesOpen: false,
+  setSourcesOpen: sourcesOpen => set({ sourcesOpen }),
+  input: '',
+  setInput: input => set({ input }),
+  append: ({ id = uuidv4(), role, content, data, createdAt = new Date() }) =>
+    set(state => ({
+      messages: [...state.messages, { id, role, content, createdAt, data }],
+    })),
+  updateMessage: (id: string, content: string, sources: Source[]) =>
+    set(state => ({
+      messages: state.messages.map(message =>
+        message.id === id ? { ...message, content, sources } : message
+      ),
     })),
   clearMessages: () => set({ messages: [] }),
+  get inlineCards() {
+    return get().messages.filter(message => message.role === 'inline_card')
+  },
 }))

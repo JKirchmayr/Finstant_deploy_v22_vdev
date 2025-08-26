@@ -1,29 +1,15 @@
-import React from "react"
-import { cn } from "../../lib/utils"
-import { Markdown } from "../markdown"
-import { FileCard } from "./CompanyProfileCard"
-import TypingDots from "../TypingDots"
-import { Loader2 } from "lucide-react"
-import CompanyProfileCard from "../company-profile/CompanyProfileCard"
-import { PROFILESTAGES } from "@/lib/chat-helpers"
-import StageProgress from "../StageProgress"
-import { AnimatePresence, motion } from "framer-motion"
-import { BuildingOffice2Icon } from "@heroicons/react/24/outline"
-import Streamdown from "streamdown"
-import { useFileStore } from "@/store/useCompanyProfile"
-
-type Message = {
-  role: "user" | "assistant" | "system" | "company-profile" | "data" | "company_profile_card"
-  content: string
-  data?: any
-  createdAt?: Date
-}
+import React from 'react'
+import { cn } from '../../lib/utils'
+import { Markdown } from '../markdown'
+import { InlineCard } from './InlineCard'
+import TypingDots from '../TypingDots'
+import { useFileStore } from '@/store/useCompanyProfile'
+import { Message } from './chat.types'
 
 type MessagesProps = {
   messages: Message[]
   isStreaming: boolean
   streamingMessage: string | null
-  activeStageIndex: number | null
   endRef: React.RefObject<HTMLDivElement>
   // isProfileStreaming: boolean;
   onCardClick: (data: any) => void
@@ -33,48 +19,43 @@ export const Messages = ({
   messages,
   isStreaming,
   streamingMessage,
-  activeStageIndex,
   endRef,
-  // isProfileStreaming,
   onCardClick,
 }: MessagesProps) => {
-  const { isProfileStreaming } = useFileStore()
+  console.log(messages)
   return (
-    <div className={cn("overflow-y-auto px-2 pt-4 space-y-2 noscroll flex-1 min-h-0")}>
+    <div className={cn('overflow-y-auto px-2 pt-4 space-y-2 noscroll flex-1 min-h-0')}>
       {messages.map((m, i) => {
-        const isUser = m.role === "user"
-        const isAssistant = m.role === "assistant"
-        const isCompanyProfile = m.role === "company-profile"
-        const isCompanyCard = m.role === "company_profile_card"
-        if (isProfileStreaming && (isAssistant || isCompanyProfile)) {
-          return null
-        }
+        const isUser = m.role === 'user'
+        const isInlineCard = m.role === 'inline_card'
+        const isChatMessage = m.role === 'user' || m.role === 'assistant'
 
         return (
           <div
             key={i}
-            className={cn("flex", {
-              "justify-end": isUser,
-              "justify-start": !isUser,
+            className={cn('flex', {
+              'justify-end': isUser,
+              'justify-start': !isUser,
             })}
           >
             <div
-              className={cn("max-w-full text-sm leading-relaxed px-1 py-1 rounded-md", {
-                "ml-auto bg-secondary/40 border font-normal px-4 py-1 rounded-md max-w-xs  ":
+              className={cn('max-w-full text-sm leading-relaxed px-1 py-1 rounded-md', {
+                'ml-auto bg-secondary/40 border font-normal px-4 py-1 rounded-md max-w-xs  ':
                   isUser,
-                "text-gray-800 mr-auto border-none rounded-md": !isUser,
+                'text-gray-800 mr-auto border-none rounded-md': !isUser,
               })}
             >
-              {isCompanyCard && m.data ? (
-                <FileCard
+              {isInlineCard && m.data && (
+                <InlineCard
                   name={m.data.name}
                   city={m.data.city}
                   country={m.data.country}
+                  content={m.content}
                   onClick={() => onCardClick(m.data)}
+                  isStreaming={isStreaming}
                 />
-              ) : (
-                <Markdown>{m.content}</Markdown>
               )}
+              {isChatMessage && <Markdown>{m.content}</Markdown>}
             </div>
           </div>
         )
@@ -99,7 +80,7 @@ export const Messages = ({
       )}
 
       {messages.length > 1 && (
-        <div className={cn("h-1 opacity-0", { "h-5": messages.length > 1 })} ref={endRef} />
+        <div className={cn('h-1 opacity-0', { 'h-5': messages.length > 1 })} ref={endRef} />
       )}
     </div>
   )

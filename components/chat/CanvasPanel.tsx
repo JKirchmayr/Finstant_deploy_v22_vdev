@@ -4,22 +4,17 @@ import { XMarkIcon } from '@heroicons/react/24/outline'
 import { ProfileMessages } from './Profile'
 import { Source } from './chat.types'
 import { Button } from '../ui/button'
+import { useChatStore } from '@/store/chatStore'
 
 export const CanvasPanel = ({
-  isCanvasOpen,
-  setCanvasOpen,
   streamingCanvasContent,
   sources,
-  setSourcesOpen,
-  isStreaming,
 }: {
-  isCanvasOpen: boolean
-  setCanvasOpen: (isOpen: boolean) => void
   streamingCanvasContent: string
   sources: Source[]
   setSourcesOpen: (isOpen: boolean) => void
-  isStreaming: boolean
 }) => {
+  const { isCanvasOpen, isStreaming, setIsCanvasOpen, setSourcesOpen } = useChatStore()
   return (
     <motion.div
       className="flex flex-col border-l shadow-xl"
@@ -31,8 +26,13 @@ export const CanvasPanel = ({
       layout
     >
       <div className="border-b flex items-center justify-between sticky top-0 bg-background z-30 p-4 py-2">
-        <h1 className="text-base font-semibold tracking-tight">Company Profile</h1>
-        <Button onClick={() => setCanvasOpen(false)} size="xs" variant="secondary">
+        <h1 className="text-base font-semibold tracking-tight">Profile Information</h1>
+        <Button
+          disabled={isStreaming}
+          onClick={() => setIsCanvasOpen(false)}
+          size="xs"
+          variant="secondary"
+        >
           <XMarkIcon className="h-4 w-4" />
         </Button>
       </div>
@@ -42,7 +42,6 @@ export const CanvasPanel = ({
           streamingMarkdownContent={streamingCanvasContent}
           sources={sources}
           isStreaming={isStreaming}
-          onOpenSources={() => setSourcesOpen(true)}
         />
       </div>
     </motion.div>
