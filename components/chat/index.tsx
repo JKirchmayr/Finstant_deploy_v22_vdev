@@ -169,8 +169,8 @@ const Chat = () => {
 
           // Check for final stage to end streaming
           if (data?.meta?.stage === 'final') {
-            if (eventType === 'text' && data?.meta?.type === 'text' && streamingMessage.trim()) {
-              append({ role: 'assistant', content: streamingMessage })
+            if (eventType === 'text' && data?.meta?.type === 'text' && processingBuffer.trim()) {
+              append({ role: 'assistant', content: processingBuffer })
             }
             setIsStreaming(false)
 
@@ -227,10 +227,7 @@ const Chat = () => {
               city: data?.investor_city,
               country: data?.investor_country,
             }
-            console.log(data)
             setStreamId(uuid)
-
-            addFile(newCompanyCardData)
             append({
               id: uuid,
               role: 'inline_card',
@@ -278,13 +275,18 @@ const Chat = () => {
         if (error.name === 'AbortError') {
           append({
             role: 'assistant',
-            content: 'Manually stopped the request.',
+            content: processingBuffer,
+          })
+          append({
+            role: 'assistant',
+            content: '***Manually stopped the request.*** 🚫',
           })
         } else {
           append({
             role: 'assistant',
             content: `Error: ${error.message}`,
           })
+          scrollToBottom()
         }
       } else {
         append({

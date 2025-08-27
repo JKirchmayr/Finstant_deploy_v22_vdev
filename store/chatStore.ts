@@ -7,6 +7,7 @@ export type ChatMessage = {
   role: Role
   content: string
   createdAt: Date
+  data?: any
 }
 
 type ChatStore = {

@@ -1,63 +1,50 @@
-"use client";
+'use client'
 
-import React from "react";
-import Image from "next/image";
-import { cn } from "@/lib/utils";
-import { Button } from "../ui/button";
-import {
-  MagnifyingGlassIcon,
-  BuildingOffice2Icon,
-  ChartBarIcon,
-} from "@heroicons/react/24/outline";
+import React from 'react'
+import Image from 'next/image'
+import { cn } from '@/lib/utils'
+import { Button } from '../ui/button'
+import { MagnifyingGlassIcon, BuildingOffice2Icon, ChartBarIcon } from '@heroicons/react/24/outline'
 
-export type TabKey = "research" | "profiles" | "analysis";
+export type TabKey = 'research' | 'profiles' | 'analysis'
 
 export const SUGGESTION_BANK: Record<TabKey, string[]> = {
   research: [
-    "Summarize recent news on the European luxury goods sector",
-    "What are the current trends shaping the global data center market",
-    "Summarize recent news related to M&A activity in the semiconductor sector",
+    'Summarize recent news on the European luxury goods sector',
+    'What are the current trends shaping the global data center market',
+    'Summarize recent news related to M&A activity in the semiconductor sector',
   ],
   profiles: [
-    "Create a company profile of Tesla",
-    "Create a company profile of Selux AG",
-    "Create an investor profile of Investindustrial",
+    'Create a company profile of Tesla',
+    'Create a company profile of Selux AG',
+    'Create an investor profile of Investindustrial',
   ],
   analysis: [
-    "List of companies in the pet food industry that are based in Germany",
-    "List of private equity investors with car parts manufacture in their portfolio",
-    "Create a precedent transaction analysis on gym chain deals",
+    'List of companies in the pet food industry that are based in Germany',
+    'List of private equity investors with car parts manufacture in their portfolio',
+    'Create a precedent transaction analysis on gym chain deals',
   ],
-};
+}
 
-type IconType = React.ComponentType<React.SVGProps<SVGSVGElement>>;
+type IconType = React.ComponentType<React.SVGProps<SVGSVGElement>>
 const TABS: Array<{ key: string; label: string; Icon: IconType }> = [
-  { key: "research", label: "Research", Icon: MagnifyingGlassIcon },
-  { key: "profiles", label: "Profiles", Icon: BuildingOffice2Icon },
-  { key: "analysis", label: "Analysis", Icon: ChartBarIcon },
-];
+  { key: 'research', label: 'Research', Icon: MagnifyingGlassIcon },
+  { key: 'profiles', label: 'Profiles', Icon: BuildingOffice2Icon },
+  { key: 'analysis', label: 'Analysis', Icon: ChartBarIcon },
+]
 
 interface SuggestionsProps {
-  activeTab: TabKey;
-  onTabChange: (tab: TabKey) => void;
-  className?: string;
+  activeTab: TabKey
+  onTabChange: (tab: TabKey) => void
+  className?: string
 }
-export const Suggestions: React.FC<SuggestionsProps> = ({
-  activeTab,
-  onTabChange,
-  className,
-}) => {
+export const Suggestions: React.FC<SuggestionsProps> = ({ activeTab, onTabChange, className }) => {
   return (
-    <div
-      className={cn(
-        "flex flex-col w-full items-center justify-center  my-8",
-        className
-      )}
-    >
+    <div className={cn('flex flex-col w-full items-center justify-center  my-8', className)}>
       <Image src="/images/logo_small.jpg" alt="logo" width={40} height={40} />
       <h1
         className="text-2xl font-normal text-gray-800 my-6 text-center"
-        style={{ fontFamily: "Times New Roman" }}
+        style={{ fontFamily: 'Times New Roman' }}
       >
         Instant Corporate Finance Workflows
       </h1>
@@ -68,36 +55,36 @@ export const Suggestions: React.FC<SuggestionsProps> = ({
             return (
               <Button
                 key={key}
-                onClick={() => onTabChange(key)}
-                variant={isActive ? "default" : "outline"}
+                onClick={() => onTabChange(key as TabKey)}
+                variant={isActive ? 'default' : 'outline'}
                 className={cn(
-                  "h-12 w-full px-4 gap-3 rounded-2xl text-base font-medium justify-center",
-                  !isActive && "bg-muted/60",
-                  isActive && "shadow-sm"
+                  'h-12 w-full px-4 gap-3 rounded-2xl text-base font-medium justify-center',
+                  !isActive && 'bg-muted/60',
+                  isActive && 'shadow-sm'
                 )}
               >
                 <Icon className="w-7 h-7" />
                 <span className="tracking-tight">{label}</span>
               </Button>
-            );
+            )
           })}
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
 interface BottomSuggestionsProps {
-  setInput: (input: string) => void;
-  items?: string[];
-  className?: string;
+  setInput: (input: string) => void
+  items?: string[]
+  className?: string
 }
 export const BottomSuggestions: React.FC<BottomSuggestionsProps> = ({
   setInput,
   items = [],
   className,
 }) => (
-  <div className={cn("w-full max-w-3xl", className)}>
+  <div className={cn('w-full max-w-3xl', className)}>
     <ul className="rounded-xl border-b bg-muted/20 divide-y divide-border">
       {items.map((suggestion, idx) => (
         <li key={idx}>
@@ -114,4 +101,4 @@ export const BottomSuggestions: React.FC<BottomSuggestionsProps> = ({
       ))}
     </ul>
   </div>
-);
+)

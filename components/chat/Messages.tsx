@@ -22,7 +22,7 @@ export const Messages = ({
   endRef,
   onCardClick,
 }: MessagesProps) => {
-  console.log(messages)
+  // console.log(messages)
   return (
     <div className={cn('overflow-y-auto px-2 pt-4 space-y-2 noscroll flex-1 min-h-0')}>
       {messages.map((m, i) => {
@@ -45,7 +45,6 @@ export const Messages = ({
                 'text-gray-800 mr-auto border-none rounded-md': !isUser,
               })}
             >
-              
               {isChatMessage && <Markdown>{m.content}</Markdown>}
               {isInlineCard && m.data && (
                 <InlineCard

@@ -23,11 +23,11 @@ import { useChatStore } from '@/store/chatStore'
 // Files dropdown component
 const FilesDropdown = () => {
   const [isOpen, setIsOpen] = useState(false)
-  const { messages } = useChatStore()
+  const { messages, isStreaming } = useChatStore()
 
   const inlineCards = messages.filter(m => m.role === 'inline_card') || []
 
-  console.log(inlineCards, 'inlineCards')
+  // console.log(inlineCards, 'inlineCards')
 
   return (
     <div className="relative">
@@ -72,7 +72,7 @@ const FilesDropdown = () => {
                     city={card.data?.city}
                     country={card.data?.country}
                     content={card.content}
-                    isStreaming={false}
+                    isStreaming={isStreaming}
                     onClick={() => setIsOpen(false)}
                   />
                 ))
