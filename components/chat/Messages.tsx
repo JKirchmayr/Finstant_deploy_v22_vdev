@@ -5,6 +5,7 @@ import { InlineCard } from './InlineCard'
 import TypingDots from '../TypingDots'
 import { useFileStore } from '@/store/useCompanyProfile'
 import { Message } from './chat.types'
+import { CompanyListCard } from './CompanyListCard';
 
 type MessagesProps = {
   messages: Message[]
@@ -13,6 +14,7 @@ type MessagesProps = {
   endRef: React.RefObject<HTMLDivElement>
   // isProfileStreaming: boolean;
   onCardClick: (data: any) => void
+  onListCardClick: (data: any) => void
 }
 
 export const Messages = ({
@@ -21,8 +23,9 @@ export const Messages = ({
   streamingMessage,
   endRef,
   onCardClick,
+  onListCardClick,
 }: MessagesProps) => {
-  // console.log(messages)
+  console.log(messages)
   return (
     <div className={cn('overflow-y-auto px-2 pt-4 space-y-2 noscroll flex-1 min-h-0')}>
       {messages.map((m, i) => {
@@ -46,16 +49,34 @@ export const Messages = ({
               })}
             >
               {isChatMessage && <Markdown>{m.content}</Markdown>}
-              {isInlineCard && m.data && (
-                <InlineCard
-                  name={m.data.name}
-                  city={m.data.city}
-                  country={m.data.country}
-                  content={m.content}
-                  onClick={() => onCardClick(m.content)}
-                  isStreaming={isStreaming}
-                />
-              )}
+              {isInlineCard && m.data && (()=>{
+
+              switch (m.data.type) {
+                  case 'company_list_card':
+                    // This is the new logic for the new card
+                    return (
+                      <CompanyListCard
+                        title={m.data.title}
+                        itemCount={m.data.estimated_list_item_count}
+                        onClick={() => onListCardClick(m.data)}
+                        isStreaming={isStreaming}
+                      />
+                    );
+                  
+                  default:
+                    // This is your original logic, completely untouched
+                    return (
+                      <InlineCard
+                        name={m.data.name}
+                        city={m.data.city}
+                        country={m.data.country}
+                        content={m.content}
+                        onClick={() => onCardClick(m.content)}
+                        isStreaming={isStreaming}
+                      />
+                    );
+                }
+              })()}
             </div>
           </div>
         )

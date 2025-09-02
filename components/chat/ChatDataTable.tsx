@@ -11,33 +11,24 @@ import {
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
 import {
   ArrowDownUp,
-  ArrowLeftToLineIcon,
-  ArrowRightToLineIcon,
   ChevronLeft,
   ChevronRight,
   CopyIcon,
-  EllipsisIcon,
   Loader,
-  PinIcon,
-  PinOffIcon,
   PlusIcon,
-  Search,
   ShareIcon,
   Trash,
   X,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
@@ -56,7 +47,6 @@ import { ExportOptions } from "../table/export-options"
 import { AddNewColumn } from "./AddNewColumn"
 import { toast } from "sonner"
 import { useSingleTabStore } from "@/store/singleTabStore"
-import { ChevronDown, ChevronUp } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip"
 
 interface IChatDataTableProps<T extends any> {
@@ -95,10 +85,6 @@ const ChatDataTable = <T extends any>({
   isLoading,
   loadMoreData,
   hasMoreData,
-  paginationOption = true,
-  topbarClass,
-  filterBy = "name",
-  defaultPinnedColumns = [],
   noHeader = false,
   togglePanel,
   titleName,
@@ -132,13 +118,12 @@ const ChatDataTable = <T extends any>({
     },
     initialState: {
       columnPinning: {
-        left: defaultPinnedColumns,
+        left: ["select", "company_name"],
         right: [],
       },
     },
   })
   const { setSingleTab, isCollapsed } = useSingleTabStore()
-  // console.log(isCollapsed)
 
   const observer = useRef<IntersectionObserver | null>(null)
   const lastRowRef = useCallback(
@@ -224,10 +209,8 @@ const ChatDataTable = <T extends any>({
 
     const updatedData = data.filter(row => !selectedRows.includes(row))
     setRowSelection({})
-    // setData(updatedData)
     setSingleTab("abc", "companies", updatedData, "final")
     toast.success("Data Deleted Successfully")
-    // console.log(updatedData)
   }
 
   return (
@@ -244,7 +227,7 @@ const ChatDataTable = <T extends any>({
                   className="!px-[6px] hover:bg-gray-300"
                   onClick={closeTabPanel}
                 >
-                  <X />
+                  <X className="size-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="left" align="center">
@@ -261,27 +244,26 @@ const ChatDataTable = <T extends any>({
                   className="!px-[6px] hover:bg-gray-300"
                   onClick={togglePanel}
                 >
-                  {!isCollapsed ? <ChevronLeft /> : <ChevronRight />}
+                  {!isCollapsed ? <ChevronLeft className="size-4" /> : <ChevronRight className="size-4" />}
                 </Button>
                 <Button
                   variant="secondary"
                   size="xs"
-                  className=" hover:bg-gray-300"
+                  className="hover:bg-gray-300"
                   onClick={handleDeleteSelected}
                 >
-                  Delete <Trash className="" />
+                  Delete <Trash className="size-4 ml-1" />
                 </Button>
                 <Button
                   variant="secondary"
                   size="xs"
-                  className=" hover:bg-gray-300"
+                  className="hover:bg-gray-300"
                   disabled={!selectedRows.length && !data.length}
                   onClick={handleCopySelected}
                 >
-                  Copy <CopyIcon className="" />
+                  Copy <CopyIcon className="size-4 ml-1" />
                 </Button>
               </div>
-
               <div className="flex gap-2">
                 {addColumn && (
                   <AddNewColumn>
@@ -290,7 +272,7 @@ const ChatDataTable = <T extends any>({
                       size="xs"
                       className="h-7 py-1 text-xs hover:bg-gray-300"
                     >
-                      Add Column <PlusIcon className="" />
+                      Add Column <PlusIcon className="size-4 ml-1" />
                     </Button>
                   </AddNewColumn>
                 )}
@@ -307,7 +289,7 @@ const ChatDataTable = <T extends any>({
                     size="xs"
                     className="h-7 py-1 text-xs hover:bg-gray-300"
                   >
-                    Export <ShareIcon className="" />
+                    Export <ShareIcon className="size-4 ml-1" />
                   </Button>
                 </ExportOptions>
               </div>
@@ -317,7 +299,7 @@ const ChatDataTable = <T extends any>({
       )}
       <div className="flex flex-col w-full bg-white border border-l-0 overflow-auto overflow-x-auto">
         <Table
-          className="!w-full bg-background [&_td]:border-border table-fixed border-separate border-spacing-0 [&_tfoot_td]:border-t [&_tr]:border-none [&_tr:not(:last-child)_td]:border-b [&_thead]:border-b-0 [&_th]:px-4 [&_td]:pl-4 [&_th:has([role=checkbox])]:pr-0 [&_td:first-child]:!px-4 [&_th:first-child]:!px-4"
+          className="!w-full bg-background [&_td]:border-border table-fixed border-separate border-spacing-0 [&_tfoot_td]:border-t [&_tr]:border-none [&_tr:not(:last-child)_td]:border-b [&_thead]:border-b-0"
           style={{ width: table.getTotalSize() }}
         >
           <TableHeader className="bg-white text-[13px] h-8 sticky top-0 z-10">
@@ -333,21 +315,19 @@ const ChatDataTable = <T extends any>({
                   return (
                     <TableHead
                       key={header.id}
-                      className="text-foreground/70 group [&[data-pinned][data-last-col]]:border-border border-b data-pinned:bg-muted/90 relative h-10 truncate data-pinned:backdrop-blur-xs [&:not([data-pinned]):has(+[data-pinned])_div.cursor-col-resize:last-child]:opacity-0 [&[data-last-col=left]_div.cursor-col-resize:last-child]:opacity-0 [&[data-pinned=left][data-last-col=left]]:border-r [&[data-pinned=right]:last-child_div.cursor-col-resize:last-child]:opacity-0 [&[data-pinned=right][data-last-col=right]]:border-l-0"
+                      className="text-foreground/70 group border-b data-pinned:bg-muted/90 relative h-10 truncate data-pinned:backdrop-blur-xs px-4 text-left"
                       colSpan={header.colSpan}
                       style={{ ...getPinningStyles(column) }}
                       data-pinned={isPinned || undefined}
-                      data-last-col={
-                        isLastLeftPinned ? "left" : isFirstRightPinned ? "right" : undefined
-                      }
+                      data-last-col={isLastLeftPinned ? "left" : isFirstRightPinned ? "right" : undefined}
                     >
-                      <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
                         <span className="truncate w-full flex">
                           {header.isPlaceholder
                             ? null
                             : flexRender(header.column.columnDef.header, header.getContext())}
                         </span>
-                        {!!header.column.columnDef.enableSorting && header.column.getCanSort() && (
+                        {!!header.column.getCanSort() && (
                           <Button
                             variant="ghost"
                             size="xs"
@@ -356,62 +336,6 @@ const ChatDataTable = <T extends any>({
                             <ArrowDownUp className="size-4" />
                           </Button>
                         )}
-                        {/* {!header.isPlaceholder &&
-                          header.column.getCanPin() &&
-                          header.column.columnDef.enableHiding !== false &&
-                          (header.column.getIsPinned() ? (
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="-mr-1 size-5 shadow-none group-hover:opacity-60 opacity-0 hover:opacity-100"
-                              onClick={() => header.column.pin(false)}
-                              aria-label={`Unpin ${
-                                header.column.columnDef.header as string
-                              } column`}
-                              title={`Unpin ${header.column.columnDef.header as string} column`}
-                            >
-                              <PinOffIcon className="opacity-60" size={16} aria-hidden="true" />
-                            </Button>
-                          ) : (
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  className="-mr-1 size-7 shadow-none"
-                                  aria-label={`Pin options for ${
-                                    header.column.columnDef.header as string
-                                  } column`}
-                                  title={`Pin options for ${header.column.columnDef.header as string
-                                  } column`}
-                                >
-                                  <EllipsisIcon
-                                    className="opacity-60"
-                                    size={16}
-                                    aria-hidden="true"
-                                  />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => header.column.pin("left")}>
-                                  <ArrowLeftToLineIcon
-                                    size={16}
-                                    className="opacity-60"
-                                    aria-hidden="true"
-                                  />
-                                  Stick to left
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => header.column.pin("right")}>
-                                  <ArrowRightToLineIcon
-                                    size={16}
-                                    className="opacity-60"
-                                    aria-hidden="true"
-                                  />
-                                  Stick to right
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          ))} */}
                         {header.column.getCanResize() && (
                           <div
                             {...{
@@ -430,7 +354,7 @@ const ChatDataTable = <T extends any>({
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody className=" max-h-[400px] overflow-auto">
+          <TableBody className="max-h-[400px] overflow-auto">
             {isLoading && !data.length ? (
               [...Array(20)].map((_, i) => (
                 <TableRow key={i} className="border-b border-gray-300">
@@ -463,14 +387,16 @@ const ChatDataTable = <T extends any>({
                           return (
                             <TableCell
                               key={cell.id}
-                              className="py-2.5 [&[data-pinned][data-last-col]]:border-border data-pinned:bg-background/90 truncate data-pinned:backdrop-blur-xs [&[data-pinned=left][data-last-col=left]]:border-r [&[data-pinned=right][data-last-col=right]]:border-l border-r border-gray-300"
+                              className="py-2.5 border-r border-gray-300"
                               style={{ ...getPinningStyles(column) }}
                               data-pinned={isPinned || undefined}
                               data-last-col={
                                 isLastLeftPinned ? "left" : isFirstRightPinned ? "right" : undefined
                               }
                             >
-                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                              <div className="truncate">
+                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                              </div>
                             </TableCell>
                           )
                         })}
@@ -479,7 +405,7 @@ const ChatDataTable = <T extends any>({
                   })
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={titleName.includes("Investors") ? 8 : 5}>
+                    <TableCell colSpan={columns.length}>
                       <div className="h-40 text-center text-lg font-medium flex justify-center items-center flex-col shrink-0">
                         <Image
                           src="/images/no-data.png"
@@ -488,6 +414,7 @@ const ChatDataTable = <T extends any>({
                           height={150}
                           className="shrink-0"
                           style={{ mixBlendMode: "multiply" }}
+                          unoptimized
                         />
                         <p className="text-sm text-muted-foreground"> No results.</p>
                       </div>
@@ -499,14 +426,7 @@ const ChatDataTable = <T extends any>({
           </TableBody>
         </Table>
       </div>
-      {isLoading && data.length > 0 && (
-        <div className="h-20 py-2 flex justify-center items-center bg-white text-center">
-          <Loader className="animate-spin mx-auto" />
-        </div>
-      )}
-      {/* {paginationOption && data.length > 9 && (
-        <DataTablePagination table={table} />
-      )} */}
+     
     </div>
   )
 }

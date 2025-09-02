@@ -6,9 +6,9 @@ import { useChatStore } from '@/store/chatStore'
 import { Source } from './chat.types'
 
 type FileCardProps = {
-  name: string
-  city: string
-  country: string
+  name?: string
+  city?: string
+  country?: string
   onClick?: () => void
   date?: string
   content?: string

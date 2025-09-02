@@ -11,7 +11,15 @@ import { useFileStore } from '@/store/useCompanyProfile'
 import { CanvasPanel } from './CanvasPanel'
 import SourcesComponent from './Sources'
 import { v4 } from 'uuid'
-import { InlineCardData } from './chat.types'
+import { CompanyData, InlineCardData } from './chat.types'
+import ChatDataTable from './ChatDataTable' 
+import { companiesListColumns } from './CompanyListTable' 
+import { useSingleTabStore } from '@/store/singleTabStore'
+import { ColumnDef } from '@tanstack/react-table'
+import { AddColumnProvider } from '@/context/newColumn'
+import MainChat from './MainChat'
+
+
 
 const backendURL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
 
@@ -37,6 +45,7 @@ const Chat = () => {
     setSourcesOpen,
   } = useChatStore()
 
+  const { setSingleTab, clearSingleTab, singleTab } = useSingleTabStore()
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [streamingMessage, setStreamingMessage] = useState<string>('')
   const [activeTab, setActiveTab] = useState<TabKey>('research')
@@ -45,12 +54,21 @@ const Chat = () => {
   const [streamId, setStreamId] = useState<string>('')
   const [streamingCanvasContent, setStreamingCanvasContent] = useState<string>('')
   const [sources, setSources] = useState<Array<{ id: number; title: string; url: string }>>([])
+  const [listData, setListData] = useState<CompanyData[]>([])
+  const [isListPanelOpen, setIsListPanelOpen] = useState(false)
 
   const { addFile, setIsProfileStreaming } = useFileStore()
 
   const handleCardClick = (data: any) => {
     setMarkdown(data)
     setIsCanvasOpen(true)
+    setIsListPanelOpen(false);
+  }
+
+  const handleListCardClick = (data: any) => {
+    setSingleTab("list", "companies", data, "final"); 
+    setIsListPanelOpen(true); 
+    setIsCanvasOpen(false); 
   }
 
   // Create controller for request cancellation
@@ -85,6 +103,7 @@ const Chat = () => {
 
   const handleSend = async (e: React.FormEvent) => {
     let processingBuffer = ''
+
     e.preventDefault()
 
     if (!input.trim()) return
@@ -98,6 +117,7 @@ const Chat = () => {
     scrollToBottom()
     setIsStreaming(true)
     setIsCanvasOpen(false)
+    setIsListPanelOpen(false)
     setMarkdown('')
     setMarkdownSources([])
 
@@ -133,6 +153,9 @@ const Chat = () => {
       const decoder = new TextDecoder()
 
       let parsed: any
+
+      const streamedCompaniesData: CompanyData[] = [];
+      const companyMap = new Map<string, CompanyData>();
 
       while (true) {
         const { done, value } = await reader.read()
@@ -179,6 +202,11 @@ const Chat = () => {
             }
             scrollToBottom()
             setIsProfileStreaming(false)
+            if (companyMap.size > 0) {
+              const finalListData = Array.from(companyMap.values());
+              setSingleTab('list_' + new Date().getTime(), 'companies', finalListData, 'final');
+              setIsListPanelOpen(true);
+            }
             break
           }
 
@@ -207,7 +235,7 @@ const Chat = () => {
             }
             setStreamId(uuid)
 
-            addFile(newCompanyCardData)
+            // addFile(newCompanyCardData)
             append({
               id: uuid,
               role: 'inline_card',
@@ -236,6 +264,54 @@ const Chat = () => {
             })
           }
 
+           if (eventType === 'company_properties') {
+            const companyName = data?.company_name;
+            if (companyName) {
+              const newCompanyData: CompanyData = {
+                company_name: companyName,
+                company_description: data.company_description || '',
+                company_logo: data.company_logo || '',
+                company_location: data.company_location || '',
+                hq: data.company_location || '',
+                // Ensure other properties are initialized with fallback values
+              };
+              companyMap.set(companyName, { ...companyMap.get(companyName), ...newCompanyData });
+              setListData(Array.from(companyMap.values()));
+            }
+            setIsListPanelOpen(true);
+            setIsCanvasOpen(false);
+          }
+
+          if (eventType === 'company_evaluations') {
+            const companyName = data?.company_name;
+            if (companyName) {
+              const currentCompany = companyMap.get(companyName) || {} as CompanyData;
+              companyMap.set(companyName, { ...currentCompany, evaluations: data.evaluations });
+              setListData(Array.from(companyMap.values()));
+            }
+          }
+
+          if (eventType === 'company_list_card') {
+            // This is for the list builder card in the chat pane, not the panel itself
+            if (processingBuffer.trim()) {
+              append({ role: 'assistant', content: processingBuffer })
+              processingBuffer = ''
+              setStreamingMessage('')
+            }
+            const newCompanyListCardData: InlineCardData = {
+              title: data?.list_title,
+              estimated_list_item_count: data?.estimated_list_item_count,
+              time: data?.timestamp_created,
+              type: data?.meta?.type,
+            }
+            setStreamId(uuid)
+            append({
+              id: uuid,
+              role: 'inline_card',
+              content: '',
+              data: newCompanyListCardData,
+            })
+          }
           //--------Company Profile ----------
           if (eventType === 'company_profile') {
             const text = data?.text || ''
@@ -325,80 +401,7 @@ const Chat = () => {
   }, [streamingCanvasContent, isStreaming, streamId, updateMessage, sources])
 
   return (
-    <div className="flex h-full overflow-hidden">
-      {/* LEFT PANE: messages + prompt */}
-      <motion.div
-        className="flex flex-col flex-1 min-h-min relative z-0 "
-        initial={false} // no animation on first render
-        animate={{ width: isCanvasOpen ? '35%' : '100%' }}
-        transition={{ type: 'spring', stiffness: 250, damping: 25 }}
-        layout
-      >
-        {/* Suggestions (centered look based on your original) */}
-        {messages.length <= 0 && (
-          <div className="max-w-3xl pt-10 mx-auto w-full px-2">
-            <Suggestions activeTab={activeTab} onTabChange={setActiveTab} />
-          </div>
-        )}
-
-        {/* Messages area */}
-        <div className="flex-1 flex flex-col max-w-3xl w-full mx-auto overflow-hidden">
-          {messages.length > 0 && (
-            <div className="flex-1 min-h-0 flex flex-col">
-              <Messages
-                messages={messages}
-                isStreaming={isStreaming}
-                streamingMessage={streamingMessage}
-                endRef={endRef}
-                // isProfileStreaming={isProfileStreaming}
-                onCardClick={handleCardClick}
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Prompt box */}
-        <div className="w-full max-w-3xl mx-auto  z-10">
-          <PromptField
-            handleSend={handleSend}
-            input={input}
-            handleInputChange={(e: React.ChangeEvent<HTMLInputElement>) => setInput(e.target.value)}
-            isLoading={isStreaming}
-            messages={messages}
-            onStop={handleStopStreaming}
-          />
-        </div>
-
-        {/* Bottom suggestions (just like your screenshot) */}
-        {messages.length <= 0 && (
-          <div className="w-full max-w-3xl pb-24 text-muted-foreground mx-auto px-2">
-            <BottomSuggestions items={SUGGESTION_BANK[activeTab] ?? []} setInput={setInput} />
-          </div>
-        )}
-
-        <AnimatePresence>
-          {sourcesOpen && (
-            <SourcesComponent
-              open={sourcesOpen}
-              onClose={() => setSourcesOpen(false)}
-              sources={sources}
-              isStreaming={isStreaming}
-            />
-          )}
-        </AnimatePresence>
-      </motion.div>
-
-      {/* RIGHT PANE: canvas */}
-      <AnimatePresence initial={false}>
-        {isCanvasOpen && (
-          <CanvasPanel
-            streamingCanvasContent={markdown || streamingCanvasContent}
-            sources={markdownSources || sources}
-            setSourcesOpen={setSourcesOpen}
-          />
-        )}
-      </AnimatePresence>
-    </div>
+    <MainChat/>
   )
 }
 

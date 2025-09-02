@@ -19,6 +19,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useFileStore } from '@/store/useCompanyProfile'
 import { InlineCard } from './chat/InlineCard'
 import { useChatStore } from '@/store/chatStore'
+import { CompanyListCard } from './chat/CompanyListCard'
 
 // Files dropdown component
 const FilesDropdown = () => {
@@ -63,7 +64,7 @@ const FilesDropdown = () => {
             </div>
 
             {/* 5. Dynamic Content Area */}
-            <div className="flex-1 p-2 overflow-y-auto space-y-2">
+            <div className="flex-1 p-2 overflow-y-auto space-y-2" onClick={() => setIsOpen(false)}>
               {inlineCards.length > 0 ? (
                 inlineCards.map((card, index) => (
                   <InlineCard
@@ -73,7 +74,7 @@ const FilesDropdown = () => {
                     country={card.data?.country}
                     content={card.content}
                     isStreaming={isStreaming}
-                    onClick={() => setIsOpen(false)}
+                    // onClick={() => setIsOpen(false)}
                   />
                 ))
               ) : (

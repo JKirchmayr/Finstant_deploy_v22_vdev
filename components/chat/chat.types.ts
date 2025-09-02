@@ -15,9 +15,13 @@ export type Source = {
 }
 
 export type InlineCardData = {
-  name: string
-  city: string
-  country: string
+  name?: string
+  city?: string
+  country?: string
+  title?: string
+  estimated_list_item_count?: number
+  time?: string
+  type?: string
 }
 
 export type Message = {
@@ -25,4 +29,16 @@ export type Message = {
   content: string
   data?: any
   createdAt?: Date
+}
+
+export type CompanyData = {
+  company_name: string
+  company_description: string
+  company_logo?: string
+  company_location?: string
+  evaluations?: any[]
+  company_id?: string | number
+  revenue?: string
+  products?: string
+  hq?: string
 }
