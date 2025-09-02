@@ -1,11 +1,10 @@
-'use client'
 import { ColumnDef } from '@tanstack/react-table'
+import { CompanyData } from '../chat.types'
 import { Checkbox } from '@/components/ui/checkbox'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ExpandableCell } from '@/components/table/epandable-cell'
 import { GenerateSkeleton } from './generate-skeleton'
-import { CompanyData } from './chat.types' 
 
 export const companiesListColumns: ColumnDef<CompanyData>[] = [
   {
@@ -53,7 +52,7 @@ export const companiesListColumns: ColumnDef<CompanyData>[] = [
             {row.original.company_name || '-'}
           </Link>
         </div>
-      );
+      )
     },
   },
   {
@@ -88,4 +87,4 @@ export const companiesListColumns: ColumnDef<CompanyData>[] = [
     size: 150, // Increased last column's size
     cell: ({ row }) => <GenerateSkeleton isPlaceholder={false} text={row.original.hq} />,
   },
-];
+]

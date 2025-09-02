@@ -5,7 +5,7 @@ import { InlineCard } from './InlineCard'
 import TypingDots from '../TypingDots'
 import { useFileStore } from '@/store/useCompanyProfile'
 import { Message } from './chat.types'
-import { CompanyListCard } from './CompanyListCard';
+import { InlineListCard } from './InlineListCard'
 
 type MessagesProps = {
   messages: Message[]
@@ -31,6 +31,7 @@ export const Messages = ({
       {messages.map((m, i) => {
         const isUser = m.role === 'user'
         const isInlineCard = m.role === 'inline_card'
+        const isInlineListCard = m.role === 'inline_list_card'
         const isChatMessage = m.role === 'user' || m.role === 'assistant'
 
         return (
@@ -49,34 +50,24 @@ export const Messages = ({
               })}
             >
               {isChatMessage && <Markdown>{m.content}</Markdown>}
-              {isInlineCard && m.data && (()=>{
-
-              switch (m.data.type) {
-                  case 'company_list_card':
-                    // This is the new logic for the new card
-                    return (
-                      <CompanyListCard
-                        title={m.data.title}
-                        itemCount={m.data.estimated_list_item_count}
-                        onClick={() => onListCardClick(m.data)}
-                        isStreaming={isStreaming}
-                      />
-                    );
-                  
-                  default:
-                    // This is your original logic, completely untouched
-                    return (
-                      <InlineCard
-                        name={m.data.name}
-                        city={m.data.city}
-                        country={m.data.country}
-                        content={m.content}
-                        onClick={() => onCardClick(m.content)}
-                        isStreaming={isStreaming}
-                      />
-                    );
-                }
-              })()}
+              {isInlineCard && (
+                <InlineCard
+                  name={m.data.name}
+                  city={m.data.city}
+                  country={m.data.country}
+                  content={m.content}
+                  onClick={() => onCardClick(m.content)}
+                  isStreaming={isStreaming}
+                />
+              )}
+              {isInlineListCard && (
+                <InlineListCard
+                  title={m.data.profile.title}
+                  itemCount={m.data.profile.estimated_list_item_count}
+                  onClick={() => onListCardClick(m.data.list)}
+                  isStreaming={isStreaming}
+                />
+              )}
             </div>
           </div>
         )

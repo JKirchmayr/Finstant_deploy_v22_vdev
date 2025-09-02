@@ -20,8 +20,8 @@ export const SUGGESTION_BANK: Record<TabKey, string[]> = {
     'Create an investor profile of Investindustrial',
   ],
   analysis: [
-    'List of companies in the pet food industry that are based in Germany',
-    'List of private equity investors with car parts manufacture in their portfolio',
+    'List of 3 companies in the pet food industry that are based in Germany',
+    'List of 3 private equity investors with car parts manufacture in their portfolio',
     'Create a precedent transaction analysis on gym chain deals',
   ],
 }

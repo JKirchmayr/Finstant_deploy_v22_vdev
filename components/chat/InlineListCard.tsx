@@ -1,20 +1,15 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { ListBulletIcon } from '@heroicons/react/24/outline';
+import React from 'react'
+import { motion } from 'framer-motion'
+import { ListBulletIcon } from '@heroicons/react/24/outline'
 
-type CompanyListCardProps = {
-  title?: string;
-  itemCount?: number;
-  onClick?: () => void;
-  isStreaming: boolean;
-};
+type InlineListCardProps = {
+  title?: string
+  itemCount?: number
+  onClick?: () => void
+  isStreaming: boolean
+}
 
-export const CompanyListCard = ({
-  title,
-  itemCount,
-  onClick,
-  isStreaming,
-}: CompanyListCardProps) => {
+export const InlineListCard = ({ title, itemCount, onClick, isStreaming }: InlineListCardProps) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -32,10 +27,8 @@ export const CompanyListCard = ({
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-gray-900 truncate">{title}</p>
-        <p className="text-xs text-gray-500">
-          {itemCount && <span>~{itemCount} companies</span>}
-        </p>
+        <p className="text-xs text-gray-500">{itemCount && <span>~{itemCount} companies</span>}</p>
       </div>
     </motion.div>
-  );
-};
+  )
+}

@@ -1,17 +1,17 @@
-"use client"
-import { ColumnDef } from "@tanstack/react-table"
-import { Checkbox } from "@/components/ui/checkbox"
-import { GenerateSkeleton } from "./generate-skeleton"
-import Image from "next/image"
-import ChatDataTable from "@/components/chat/ChatDataTable"
-import InvestorSheet from "@/components/InvestorSheet"
-import { Globe } from "lucide-react"
-import Link from "next/link"
-import LogoShowcase from "@/components/ui/LogoShowcase"
-import CompanySheet from "@/components/CompanySheet"
-import { useState, useCallback } from "react"
-import { ExpandableCell } from "@/components/table/epandable-cell"
-import { Button } from "@/components/ui/button"
+'use client'
+import { ColumnDef } from '@tanstack/react-table'
+import { Checkbox } from '@/components/ui/checkbox'
+import { GenerateSkeleton } from './generate-skeleton'
+import Image from 'next/image'
+import ChatDataTable from '@/components/chat/list-builder/ChatDataTable'
+import InvestorSheet from '@/components/InvestorSheet'
+import { Globe } from 'lucide-react'
+import Link from 'next/link'
+import LogoShowcase from '@/components/ui/LogoShowcase'
+import CompanySheet from '@/components/CompanySheet'
+import { useState, useCallback } from 'react'
+import { ExpandableCell } from '@/components/table/epandable-cell'
+import { Button } from '@/components/ui/button'
 
 export type InvestorsProps = {
   investor_id: string
@@ -64,7 +64,7 @@ export default function InvestorsResponseData({
 
   const columns: ColumnDef<InvestorsProps>[] = [
     {
-      id: "select",
+      id: 'select',
       size: 65,
       minSize: 65,
       maxSize: 65,
@@ -73,7 +73,7 @@ export default function InvestorsResponseData({
           <Checkbox
             checked={
               table.getIsAllPageRowsSelected() ||
-              (table.getIsSomePageRowsSelected() && "indeterminate")
+              (table.getIsSomePageRowsSelected() && 'indeterminate')
             }
             onCheckedChange={value => table.toggleAllPageRowsSelected(!!value)}
             aria-label="Select all"
@@ -95,8 +95,8 @@ export default function InvestorsResponseData({
       enableHiding: false,
     },
     {
-      accessorKey: "investor_name",
-      header: loading ? "Generating" : "Investor Name",
+      accessorKey: 'investor_name',
+      header: loading ? 'Generating' : 'Investor Name',
       minSize: 200,
       cell: ({ row }) => {
         return (
@@ -131,15 +131,18 @@ export default function InvestorsResponseData({
           // </InvestorSheet>
           <div className="inline-flex items-center hover:font-semibold transition-all duration-200">
             <Image
-              src={(row.original.investor_logo?.trimEnd?.() && row.original.investor_logo.trimEnd()) || "https://placehold.co/50x50.png"}
+              src={
+                (row.original.investor_logo?.trimEnd?.() && row.original.investor_logo.trimEnd()) ||
+                'https://placehold.co/50x50.png'
+              }
               alt="logo"
               width={20}
               height={20}
               className="mr-1.5 rounded"
               unoptimized={true}
             />
-            <Link target="_blank" href={`/investors/${row.original.investor_id}` || "#"}>
-              {row.getValue("investor_name") || "-"}
+            <Link target="_blank" href={`/investors/${row.original.investor_id}` || '#'}>
+              {row.getValue('investor_name') || '-'}
             </Link>
           </div>
         )
@@ -148,13 +151,13 @@ export default function InvestorsResponseData({
     },
 
     {
-      accessorKey: "investor_website",
-      header: loading ? "Generating" : "Website",
+      accessorKey: 'investor_website',
+      header: loading ? 'Generating' : 'Website',
       size: 100,
       cell: ({ row }) => (
         <GenerateSkeleton isPlaceholder={loading} text={row.original.investor_website}>
           <Link
-            href={row.original.investor_website ?? "#"}
+            href={row.original.investor_website ?? '#'}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1 text-blue-600 hover:text-blue-800 transition-colors"
@@ -166,8 +169,8 @@ export default function InvestorsResponseData({
       ),
     },
     {
-      accessorKey: "investor_country",
-      header: loading ? "Generating" : "City",
+      accessorKey: 'investor_country',
+      header: loading ? 'Generating' : 'City',
       cell: ({ row }) => (
         <GenerateSkeleton
           isPlaceholder={loading}
@@ -177,8 +180,8 @@ export default function InvestorsResponseData({
       enableSorting: true,
     },
     {
-      accessorKey: "investor_description",
-      header: loading ? "Generating" : "Description",
+      accessorKey: 'investor_description',
+      header: loading ? 'Generating' : 'Description',
       minSize: 300,
       cell: ({ row, column }) => {
         const width = column.getSize()
@@ -199,17 +202,18 @@ export default function InvestorsResponseData({
       },
     },
     {
-      accessorKey: "similar_investments",
-      header: loading ? "Generating" : "Similar Transactions",
+      accessorKey: 'similar_investments',
+      header: loading ? 'Generating' : 'Similar Transactions',
       minSize: 160,
       cell: ({ row }) => {
         const investments =
           row.original.investor_selected_investments?.map(investment => ({
             id: investment.company_id.toString(),
-            src: investment.company_logo || "https://placehold.co/400x400.png",
+            src: investment.company_logo || 'https://placehold.co/400x400.png',
             alt: `${investment.company_name} logo`,
-            name: `${investment.company_name}${investment.investment_year ? ` (${investment.investment_year})` : ""
-              }`,
+            name: `${investment.company_name}${
+              investment.investment_year ? ` (${investment.investment_year})` : ''
+            }`,
           })) || []
 
         return (
@@ -235,15 +239,15 @@ export default function InvestorsResponseData({
     // },
 
     {
-      accessorKey: "investor_type",
-      header: loading ? "Generating" : "Type",
+      accessorKey: 'investor_type',
+      header: loading ? 'Generating' : 'Type',
       cell: ({ row }) => (
         <GenerateSkeleton isPlaceholder={loading} text={row.original.investor_type} />
       ),
     },
     {
-      accessorKey: "investor_strategy",
-      header: loading ? "Generating" : "Strategy",
+      accessorKey: 'investor_strategy',
+      header: loading ? 'Generating' : 'Strategy',
       cell: ({ row }) => (
         <GenerateSkeleton isPlaceholder={loading} text={row.original.investor_strategy} />
       ),
@@ -258,10 +262,10 @@ export default function InvestorsResponseData({
         isLoading={loading}
         togglePanel={togglePanel}
         closeTabPanel={closeTabPanel}
-        loadMoreData={() => { }}
+        loadMoreData={() => {}}
         hasMoreData={false}
         titleName="Investors List"
-        defaultPinnedColumns={["select", "investor_name"]}
+        defaultPinnedColumns={['select', 'investor_name']}
       />
       {selectedCompany && (
         <CompanySheet

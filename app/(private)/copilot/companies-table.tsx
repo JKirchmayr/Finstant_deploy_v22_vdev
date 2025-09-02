@@ -1,9 +1,9 @@
-"use client"
-import { useWSStore } from "@/store/wsStore"
-import { useState, useMemo } from "react"
-import { ColumnDef, useReactTable, getCoreRowModel, flexRender } from "@tanstack/react-table"
-import { Pencil } from "lucide-react"
-import { ScrollArea } from "@/components/ui/scroll-area"
+'use client'
+import { useWSStore } from '@/store/wsStore'
+import { useState, useMemo } from 'react'
+import { ColumnDef, useReactTable, getCoreRowModel, flexRender } from '@tanstack/react-table'
+import { Pencil } from 'lucide-react'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Table,
   TableBody,
@@ -11,18 +11,18 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import PinnableDataTable from "@/components/table/pinnable-data-table"
-import { Checkbox } from "@/components/ui/checkbox"
-import { useTabPanelStore } from "@/store/tabStore"
-import CompanyProfile from "@/components/CompanyProfile"
-import { GenerateSkeleton } from "./generate-skeleton"
-import Image from "next/image"
-import ChatDataTable from "@/components/chat/ChatDataTable"
-import { AddNewColumn } from "@/components/chat/AddNewColumn"
-import CompanySheet from "@/components/CompanySheet"
-import { ExpandableCell } from "@/components/table/epandable-cell"
-import Link from "next/link"
+} from '@/components/ui/table'
+import PinnableDataTable from '@/components/table/pinnable-data-table'
+import { Checkbox } from '@/components/ui/checkbox'
+import { useTabPanelStore } from '@/store/tabStore'
+import CompanyProfile from '@/components/CompanyProfile'
+import { GenerateSkeleton } from './generate-skeleton'
+import Image from 'next/image'
+import ChatDataTable from '@/components/chat/list-builder/ChatDataTable'
+import { AddNewColumn } from '@/components/chat/AddNewColumn'
+import CompanySheet from '@/components/CompanySheet'
+import { ExpandableCell } from '@/components/table/epandable-cell'
+import Link from 'next/link'
 
 export type Company = {
   company_id: number
@@ -46,7 +46,7 @@ export default function CompaniesData({
 }) {
   const columns: ColumnDef<Company>[] = [
     {
-      id: "select",
+      id: 'select',
       size: 50,
       minSize: 50,
       maxSize: 50,
@@ -55,11 +55,11 @@ export default function CompaniesData({
           <Checkbox
             checked={
               table.getIsAllPageRowsSelected() ||
-              (table.getIsSomePageRowsSelected() && "indeterminate")
+              (table.getIsSomePageRowsSelected() && 'indeterminate')
             }
             onCheckedChange={value => table.toggleAllPageRowsSelected(!!value)}
             aria-label="Select all"
-          // className="mx-auto"
+            // className="mx-auto"
           />
           <div className="text-center">#</div>
         </div>
@@ -70,7 +70,7 @@ export default function CompaniesData({
             checked={row.getIsSelected()}
             onCheckedChange={value => row.toggleSelected(!!value)}
             aria-label="Select row"
-          // className="mx-auto"
+            // className="mx-auto"
           />
           <div className="text-center">{row.index + 1}</div>
         </div>
@@ -79,23 +79,23 @@ export default function CompaniesData({
       enableHiding: false,
     },
     {
-      accessorKey: "company_name",
-      header: loading ? "Generating" : "Company",
+      accessorKey: 'company_name',
+      header: loading ? 'Generating' : 'Company',
       maxSize: 100,
       cell: ({ row }) => {
         const [open, setOpen] = useState(false)
         return (
           <div className="inline-flex items-center hover:font-semibold transition-all duration-200">
             <Image
-              src={row.original.company_logo || "https://placehold.co/50x50.png"}
+              src={row.original.company_logo || 'https://placehold.co/50x50.png'}
               alt="logo"
               width={20}
               height={20}
               className="mr-1.5 rounded"
               unoptimized={true}
             />
-            <Link target="_blank" href={`/companies/${row.original.company_id}` || "#"}>
-              {row.getValue("company_name") || "-"}
+            <Link target="_blank" href={`/companies/${row.original.company_id}` || '#'}>
+              {row.getValue('company_name') || '-'}
             </Link>
           </div>
           // <CompanySheet
@@ -130,8 +130,8 @@ export default function CompaniesData({
       enableSorting: true,
     },
     {
-      accessorKey: "company_description",
-      header: loading ? "Generating" : "Description",
+      accessorKey: 'company_description',
+      header: loading ? 'Generating' : 'Description',
       cell: ({ row }) => (
         <ExpandableCell
           TriggerCell={
@@ -145,8 +145,8 @@ export default function CompaniesData({
       ),
     },
     {
-      accessorKey: "company_country",
-      header: loading ? "Generating" : "Country",
+      accessorKey: 'company_country',
+      header: loading ? 'Generating' : 'Country',
       size: 80,
       cell: ({ row }) => (
         <GenerateSkeleton isPlaceholder={loading} text={row.original.company_country || '-'} />
@@ -154,8 +154,8 @@ export default function CompaniesData({
       enableSorting: true,
     },
     {
-      accessorKey: "similarity_score",
-      header: loading ? "Generating" : "Similarity",
+      accessorKey: 'similarity_score',
+      header: loading ? 'Generating' : 'Similarity',
       size: 70,
       cell: ({ row }) => (
         <GenerateSkeleton isPlaceholder={loading} text={row.original.similarity_score} />
@@ -171,10 +171,10 @@ export default function CompaniesData({
         columns={columns}
         isLoading={false}
         hasMoreData={false}
-        loadMoreData={() => console.log("loadmore")}
+        loadMoreData={() => console.log('loadmore')}
         filterBy="company_name"
         topbarClass="px-1.5 mb-1.5"
-        defaultPinnedColumns={["index", "select", "company_name"]}
+        defaultPinnedColumns={['index', 'select', 'company_name']}
         titleName="Companies List"
         togglePanel={togglePanel}
         closeTabPanel={closeTabPanel}

@@ -22,8 +22,14 @@ type ChatStore = {
   setMarkdownSources: (sources: Source[]) => void
   isCanvasOpen: boolean
   setIsCanvasOpen: (isCanvasOpen: boolean) => void
+  isListPanelOpen: boolean
+  setIsListPanelOpen: (isListOpen: boolean) => void
   sourcesOpen: boolean
   setSourcesOpen: (sourcesOpen: boolean) => void
+  listProfileData: null
+  setListProfileData: (data: any) => void
+  isListProfileOpen: boolean
+  setIsListProfileOpen: (isListProfileOpen: boolean) => void
   append: ({
     id,
     role,
@@ -37,6 +43,7 @@ type ChatStore = {
     createdAt?: any
   }) => void
   updateMessage: (id: string, content: string, sources: Source[]) => void
+  updateListData: (id: string, data: any) => void
   clearMessages: () => void
   inlineCards: ChatMessage[]
 }
@@ -47,10 +54,16 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   markdownSources: [],
   isCanvasOpen: false,
   isStreaming: false,
+  isListPanelOpen: false,
+  listProfileData: null,
+  setListProfileData: data => set({ listProfileData: data }),
+  isListProfileOpen: false,
+  setIsListProfileOpen: isListProfileOpen => set({ isListProfileOpen }),
   setIsStreaming: isStreaming => set({ isStreaming }),
   setMarkdownSources: sources => set({ markdownSources: sources }),
   setMarkdown: markdown => set({ markdown }),
   setIsCanvasOpen: isCanvasOpen => set({ isCanvasOpen }),
+  setIsListPanelOpen: open => set({ isListPanelOpen: open }),
   sourcesOpen: false,
   setSourcesOpen: sourcesOpen => set({ sourcesOpen }),
   input: '',
@@ -63,6 +76,12 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     set(state => ({
       messages: state.messages.map(message =>
         message.id === id ? { ...message, content, sources } : message
+      ),
+    })),
+  updateListData: (id: string, list: any) =>
+    set(state => ({
+      messages: state.messages.map(message =>
+        message.id === id ? { ...message, data: { ...message.data, list } } : message
       ),
     })),
   clearMessages: () => set({ messages: [] }),

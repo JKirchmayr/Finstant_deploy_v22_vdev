@@ -2,24 +2,13 @@
 import { cn, tryParseJSON } from '@/lib/utils'
 import React, { useEffect, useRef, useState, useCallback } from 'react'
 import { useAuth } from '@/hooks/useAuth'
-import { PromptField } from '@/components/chat/PromptField'
-import { BottomSuggestions, SUGGESTION_BANK, Suggestions, TabKey } from './Suggestions'
-import { Messages } from './Messages'
 import { useChatStore } from '@/store/chatStore'
-import { AnimatePresence, motion } from 'framer-motion'
 import { useFileStore } from '@/store/useCompanyProfile'
-import { CanvasPanel } from './CanvasPanel'
-import SourcesComponent from './Sources'
 import { v4 } from 'uuid'
-import { CompanyData, InlineCardData } from './chat.types'
-import ChatDataTable from './ChatDataTable' 
-import { companiesListColumns } from './CompanyListTable' 
+import { CompanyData, InlineCardData, InlineListCardData } from './chat.types'
 import { useSingleTabStore } from '@/store/singleTabStore'
-import { ColumnDef } from '@tanstack/react-table'
-import { AddColumnProvider } from '@/context/newColumn'
 import MainChat from './MainChat'
-
-
+import { TabKey } from './Suggestions'
 
 const backendURL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
 
@@ -33,16 +22,13 @@ const Chat = () => {
     append,
     setInput,
     updateMessage,
-    markdown,
+    updateListData,
     setMarkdown,
-    markdownSources,
     setMarkdownSources,
-    isCanvasOpen,
     setIsCanvasOpen,
     isStreaming,
     setIsStreaming,
-    sourcesOpen,
-    setSourcesOpen,
+    setIsListPanelOpen,
   } = useChatStore()
 
   const { setSingleTab, clearSingleTab, singleTab } = useSingleTabStore()
@@ -55,20 +41,19 @@ const Chat = () => {
   const [streamingCanvasContent, setStreamingCanvasContent] = useState<string>('')
   const [sources, setSources] = useState<Array<{ id: number; title: string; url: string }>>([])
   const [listData, setListData] = useState<CompanyData[]>([])
-  const [isListPanelOpen, setIsListPanelOpen] = useState(false)
 
   const { addFile, setIsProfileStreaming } = useFileStore()
 
   const handleCardClick = (data: any) => {
     setMarkdown(data)
     setIsCanvasOpen(true)
-    setIsListPanelOpen(false);
+    setIsListPanelOpen(false)
   }
 
   const handleListCardClick = (data: any) => {
-    setSingleTab("list", "companies", data, "final"); 
-    setIsListPanelOpen(true); 
-    setIsCanvasOpen(false); 
+    setSingleTab('list', 'companies', data, 'final')
+    setIsListPanelOpen(true)
+    setIsCanvasOpen(false)
   }
 
   // Create controller for request cancellation
@@ -154,8 +139,8 @@ const Chat = () => {
 
       let parsed: any
 
-      const streamedCompaniesData: CompanyData[] = [];
-      const companyMap = new Map<string, CompanyData>();
+      const streamedCompaniesData: CompanyData[] = []
+      const companyMap = new Map<string, CompanyData>()
 
       while (true) {
         const { done, value } = await reader.read()
@@ -203,9 +188,9 @@ const Chat = () => {
             scrollToBottom()
             setIsProfileStreaming(false)
             if (companyMap.size > 0) {
-              const finalListData = Array.from(companyMap.values());
-              setSingleTab('list_' + new Date().getTime(), 'companies', finalListData, 'final');
-              setIsListPanelOpen(true);
+              const finalListData = Array.from(companyMap.values())
+              setSingleTab('list_' + new Date().getTime(), 'companies', finalListData, 'final')
+              setIsListPanelOpen(true)
             }
             break
           }
@@ -264,54 +249,6 @@ const Chat = () => {
             })
           }
 
-           if (eventType === 'company_properties') {
-            const companyName = data?.company_name;
-            if (companyName) {
-              const newCompanyData: CompanyData = {
-                company_name: companyName,
-                company_description: data.company_description || '',
-                company_logo: data.company_logo || '',
-                company_location: data.company_location || '',
-                hq: data.company_location || '',
-                // Ensure other properties are initialized with fallback values
-              };
-              companyMap.set(companyName, { ...companyMap.get(companyName), ...newCompanyData });
-              setListData(Array.from(companyMap.values()));
-            }
-            setIsListPanelOpen(true);
-            setIsCanvasOpen(false);
-          }
-
-          if (eventType === 'company_evaluations') {
-            const companyName = data?.company_name;
-            if (companyName) {
-              const currentCompany = companyMap.get(companyName) || {} as CompanyData;
-              companyMap.set(companyName, { ...currentCompany, evaluations: data.evaluations });
-              setListData(Array.from(companyMap.values()));
-            }
-          }
-
-          if (eventType === 'company_list_card') {
-            // This is for the list builder card in the chat pane, not the panel itself
-            if (processingBuffer.trim()) {
-              append({ role: 'assistant', content: processingBuffer })
-              processingBuffer = ''
-              setStreamingMessage('')
-            }
-            const newCompanyListCardData: InlineCardData = {
-              title: data?.list_title,
-              estimated_list_item_count: data?.estimated_list_item_count,
-              time: data?.timestamp_created,
-              type: data?.meta?.type,
-            }
-            setStreamId(uuid)
-            append({
-              id: uuid,
-              role: 'inline_card',
-              content: '',
-              data: newCompanyListCardData,
-            })
-          }
           //--------Company Profile ----------
           if (eventType === 'company_profile') {
             const text = data?.text || ''
@@ -342,6 +279,57 @@ const Chat = () => {
               const incoming = Array.isArray(data?.sources) ? data.sources : []
               setSources(incoming)
             }
+          }
+          console.log(data, eventType)
+          //-----------Compnay List Builder ---------
+          if (eventType === 'company_properties' && data?.meta?.stage === 'immediate') {
+            const companyName = data?.company_name
+            console.log(data)
+            if (companyName) {
+              const newCompanyData: CompanyData = {
+                company_name: companyName,
+                company_description: data.company_description || '',
+                company_logo: data.company_logo || '',
+                company_location: data.company_location || '',
+                hq: data.company_location || '',
+                // Ensure other properties are initialized with fallback values
+              }
+              companyMap.set(companyName, { ...companyMap.get(companyName), ...newCompanyData })
+              setListData(Array.from(companyMap.values()))
+            }
+            setIsListPanelOpen(true)
+            setIsCanvasOpen(false)
+          }
+
+          if (eventType === 'company_evaluations') {
+            const companyName = data?.company_name
+            if (companyName) {
+              const currentCompany = companyMap.get(companyName) || ({} as CompanyData)
+              companyMap.set(companyName, { ...currentCompany, evaluations: data.evaluations })
+              setListData(Array.from(companyMap.values()))
+            }
+          }
+
+          if (eventType === 'company_list_card') {
+            // This is for the list builder card in the chat pane, not the panel itself
+            if (processingBuffer.trim()) {
+              append({ role: 'assistant', content: processingBuffer })
+              processingBuffer = ''
+              setStreamingMessage('')
+            }
+            const newCompanyListCardData: InlineListCardData = {
+              title: data?.list_title,
+              estimated_list_item_count: data?.estimated_list_item_count,
+              time: data?.timestamp_created,
+              type: data?.meta?.type,
+            }
+            setStreamId(uuid)
+            append({
+              id: uuid,
+              role: 'inline_list_card',
+              content: '',
+              data: { profile: newCompanyListCardData },
+            })
           }
         }
       }
@@ -398,10 +386,31 @@ const Chat = () => {
         updateMessage(streamId, streamingCanvasContent, sources)
       }
     }
+    if (listData.length > 0 && !isStreaming && streamId) {
+      const messageToUpdate = messages.find(message => message.id === streamId)
+      if (messageToUpdate) {
+        updateListData(streamId, listData)
+      }
+    }
   }, [streamingCanvasContent, isStreaming, streamId, updateMessage, sources])
 
   return (
-    <MainChat/>
+    <MainChat
+      activeTab={activeTab}
+      handleStopStreaming={handleStopStreaming}
+      setActiveTab={setActiveTab}
+      endRef={endRef}
+      streamingMessage={streamingMessage}
+      streamingCanvasContent={streamingCanvasContent}
+      sources={sources}
+      handleCardClick={handleCardClick}
+      handleListCardClick={handleListCardClick}
+      listData={listData}
+      handleSend={handleSend}
+      handleInputChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+        setInput(e.target.value)
+      }}
+    />
   )
 }
 

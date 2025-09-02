@@ -2,11 +2,10 @@ export type Role =
   | 'user'
   | 'assistant'
   | 'system'
-  | 'company-profile'
+  | 'list_builder'
   | 'data'
-  | 'company_profile_card'
-  | 'investor_profile_card'
   | 'inline_card'
+  | 'inline_list_card'
 
 export type Source = {
   id: number
@@ -22,6 +21,13 @@ export type InlineCardData = {
   estimated_list_item_count?: number
   time?: string
   type?: string
+}
+
+export type InlineListCardData = {
+  title: string
+  estimated_list_item_count: number
+  time: string
+  type: string
 }
 
 export type Message = {

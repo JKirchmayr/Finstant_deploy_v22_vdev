@@ -1,46 +1,58 @@
 'use client'
-import { cn, tryParseJSON } from '@/lib/utils'
-import React, { useEffect, useRef, useState, useCallback } from 'react'
-import { useAuth } from '@/hooks/useAuth'
+import React from 'react'
 import { PromptField } from '@/components/chat/PromptField'
 import { BottomSuggestions, SUGGESTION_BANK, Suggestions, TabKey } from './Suggestions'
 import { Messages } from './Messages'
 import { useChatStore } from '@/store/chatStore'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useFileStore } from '@/store/useCompanyProfile'
 import { CanvasPanel } from './CanvasPanel'
 import SourcesComponent from './Sources'
-import { v4 } from 'uuid'
 import { CompanyData, InlineCardData } from './chat.types'
-import ChatDataTable from './ChatDataTable' 
-import { companiesListColumns } from './CompanyListTable' 
-import { useSingleTabStore } from '@/store/singleTabStore'
-import { ColumnDef } from '@tanstack/react-table'
-import { AddColumnProvider } from '@/context/newColumn'
+import ListBuilder from './list-builder'
 
-export default function MainChat(
-    
-) {
-    const {
-        messages,
-        input,
-        append,
-        setInput,
-        updateMessage,
-        markdown,
-        setMarkdown,
-        markdownSources,
-        setMarkdownSources,
-        isCanvasOpen,
-        setIsCanvasOpen,
-        isStreaming,
-        setIsStreaming,
-        sourcesOpen,
-        setSourcesOpen,
-      } = useChatStore()
-      
+interface MainChatProps {
+  activeTab: TabKey
+  handleSend: (e: React.FormEvent) => Promise<void>
+  handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  handleStopStreaming: () => void
+  setActiveTab: (tab: TabKey) => void
+  endRef: React.RefObject<HTMLDivElement>
+  streamingMessage: string
+  streamingCanvasContent: string
+  sources: any[] // Consider creating a proper type for sources
+  handleCardClick: (card: InlineCardData) => void
+  handleListCardClick: (data: any) => void // Consider creating a proper type for data
+  listData: CompanyData[]
+}
+
+export default function MainChat({
+  activeTab,
+  setActiveTab,
+  handleSend,
+  handleStopStreaming,
+  endRef,
+  streamingMessage,
+  streamingCanvasContent,
+  sources,
+  handleCardClick,
+  handleListCardClick,
+  listData,
+}: MainChatProps) {
+  const {
+    messages,
+    input,
+    setInput,
+    markdown,
+    markdownSources,
+    isCanvasOpen,
+    isStreaming,
+    sourcesOpen,
+    setSourcesOpen,
+    isListPanelOpen,
+    setIsListPanelOpen,
+  } = useChatStore()
+
   return (
-
     <div className="flex h-full overflow-hidden">
       {/* LEFT PANE: messages + prompt */}
       <motion.div
@@ -88,7 +100,7 @@ export default function MainChat(
                   isStreaming={isStreaming}
                   streamingMessage={streamingMessage}
                   endRef={endRef}
-                  onCardClick={handleCardClick }
+                  onCardClick={handleCardClick}
                   onListCardClick={handleListCardClick}
                 />
               </div>
@@ -132,33 +144,7 @@ export default function MainChat(
             setSourcesOpen={setSourcesOpen}
           />
         )}
-        {isListPanelOpen && (
-          <motion.div
-        className="flex flex-col border-l shadow-xl bg-white"
-        style={{ width: '65%' }}
-        initial={{ opacity: 0, width: 0 }}
-        animate={{ opacity: 1, width: '65%' }}
-        exit={{ opacity: 0, width: 0 }}
-        transition={{ type: 'spring', stiffness: 250, damping: 25 }}
-        layout
-    >
-          <div className="flex-1 p-2 overflow-auto">
-            <AddColumnProvider>
-            <ChatDataTable<CompanyData>
-              data={listData}
-              columns={companiesListColumns as ColumnDef<CompanyData>[]}
-              isLoading={isStreaming}
-              hasMoreData={false}
-              loadMoreData={() => {}}
-              titleName="Pet food companies in France"
-              togglePanel={() => {}}
-              closeTabPanel={() => setIsListPanelOpen(false)}
-            />
-            </AddColumnProvider>
-            </div>
-        </motion.div>
-          
-        )}
+        {isListPanelOpen && <ListBuilder listData={listData} />}
       </AnimatePresence>
     </div>
   )
