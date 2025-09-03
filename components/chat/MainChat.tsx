@@ -9,6 +9,7 @@ import { CanvasPanel } from './CanvasPanel'
 import SourcesComponent from './Sources'
 import { CompanyData, InlineCardData } from './chat.types'
 import ListBuilder from './list-builder'
+import { CompanyPopup } from './list-builder/Companydetails'
 
 interface MainChatProps {
   activeTab: TabKey
@@ -22,7 +23,7 @@ interface MainChatProps {
   sources: any[] // Consider creating a proper type for sources
   handleCardClick: (card: InlineCardData) => void
   handleListCardClick: (data: any) => void // Consider creating a proper type for data
-  listData: CompanyData[]
+  //listData: CompanyData[]
 }
 
 export default function MainChat({
@@ -36,7 +37,6 @@ export default function MainChat({
   sources,
   handleCardClick,
   handleListCardClick,
-  listData,
 }: MainChatProps) {
   const {
     messages,
@@ -48,7 +48,12 @@ export default function MainChat({
     isStreaming,
     sourcesOpen,
     setSourcesOpen,
+    isCompanyPopupOpen,
+    popupCompany,
+    closeCompanyPopup,
     isListPanelOpen,
+    activeListData,   
+    activeListTitle,  
     setIsListPanelOpen,
   } = useChatStore()
 
@@ -132,6 +137,13 @@ export default function MainChat({
               isStreaming={isStreaming}
             />
           )}
+          {isCompanyPopupOpen && (
+            <CompanyPopup
+              isOpen={isCompanyPopupOpen}
+              onClose={closeCompanyPopup}
+              company={popupCompany}
+            />
+          )}
         </AnimatePresence>
       </motion.div>
 
@@ -144,7 +156,7 @@ export default function MainChat({
             setSourcesOpen={setSourcesOpen}
           />
         )}
-        {isListPanelOpen && <ListBuilder listData={listData} />}
+        {isListPanelOpen && <ListBuilder listData={activeListData} title={activeListTitle} />}
       </AnimatePresence>
     </div>
   )

@@ -64,7 +64,7 @@ export const Messages = ({
                 <InlineListCard
                   title={m.data.profile.title}
                   itemCount={m.data.profile.estimated_list_item_count}
-                  onClick={() => onListCardClick(m.data.list)}
+                  onClick={() => onListCardClick(m.data)}
                   isStreaming={isStreaming}
                 />
               )}

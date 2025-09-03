@@ -14,13 +14,13 @@ export type Source = {
 }
 
 export type InlineCardData = {
-  name?: string
-  city?: string
-  country?: string
-  title?: string
-  estimated_list_item_count?: number
-  time?: string
-  type?: string
+  name: string
+  city: string
+  country: string
+  // title?: string
+  // estimated_list_item_count?: number
+  // time?: string
+  // type?: string
 }
 
 export type InlineListCardData = {
@@ -38,13 +38,32 @@ export type Message = {
 }
 
 export type CompanyData = {
-  company_name: string
-  company_description: string
-  company_logo?: string
-  company_location?: string
-  evaluations?: any[]
-  company_id?: string | number
-  revenue?: string
-  products?: string
-  hq?: string
+  
+  
+  company_name: string;
+  company_website?: string;
+  company_logo?: string;
+  company_industry?: string;
+  company_location?: string;
+  company_revenue?: string;
+  company_products?: string;
+  company_employees?: number;
+  company_description?: string;  
+  evaluations?: Evaluation[];  
+  hq?: string; 
+};
+
+export interface Reference {
+  title: string;
+  snippet: string;
+  url: string;
 }
+
+export interface Evaluation {
+  criterion: string;
+  reasoning: string;
+  satisfied: 'yes' | 'no';
+  references: Reference[];
+}
+
+

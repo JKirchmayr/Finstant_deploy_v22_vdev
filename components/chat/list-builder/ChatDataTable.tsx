@@ -49,6 +49,8 @@ import { toast } from 'sonner'
 import { useSingleTabStore } from '@/store/singleTabStore'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../ui/tooltip'
 
+const TABLE_STATE_KEY = 'chat-data-table-state'
+
 interface IChatDataTableProps<T extends any> {
   data: T[]
   columns: ColumnDef<T>[]
@@ -91,9 +93,9 @@ const ChatDataTable = <T extends any>({
   addColumn = true,
   closeTabPanel,
 }: IChatDataTableProps<T>) => {
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  // const [sorting, setSorting] = useState<SortingState>([])
+  // const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  // const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = useState({})
 
   const pathname = usePathname()
@@ -102,25 +104,52 @@ const ChatDataTable = <T extends any>({
   const table = useReactTable({
     data,
     columns,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
+    // onSortingChange: setSorting,
+    // onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
+    // onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     columnResizeMode: 'onChange',
     state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
+      // sorting,
+      // columnFilters,
+      // columnVisibility,
       rowSelection,
     },
     initialState: {
+      ...(() => {
+        try {
+          const savedStateJSON = localStorage.getItem(TABLE_STATE_KEY)
+          if (savedStateJSON) {
+            const savedState = JSON.parse(savedStateJSON)
+            return {
+              sorting: savedState.sorting,
+              columnFilters: savedState.columnFilters,
+              columnVisibility: savedState.columnVisibility,
+            }
+          }
+        } catch (error) {
+          console.error('Error loading table state from localStorage:', error)
+        }
+        return {}
+      })(),
       columnPinning: {
         left: ['select', 'company_name'],
         right: [],
       },
+    },
+    onStateChange: updater => {
+      const state = typeof updater === 'function' ? updater(table.getState()) : updater
+
+      const stateToSave = {
+        sorting: state.sorting,
+        columnFilters: state.columnFilters,
+        columnVisibility: state.columnVisibility,
+      }
+
+      localStorage.setItem(TABLE_STATE_KEY, JSON.stringify(stateToSave))
     },
   })
   const { setSingleTab, isCollapsed } = useSingleTabStore()
@@ -238,18 +267,8 @@ const ChatDataTable = <T extends any>({
           <div className="p-2 space-y-1">
             <div className="flex justify-between items-center">
               <div className="flex gap-2 shrink-0">
-                <Button
-                  variant="secondary"
-                  size="xs"
-                  className="!px-[6px] hover:bg-gray-300"
-                  onClick={togglePanel}
-                >
-                  {!isCollapsed ? (
-                    <ChevronLeft className="size-4" />
-                  ) : (
-                    <ChevronRight className="size-4" />
-                  )}
-                </Button>
+               {selectedRows.length > 0 && (
+                <>
                 <Button
                   variant="secondary"
                   size="xs"
@@ -262,11 +281,13 @@ const ChatDataTable = <T extends any>({
                   variant="secondary"
                   size="xs"
                   className="hover:bg-gray-300"
-                  disabled={!selectedRows.length && !data.length}
+                  // disabled={!selectedRows.length && !data.length}
                   onClick={handleCopySelected}
                 >
                   Copy <CopyIcon className="size-4 ml-1" />
                 </Button>
+                </>
+                )}
               </div>
               <div className="flex gap-2">
                 {addColumn && (
@@ -380,7 +401,7 @@ const ChatDataTable = <T extends any>({
                       <TableRow
                         ref={isLastRow ? lastRowRef : null}
                         key={row.id}
-                        className="min-h-6 border-b transition-colors hover:bg-gray-100/80"
+                        className="min-h-6 border-b transition-colors hover:bg-gray-100/80 group"
                       >
                         {row.getVisibleCells().map((cell: any) => {
                           const { column } = cell
@@ -393,7 +414,7 @@ const ChatDataTable = <T extends any>({
                           return (
                             <TableCell
                               key={cell.id}
-                              className="py-2.5 border-r border-gray-300"
+                              className="py-2.5 border-r border-gray-300 data-pinned:bg-white group-hover:data-pinned:bg-gray-100"
                               style={{ ...getPinningStyles(column) }}
                               data-pinned={isPinned || undefined}
                               data-last-col={

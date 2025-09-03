@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { v4 as uuidv4 } from 'uuid'
-import { Role, Source } from '@/components/chat/chat.types'
+import { CompanyData, Role, Source } from '@/components/chat/chat.types'
 
 export type ChatMessage = {
   id: string
@@ -26,10 +26,21 @@ type ChatStore = {
   setIsListPanelOpen: (isListOpen: boolean) => void
   sourcesOpen: boolean
   setSourcesOpen: (sourcesOpen: boolean) => void
+
+  activeListTitle: string
+  activeListData: CompanyData[]
+  openListPanel: (title: string, data: CompanyData[]) => void
+  closeListPanel: () => void;
   listProfileData: null
   setListProfileData: (data: any) => void
   isListProfileOpen: boolean
   setIsListProfileOpen: (isListProfileOpen: boolean) => void
+  //new for
+  isCompanyPopupOpen: boolean
+  popupCompany: CompanyData | null
+  openCompanyPopup: (company: CompanyData) => void
+  closeCompanyPopup: () => void
+
   append: ({
     id,
     role,
@@ -56,6 +67,20 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   isStreaming: false,
   isListPanelOpen: false,
   listProfileData: null,
+  isCompanyPopupOpen: false,
+  popupCompany: null,
+  activeListTitle: '',
+activeListData: [],
+  openCompanyPopup: company =>
+    set({
+      popupCompany: company,
+      isCompanyPopupOpen: true,
+    }),
+  closeCompanyPopup: () =>
+    set({
+      isCompanyPopupOpen: false,
+      popupCompany: null,
+    }),
   setListProfileData: data => set({ listProfileData: data }),
   isListProfileOpen: false,
   setIsListProfileOpen: isListProfileOpen => set({ isListProfileOpen }),
@@ -88,4 +113,17 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   get inlineCards() {
     return get().messages.filter(message => message.role === 'inline_card')
   },
+
+  openListPanel: (title, data) => set({
+  activeListTitle: title,    
+  activeListData: data,      
+  isListPanelOpen: true,     
+  isCanvasOpen: false,       
+  isCompanyPopupOpen: false,
+}),
+closeListPanel: () => set({
+    isListPanelOpen: false,    
+    activeListData: [],       
+    activeListTitle: '',       
+  }),
 }))
