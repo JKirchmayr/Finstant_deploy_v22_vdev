@@ -26,6 +26,8 @@ type ChatStore = {
   setIsListPanelOpen: (isListOpen: boolean) => void
   sourcesOpen: boolean
   setSourcesOpen: (sourcesOpen: boolean) => void
+  activeProfileName: string | null;
+  setActiveProfileName: (name: string | null) => void;
 
   deleteRows: (rowsToDelete: CompanyData[]) => void
   activeListMessageId: string | null
@@ -93,7 +95,13 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   setIsStreaming: isStreaming => set({ isStreaming }),
   setMarkdownSources: sources => set({ markdownSources: sources }),
   setMarkdown: markdown => set({ markdown }),
-  setIsCanvasOpen: isCanvasOpen => set({ isCanvasOpen }),
+  activeProfileName: null,
+  setActiveProfileName: (name) => set({ activeProfileName: name }),
+  setIsCanvasOpen: isCanvasOpen =>
+    set(state => ({
+      isCanvasOpen: isCanvasOpen,
+      isListPanelOpen: isCanvasOpen ? false : state.isListPanelOpen,
+    })),
   setIsListPanelOpen: open => set({ isListPanelOpen: open }),
   sourcesOpen: false,
   setSourcesOpen: sourcesOpen => set({ sourcesOpen }),

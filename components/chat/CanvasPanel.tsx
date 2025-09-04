@@ -5,6 +5,8 @@ import { ProfileMessages } from './Profile'
 import { Source } from './chat.types'
 import { Button } from '../ui/button'
 import { useChatStore } from '@/store/chatStore'
+import { BuildingOffice2Icon } from '@heroicons/react/24/outline'
+
 
 export const CanvasPanel = ({
   streamingCanvasContent,
@@ -14,7 +16,17 @@ export const CanvasPanel = ({
   sources: Source[]
   setSourcesOpen: (isOpen: boolean) => void
 }) => {
-  const { isCanvasOpen, isStreaming, setIsCanvasOpen, setSourcesOpen } = useChatStore()
+  const { isCanvasOpen, isStreaming, setIsCanvasOpen, setSourcesOpen ,activeProfileName} = useChatStore()
+  const title = activeProfileName ? (
+    <div className="flex items-center gap-2">
+      <BuildingOffice2Icon className="h-5 w-5 text-gray-600" />
+      <span className="font-semibold tracking-tight">
+        Company Profile - {activeProfileName}
+      </span>
+    </div>
+  ) : (
+    <span className="font-semibold tracking-tight">Canvas</span>
+  );
   return (
     <motion.div
       className="flex flex-col border-l shadow-xl"
@@ -26,7 +38,7 @@ export const CanvasPanel = ({
       layout
     >
       <div className="border-b flex items-center justify-between sticky top-0 bg-background z-30 p-4 py-2">
-        <h1 className="text-base font-semibold tracking-tight">Profile Information</h1>
+        <h1 className="text-base font-semibold tracking-tight">{title}</h1>
         <Button
           disabled={isStreaming}
           onClick={() => setIsCanvasOpen(false)}

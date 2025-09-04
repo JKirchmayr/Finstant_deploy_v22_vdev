@@ -27,6 +27,8 @@ const Chat = () => {
     isStreaming,
     setIsStreaming,
     openListPanel,
+    setActiveProfileName,
+    closeListPanel,
     streamListData,
   } = useChatStore()
 
@@ -43,6 +45,8 @@ const Chat = () => {
   const handleCardClick = (data: any) => {
     setMarkdown(data)
     setIsCanvasOpen(true)
+    closeListPanel()
+    
   }
 
   const handleListCardClick = (id: string, cardData: any) => {
@@ -79,6 +83,7 @@ const Chat = () => {
     setInput('')
     scrollToBottom()
     setIsStreaming(true)
+    setActiveProfileName(null);
     //setIsCanvasOpen(false)
     controllerRef.current = new AbortController()
 
@@ -137,14 +142,17 @@ const Chat = () => {
 
           if (data?.meta?.stage === 'final') {
             console.log('DEBUG: Final stage reached. Buffer content is:', `"${processingBuffer}"`)
+            
             if (processingBuffer.trim()) {
               append({ role: 'assistant', content: processingBuffer })
+              setIsStreaming(false)
               console.log('DEBUG: Appending final message to store.')
             }
             if (companyMap.size > 0) {
               const finalListData = Array.from(companyMap.values())
               updateListData(uuid, finalListData)
             }
+            // setIsStreaming(false)
 
             break
           }
@@ -210,6 +218,7 @@ const Chat = () => {
             setStreamId(uuid)
 
             addFile(newCompanyCardData)
+            setActiveProfileName(data?.company_name);
             append({
               id: uuid,
               role: 'inline_card',
@@ -230,6 +239,7 @@ const Chat = () => {
               country: data?.investor_country,
             }
             setStreamId(uuid)
+            setActiveProfileName(data?.company_name);
             append({
               id: uuid,
               role: 'inline_card',
@@ -242,7 +252,7 @@ const Chat = () => {
           if (eventType === 'company_profile') {
             const text = data?.text || ''
             const stage = data?.meta?.stage
-
+            
             if (stage === 'streaming') {
               setIsProfileStreaming(true)
               setIsCanvasOpen(true)
@@ -258,7 +268,7 @@ const Chat = () => {
           if (eventType === 'investor_profile') {
             const text = data?.text || ''
             const stage = data?.meta?.stage
-
+            
             if (stage === 'streaming') {
               setIsProfileStreaming(true)
               setIsCanvasOpen(true)
