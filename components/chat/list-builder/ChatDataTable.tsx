@@ -54,7 +54,7 @@ const getPinningStyles = <T,>(column: Column<T>): CSSProperties => {
     position: isPinned ? 'sticky' : 'relative',
     width: column.getSize(),
     zIndex: isPinned ? 2 : 0,
-    // background: isPinned ? 'rgba(255,255,255,0.95)' : undefined,
+    //background: isPinned ? 'rgba(255,255,255,0.95)' : undefined,
     // backdropFilter: isPinned ? 'blur(2px)' : undefined,
   }
 }
@@ -243,7 +243,7 @@ const ChatDataTable = <T extends any,>({
       <div className="flex-1 w-full overflow-auto rounded-md border-x border-b border-t shadow-sm">
         <Table className="!w-full table-fixed border-separate border-spacing-0">
           {/* Sticky header without extra shadow */}
-          <TableHeader className="sticky top-0 z-20 bg-slate-50/90 backdrop-blur supports-[backdrop-filter]:bg-slate-50/70">
+          <TableHeader className="sticky top-0 z-20 bg-slate-50 backdrop-blur supports-[backdrop-filter]:bg-slate-50">
             {table.getHeaderGroups().map(headerGroup => (
               <TableRow key={headerGroup.id} className="h-11">
                 {headerGroup.headers.map(header => {
@@ -315,14 +315,14 @@ const ChatDataTable = <T extends any,>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
-                  className="hover:bg-gray-50/80 even:bg-gray-50/[0.25] focus-within:bg-gray-50 h-12"
+                  className="hover:bg-gray-50 even:bg-gray-50  focus-within:bg-gray-50 h-12"
                   ref={isLast ? (lastRowRef as any) : undefined}
                 >
                   {row.getVisibleCells().map(cell => (
                     <TableCell
                       key={cell.id}
                       style={{ ...getPinningStyles(cell.column) }}
-                      className="px-3 py-2 border-b border-r align-middle text-sm text-gray-800"
+                      className="px-3 py-2 border-b border-r bg-white align-middle text-sm text-gray-800"
                     >
                       <div className="truncate">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
