@@ -27,10 +27,15 @@ type ChatStore = {
   sourcesOpen: boolean
   setSourcesOpen: (sourcesOpen: boolean) => void
 
+  deleteRows: (rowsToDelete: CompanyData[]) => void
+  activeListMessageId: string | null
+
   activeListTitle: string
   activeListData: CompanyData[]
-  openListPanel: (title: string, data: CompanyData[]) => void
-  closeListPanel: () => void;
+  activeListItemCount: number
+  openListPanel: (id: string, title: string, data: CompanyData[], itemCount: number) => void
+  closeListPanel: () => void
+  streamListData: (data: CompanyData[]) => void
   listProfileData: null
   setListProfileData: (data: any) => void
   isListProfileOpen: boolean
@@ -70,7 +75,8 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   isCompanyPopupOpen: false,
   popupCompany: null,
   activeListTitle: '',
-activeListData: [],
+  activeListData: [],
+  activeListItemCount: 0,
   openCompanyPopup: company =>
     set({
       popupCompany: company,
@@ -113,17 +119,47 @@ activeListData: [],
   get inlineCards() {
     return get().messages.filter(message => message.role === 'inline_card')
   },
+  activeListMessageId: null,
+  openListPanel: (id, title, data, itemCount) =>
+    set({
+      activeListMessageId: id,
+      activeListTitle: title,
+      activeListData: data,
+      activeListItemCount: itemCount,
+      isListPanelOpen: true,
+      isCanvasOpen: false,
+      isCompanyPopupOpen: false,
+    }),
+  streamListData: data => set({ activeListData: data }),
 
-  openListPanel: (title, data) => set({
-  activeListTitle: title,    
-  activeListData: data,      
-  isListPanelOpen: true,     
-  isCanvasOpen: false,       
-  isCompanyPopupOpen: false,
-}),
-closeListPanel: () => set({
-    isListPanelOpen: false,    
-    activeListData: [],       
-    activeListTitle: '',       
-  }),
+  closeListPanel: () =>
+    set({
+      isListPanelOpen: false,
+      activeListData: [],
+      activeListTitle: '',
+      activeListItemCount: 0,
+      activeListMessageId: null,
+    }),
+  deleteRows: rowsToDelete =>
+    set(state => {
+      const namesToDelete = new Set(rowsToDelete.map(row => row.name))
+
+      const updatedActiveList = state.activeListData.filter(row => !namesToDelete.has(row.name))
+
+      const updatedMessages = state.messages.map(message => {
+        if (message.id === state.activeListMessageId) {
+          const updatedInternalList = message.data.list.filter(
+            (item: CompanyData) => !namesToDelete.has(item.name)
+          )
+
+          return { ...message, data: { ...message.data, list: updatedInternalList } }
+        }
+        return message
+      })
+
+      return {
+        activeListData: updatedActiveList,
+        messages: updatedMessages,
+      }
+    }),
 }))

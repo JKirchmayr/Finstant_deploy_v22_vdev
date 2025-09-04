@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ExpandableCell } from '@/components/table/epandable-cell'
 import { GenerateSkeleton } from './generate-skeleton'
-import { useChatStore } from '@/store/chatStore';
+import { useChatStore } from '@/store/chatStore'
 
 export const companiesListColumns: ColumnDef<CompanyData>[] = [
   {
@@ -39,7 +39,7 @@ export const companiesListColumns: ColumnDef<CompanyData>[] = [
     header: 'Company',
     size: 180, // Slightly decreased width to save space
     cell: ({ row }) => {
-      const { openCompanyPopup } = useChatStore();
+      const { openCompanyPopup } = useChatStore()
       return (
         <div className="inline-flex items-center hover:font-semibold transition-all duration-200">
           <Image
@@ -47,16 +47,15 @@ export const companiesListColumns: ColumnDef<CompanyData>[] = [
             alt="logo"
             width={20}
             height={20}
-            className="mr-1.5 rounded flex-shrink-0" 
+            className="mr-1.5 rounded flex-shrink-0"
             unoptimized={true}
           />
           <button
-          onClick={() => openCompanyPopup(row.original)}
-          className="truncate text-left bg-transparent p-0 h-auto font-medium hover:underline focus:outline-none"
-        >
-          {row.original.company_name || 'Details'}
-        </button>
-          
+            onClick={() => openCompanyPopup(row.original)}
+            className="truncate text-left bg-transparent p-0 h-auto font-medium hover:underline focus:outline-none"
+          >
+            {row.original.company_name || 'Details'}
+          </button>
         </div>
       )
     },
@@ -79,18 +78,24 @@ export const companiesListColumns: ColumnDef<CompanyData>[] = [
     accessorKey: 'revenue',
     header: 'Revenue',
     size: 120, // Adjusted size
-    cell: ({ row }) => <GenerateSkeleton isPlaceholder={false} text={row.original.company_revenue} />,
+    cell: ({ row }) => (
+      <GenerateSkeleton isPlaceholder={false} text={row.original.company_revenue} />
+    ),
   },
   {
     accessorKey: 'products',
     header: 'Products',
     size: 150,
-    cell: ({ row }) => <GenerateSkeleton isPlaceholder={false} text={row.original.company_products} />,
+    cell: ({ row }) => (
+      <GenerateSkeleton isPlaceholder={false} text={row.original.company_products} />
+    ),
   },
   {
     accessorKey: 'company_location',
     header: 'HQ',
     size: 150, // Increased last column's size
-    cell: ({ row }) => <GenerateSkeleton isPlaceholder={false} text={row.original.company_location} />,
+    cell: ({ row }) => (
+      <GenerateSkeleton isPlaceholder={false} text={row.original.company_location} />
+    ),
   },
 ]

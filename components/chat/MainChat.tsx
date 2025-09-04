@@ -22,7 +22,7 @@ interface MainChatProps {
   streamingCanvasContent: string
   sources: any[] // Consider creating a proper type for sources
   handleCardClick: (card: InlineCardData) => void
-  handleListCardClick: (data: any) => void // Consider creating a proper type for data
+  handleListCardClick: (id: string, data: any) => void // Consider creating a proper type for data
   //listData: CompanyData[]
 }
 
@@ -52,8 +52,8 @@ export default function MainChat({
     popupCompany,
     closeCompanyPopup,
     isListPanelOpen,
-    activeListData,   
-    activeListTitle,  
+    activeListData,
+    activeListTitle,
     setIsListPanelOpen,
   } = useChatStore()
 

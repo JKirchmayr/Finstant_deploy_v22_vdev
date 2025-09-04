@@ -14,7 +14,7 @@ type MessagesProps = {
   endRef: React.RefObject<HTMLDivElement>
   // isProfileStreaming: boolean;
   onCardClick: (data: any) => void
-  onListCardClick: (data: any) => void
+  onListCardClick: (id: string, data: any) => void
 }
 
 export const Messages = ({
@@ -25,7 +25,7 @@ export const Messages = ({
   onCardClick,
   onListCardClick,
 }: MessagesProps) => {
-  console.log(messages)
+  // console.log(messages)
   return (
     <div className={cn('overflow-y-auto px-2 pt-4 space-y-2 noscroll flex-1 min-h-0')}>
       {messages.map((m, i) => {
@@ -64,7 +64,7 @@ export const Messages = ({
                 <InlineListCard
                   title={m.data.profile.title}
                   itemCount={m.data.profile.estimated_list_item_count}
-                  onClick={() => onListCardClick(m.data)}
+                  onClick={() => onListCardClick(m.id, m.data)}
                   isStreaming={isStreaming}
                 />
               )}

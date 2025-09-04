@@ -3,8 +3,15 @@ import React from 'react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
-import { CompanyData, Evaluation, Reference } from '../chat.types'
-import { CheckCircle2, XCircle, Link as LinkIcon, Briefcase, DollarSign, Package } from 'lucide-react'
+import { CompanyData, Evaluation, Reference } from '../chat.types' // Ensure types are imported
+import {
+  CheckCircle2,
+  XCircle,
+  Link as LinkIcon,
+  Briefcase,
+  DollarSign,
+  Package,
+} from 'lucide-react'
 import Image from 'next/image'
 
 interface CompanyPopupProps {
@@ -16,7 +23,7 @@ interface CompanyPopupProps {
 export const CompanyPopup: React.FC<CompanyPopupProps> = ({ isOpen, onClose, company }) => {
   if (!isOpen || !company) return null
 
-  const evaluations = company.evaluations as Evaluation[] || []
+  const evaluations = company.evaluations || []
 
   return (
     <motion.div
@@ -34,17 +41,18 @@ export const CompanyPopup: React.FC<CompanyPopupProps> = ({ isOpen, onClose, com
       >
         <div className="flex items-center justify-between px-4 py-3 border-b sticky top-0 bg-white flex-shrink-0">
           <div className="flex items-start gap-3">
-            {company.company_logo && (
+            {/* UPDATED to use 'logo' and 'name' */}
+            {company.logo && (
               <Image
-                src={company.company_logo}
-                alt={`${company.company_name || 'Company'} logo`}
+                src={company.logo}
+                alt={`${company.name || 'Company'} logo`}
                 width={32}
                 height={32}
                 className="rounded-sm"
                 unoptimized={true}
               />
             )}
-            <h2 className="font-semibold text-lg">{company.company_name || 'Profile'}</h2>
+            <h2 className="font-semibold text-lg">{company.name || 'Profile'}</h2>
           </div>
           <Button size="xs" onClick={onClose} aria-label="Close" variant="secondary">
             <XMarkIcon className="h-6 w-6" />
@@ -52,35 +60,14 @@ export const CompanyPopup: React.FC<CompanyPopupProps> = ({ isOpen, onClose, com
         </div>
 
         <div className="flex-1 overflow-y-auto px-4 py-3 custom-scrollbar-hide min-h-0">
-          {company.company_description && (
+          {/* UPDATED to use 'description' */}
+          {company.description && (
             <div className="mb-6">
               <h3 className="font-semibold text-md text-gray-800 mb-2">Relevance Summary</h3>
-              <p className="text-sm text-gray-600 leading-relaxed">{company.company_description}</p>
+              <p className="text-sm text-gray-600 leading-relaxed">{company.description}</p>
             </div>
           )}
 
-          <div className="mb-6 space-y-3">
-            <h3 className="font-semibold text-md text-gray-800">Company Details</h3>
-            {company.company_revenue && (
-              <div className="flex items-start gap-3 text-sm">
-                <DollarSign className="h-4 w-4 text-gray-500 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="font-medium text-gray-700">Revenue</p>
-                  <p className="text-gray-600">{company.company_revenue}</p>
-                </div>
-              </div>
-            )}
-            {company.company_products && (
-              <div className="flex items-start gap-3 text-sm">
-                <Package className="h-4 w-4 text-gray-500 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="font-medium text-gray-700">Products</p>
-                  <p className="text-gray-600">{company.company_products}</p>
-                </div>
-              </div>
-            )}
-          </div>
-          
           {evaluations.length > 0 ? (
             <div className="space-y-4 pt-6 border-t">
               <h3 className="font-semibold text-md text-gray-800">Criteria Evaluation</h3>
@@ -97,10 +84,12 @@ export const CompanyPopup: React.FC<CompanyPopupProps> = ({ isOpen, onClose, com
                       <p className="text-sm text-gray-600 mt-1">{evaluation.reasoning}</p>
                     </div>
                   </div>
-                  
+
                   {evaluation.references && evaluation.references.length > 0 && (
                     <div className="mt-3 pt-3 border-t border-gray-200">
-                      <h5 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Sources</h5>
+                      <h5 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                        Sources
+                      </h5>
                       <div className="space-y-2">
                         {evaluation.references.map((ref, refIndex) => (
                           <div key={refIndex} className="flex items-center gap-2">
@@ -122,9 +111,8 @@ export const CompanyPopup: React.FC<CompanyPopupProps> = ({ isOpen, onClose, com
               ))}
             </div>
           ) : (
-            
             <div className="pt-6 border-t">
-                 <p className="text-sm text-gray-500">No evaluation criteria available.</p>
+              <p className="text-sm text-gray-500">No evaluation criteria available.</p>
             </div>
           )}
         </div>

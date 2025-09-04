@@ -6,7 +6,6 @@ import { useChatStore } from '@/store/chatStore'
 import { useFileStore } from '@/store/useCompanyProfile'
 import { v4 } from 'uuid'
 import { CompanyData, InlineCardData, InlineListCardData } from './chat.types'
-import { useSingleTabStore } from '@/store/singleTabStore'
 import MainChat from './MainChat'
 import { TabKey } from './Suggestions'
 
@@ -24,92 +23,63 @@ const Chat = () => {
     updateMessage,
     updateListData,
     setMarkdown,
-    setMarkdownSources,
     setIsCanvasOpen,
     isStreaming,
     setIsStreaming,
-    setIsListPanelOpen,
     openListPanel,
+    streamListData,
   } = useChatStore()
 
-  const { setSingleTab, clearSingleTab, singleTab } = useSingleTabStore()
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [streamingMessage, setStreamingMessage] = useState<string>('')
   const [activeTab, setActiveTab] = useState<TabKey>('research')
   const endRef = useRef<HTMLDivElement>(null)
-  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const [streamId, setStreamId] = useState<string>('')
   const [streamingCanvasContent, setStreamingCanvasContent] = useState<string>('')
   const [sources, setSources] = useState<Array<{ id: number; title: string; url: string }>>([])
-  const [listData, setListData] = useState<CompanyData[]>([])
-
   const { addFile, setIsProfileStreaming } = useFileStore()
+  const controllerRef = useRef<AbortController | null>(null)
 
   const handleCardClick = (data: any) => {
     setMarkdown(data)
     setIsCanvasOpen(true)
-    setIsListPanelOpen(false)
   }
 
-  const handleListCardClick = (cardData: any) => {
+  const handleListCardClick = (id: string, cardData: any) => {
     const title = cardData?.profile?.title || 'Company List'
     const list = cardData?.list || []
-    openListPanel(title, list)
+    const itemCount = cardData?.profile?.estimated_list_item_count || list.length
+    openListPanel(id, title, list, itemCount)
   }
-
-  // Create controller for request cancellation
-  const controllerRef = useRef<AbortController | null>(null)
 
   const handleStopStreaming = () => {
     if (controllerRef.current) {
       controllerRef.current.abort()
-      controllerRef.current = null
-    }
-    setIsStreaming(false)
-    setStreamingMessage('')
-    setIsProfileStreaming(false)
-    if (scrollTimeoutRef.current) {
-      clearTimeout(scrollTimeoutRef.current)
-      scrollTimeoutRef.current = null
     }
   }
 
   const scrollToBottom = useCallback(() => {
-    if (scrollTimeoutRef.current) return
-    scrollTimeoutRef.current = setTimeout(() => {
-      const end = endRef.current
-      if (end) {
-        end.scrollIntoView({ behavior: 'smooth', block: 'end' })
-      }
-      scrollTimeoutRef.current = null
-    }, 100)
+    endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
   }, [])
-
-  // let processingBuffer = ''
 
   const handleSend = async (e: React.FormEvent) => {
     let processingBuffer = ''
-    let listCardTitle = 'Company List'
-
     e.preventDefault()
-
     if (!input.trim()) return
 
     const promptToSend = input.trim()
+
     setStreamingMessage('')
     setStreamingCanvasContent('')
+    setSources([])
+    setStreamId('')
     const uuid = v4()
 
     append({ role: 'user', content: promptToSend })
     setInput('')
     scrollToBottom()
     setIsStreaming(true)
-    setIsCanvasOpen(false)
-    setIsListPanelOpen(false)
-    setMarkdown('')
-    setMarkdownSources([])
-
-    // Create new controller for this request
+    //setIsCanvasOpen(false)
     controllerRef.current = new AbortController()
 
     try {
@@ -128,85 +98,104 @@ const Chat = () => {
         signal: controllerRef.current.signal,
       })
 
-      // clearTimeout(timeoutId)
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-      }
+      if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`)
 
       const reader = response.body?.getReader()
       if (!reader) throw new Error('No reader available.')
 
       const decoder = new TextDecoder()
-
-      let parsed: any
       const companyMap = new Map<string, CompanyData>()
+
+      let listCardTitle = 'Company List'
+      let leftoverChunk = ''
+      let finalEventReceived = false
 
       while (true) {
         const { done, value } = await reader.read()
-
         if (done) {
           if (processingBuffer.trim()) {
             append({ role: 'assistant', content: processingBuffer })
           }
-          setIsStreaming(false)
-          if (parsed?.data?.session_id) {
-            setSessionId(parsed.data.session_id)
+          if (companyMap.size > 0) {
+            updateListData(uuid, Array.from(companyMap.values()))
           }
-          setStreamingMessage('')
-          scrollToBottom()
-          setIsProfileStreaming(false)
-          controllerRef.current = null
+          finalEventReceived = true
           break
         }
 
-        const rawChunk = decoder.decode(value, { stream: true })
-        const events = rawChunk.split('\n\n')
+        leftoverChunk += decoder.decode(value, { stream: true })
+        const events = leftoverChunk.split('\n\n')
+        leftoverChunk = events.pop() || ''
 
         for (const event of events) {
           if (!event.trim() || !event.startsWith('data:')) continue
-
           const cleaned = event.replace(/^data:/, '').trim()
-          parsed = tryParseJSON(cleaned)
-          if (!parsed) {
-            console.warn('⚠️ Skipping invalid JSON chunk:', cleaned)
-            continue
-          }
+          const parsed = tryParseJSON(cleaned)
+          if (!parsed) continue
 
           const { data, event: eventType } = parsed
 
-          // Check for final stage to end streaming
           if (data?.meta?.stage === 'final') {
-            if (eventType === 'text' && data?.meta?.type === 'text' && processingBuffer.trim()) {
+            console.log('DEBUG: Final stage reached. Buffer content is:', `"${processingBuffer}"`)
+            if (processingBuffer.trim()) {
               append({ role: 'assistant', content: processingBuffer })
+              console.log('DEBUG: Appending final message to store.')
             }
-            setIsStreaming(false)
-
-            if (parsed?.data?.session_id) {
-              setSessionId(parsed.data.session_id)
-            }
-            scrollToBottom()
-            setIsProfileStreaming(false)
             if (companyMap.size > 0) {
               const finalListData = Array.from(companyMap.values())
               updateListData(uuid, finalListData)
-              openListPanel(listCardTitle, finalListData)
             }
+
             break
+          }
+
+          if (eventType === 'company_list_card') {
+            if (processingBuffer.trim()) {
+              append({ role: 'assistant', content: processingBuffer })
+              processingBuffer = ''
+            }
+
+            const itemCount = data?.estimated_list_item_count || 0
+            listCardTitle = data?.list_title || 'Company List'
+
+            openListPanel(uuid, listCardTitle, [], itemCount)
+
+            append({
+              id: uuid,
+              role: 'inline_list_card',
+              content: '',
+              data: {
+                profile: { title: listCardTitle, estimated_list_item_count: itemCount, ...data },
+              },
+            })
+          }
+
+          if (eventType === 'company_properties' || eventType === 'company_evaluations') {
+            const companyName = data?.company?.name
+            const companyData = data?.company || {}
+
+            if (companyName) {
+              const currentCompany = companyMap.get(companyName) || ({} as CompanyData)
+
+              companyMap.set(companyName, {
+                ...currentCompany,
+                ...companyData,
+                company_name: companyName, // Ensure name from nested object is used
+                evaluations: data.evaluations || currentCompany.evaluations,
+              })
+
+              streamListData(Array.from(companyMap.values()))
+            }
           }
 
           if (eventType === 'text') {
             if (data?.meta?.stage === 'processing') {
-              const newText = data?.text || ''
-              setStreamingMessage(prev => prev + newText)
-              processingBuffer += newText
-
-              if (processingBuffer.length % 50 === 0) {
-                scrollToBottom()
-              }
+              processingBuffer += data?.text || ''
+              setStreamingMessage(processingBuffer)
             }
           }
 
+          // ... your other event handlers for company_profile etc.
           if (eventType === 'company_profile_card') {
             if (processingBuffer.trim()) {
               append({ role: 'assistant', content: processingBuffer })
@@ -280,106 +269,39 @@ const Chat = () => {
               setSources(incoming)
             }
           }
-          console.log(data, eventType)
-          //-----------Compnay List Builder ---------
-          if (eventType === 'company_properties' || eventType === 'company_evaluations') {
-            const companyName = data?.company_name
-
-            if (companyName) {
-              const currentCompany = companyMap.get(companyName) || {}
-              companyMap.set(companyName, { ...currentCompany, ...data })
-              setListData(Array.from(companyMap.values()))
-              if (eventType === 'company_properties') {
-                setIsListPanelOpen(true)
-                setIsCanvasOpen(false)
-              }
-            }
-          }
-
-          if (eventType === 'company_list_card') {
-            // This is for the list builder card in the chat pane, not the panel itself
-            if (processingBuffer.trim()) {
-              append({ role: 'assistant', content: processingBuffer })
-              processingBuffer = ''
-              // setStreamingMessage('')
-            }
-            const newCompanyListCardData: InlineListCardData = {
-              title: data?.list_title,
-              estimated_list_item_count: data?.estimated_list_item_count,
-              time: data?.timestamp_created,
-              type: data?.meta?.type,
-            }
-            listCardTitle = data?.list_title || 'Company List'
-            // setStreamId(uuid)
-            append({
-              id: uuid,
-              role: 'inline_list_card',
-              content: '',
-              data: { profile: newCompanyListCardData },
-            })
-          }
+        }
+        if (finalEventReceived) {
+          break // This will exit the 'while' loop
         }
       }
     } catch (error) {
-      console.error('❌ Error during streaming:', error)
-      if (error instanceof Error) {
-        if (error.name === 'AbortError') {
-          append({
-            role: 'assistant',
-            content: processingBuffer,
-          })
-          append({
-            role: 'assistant',
-            content: '***Manually stopped the request.*** 🚫',
-          })
-        } else {
-          append({
-            role: 'assistant',
-            content: `Error: ${error.message}`,
-          })
-          scrollToBottom()
-        }
-      } else {
-        append({
-          role: 'assistant',
-          content: 'An error occurred while processing your request.',
-        })
+      if (error instanceof Error && error.name !== 'AbortError') {
+        console.error('❌ Error during streaming:', error)
       }
-
+    } finally {
       setIsStreaming(false)
       setStreamingMessage('')
       setIsProfileStreaming(false)
       controllerRef.current = null
-
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current)
-        scrollTimeoutRef.current = null
-      }
+      scrollToBottom()
     }
   }
 
+  // useEffect(() => {
+  //   if (!!streamingCanvasContent && !isStreaming && streamId) {
+  //     const messageToUpdate = messages.find(m => m.id === streamId)
+  //     if (messageToUpdate) {
+  //       updateMessage(messageToUpdate.id, streamingCanvasContent, sources)
+  //     }
+  //   }
+  // }, [streamingCanvasContent, isStreaming, streamId, messages, updateMessage, sources])
   useEffect(() => {
-    return () => {
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current)
-      }
+    if (!isStreaming && streamId && streamingCanvasContent) {
+      //const updateMessage = useChatStore.getState().updateMessage
+      updateMessage(streamId, streamingCanvasContent, sources)
+      setStreamId('')
     }
-  }, [])
-
-  useEffect(() => {
-    if (!!streamingCanvasContent && !isStreaming && streamId) {
-      const messageToUpdate = messages.find(message => message.id === streamId)
-      if (messageToUpdate) {
-        updateMessage(streamId, streamingCanvasContent, sources)
-      }
-    }
-    if (listData.length > 0 && !isStreaming && streamId) {
-      const messageToUpdate = messages.find(message => message.id === streamId)
-      if (messageToUpdate) {
-        updateListData(streamId, listData)
-      }
-    }
-  }, [streamingCanvasContent, isStreaming, streamId, updateMessage, sources, listData])
+  }, [isStreaming, streamId, streamingCanvasContent, sources, updateMessage])
 
   return (
     <MainChat
@@ -392,9 +314,8 @@ const Chat = () => {
       sources={sources}
       handleCardClick={handleCardClick}
       handleListCardClick={handleListCardClick}
-      //listData={listData}
       handleSend={handleSend}
-      handleInputChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+      handleInputChange={e => {
         setInput(e.target.value)
       }}
     />
