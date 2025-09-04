@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Streamdown } from 'streamdown'
 import { useChatStore } from '@/store/chatStore'
+import { Button } from '../ui/button'
 
 type Source = {
   id: number
@@ -28,73 +29,20 @@ export const ProfileMessages = ({
   }
 
   useEffect(() => {
-    if (streamingMarkdownContent && streamingMarkdownContent?.trim()?.length) {
-      const root = containerRef.current
-      if (!root) return
-      if (root) {
-        root.scrollTop = root.scrollHeight
-      }
-      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-        acceptNode: node => {
-          const text = node.nodeValue || ''
-          const parentEl = (node.parentNode as HTMLElement) || null
-          if (parentEl && parentEl.classList?.contains('citation')) {
-            return NodeFilter.FILTER_REJECT
+    if (containerRef.current && !isStreaming) {
+      const buttons = containerRef.current.querySelectorAll('code[data-streamdown="inline-code"]')
+      buttons.forEach(button => {
+        button.addEventListener('click', () => {
+          const num = button.textContent?.trim()
+          if (num) {
+            onOpenSources()
           }
-          return /\[(\d+)\]/.test(text) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
-        },
-      })
-      const nodesToProcess: Text[] = []
-      let n: Node | null
-      while ((n = walker.nextNode())) nodesToProcess.push(n as Text)
-      nodesToProcess.forEach(textNode => {
-        const text = textNode.nodeValue || ''
-        const re = /\[(\d+)\]/g
-        let match: RegExpExecArray | null
-        let lastIndex = 0
-        const frag = document.createDocumentFragment()
-        while ((match = re.exec(text)) !== null) {
-          const before = text.slice(lastIndex, match.index)
-          if (before) frag.appendChild(document.createTextNode(before))
-          const num = match[1]
-          const span = document.createElement('span')
-          span.className = 'citation'
-          span.setAttribute('data-num', num)
-          span.style.cursor = 'pointer'
-          span.style.color = 'black'
-          span.style.fontWeight = '500'
-          span.style.backgroundColor = '#E5E7EB' // A light grey (Tailwind's gray-200)
-          span.addEventListener('mouseover', () => {
-            span.style.backgroundColor = '#D1D5DB' // Tailwind's gray-300 for darker hover state
-          })
-          span.addEventListener('mouseout', () => {
-            span.style.backgroundColor = '#E5E7EB' // Reset to original color
-          })
-          span.style.color = '#111827' // A dark grey for text (Tailwind's gray-900)
-          span.style.padding = '2px 8px'
-          span.style.borderRadius = '4px' // Creates a pill shape
-          span.style.marginLeft = '4px'
-          span.style.marginRight = '4px'
-          span.style.fontSize = '0.75rem' // Smaller font size
-          span.style.lineHeight = '1rem'
-          span.style.display = 'inline-block'
-          span.style.verticalAlign = 'middle'
-          span.textContent = num
-          frag.appendChild(span)
-          lastIndex = re.lastIndex
-          // if (!isStreaming) {
-          //   span.addEventListener('click', () => onOpenSources?.())
-          // }
-        }
-        if (lastIndex < text.length) {
-          frag.appendChild(document.createTextNode(text.slice(lastIndex)))
-        }
-        textNode.replaceWith(frag)
+        })
       })
     }
-  }, [streamingMarkdownContent, onOpenSources, isStreaming])
+  }, [isStreaming])
 
-  // {streamingMarkdownContent.length <= 0 }
+  const processedMarkdown = streamingMarkdownContent.replace(/\[(\d+)\]/g, '`$1`')
 
   return (
     <div className="flex flex-col flex-1">
@@ -110,10 +58,11 @@ export const ProfileMessages = ({
               ref={containerRef}
             >
               <Streamdown
-                className="streamdown-images [&_h3]:mt-3 [&_h1]:mt-3"
+                className="streamdown-images [&_h3]:mt-3 [&_h1]:mt-3 [&_code]:bg-muted-foreground/20 [&_code]:cursor-pointer"
                 parseIncompleteMarkdown
+                allowedImagePrefixes={['*']}
               >
-                {streamingMarkdownContent}
+                {processedMarkdown}
               </Streamdown>
             </motion.div>
           )}

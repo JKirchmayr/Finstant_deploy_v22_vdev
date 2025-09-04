@@ -260,7 +260,7 @@ export default function InvestorsResponseData({
         data={investors}
         columns={columns}
         isLoading={loading}
-        togglePanel={togglePanel}
+        // togglePanel={togglePanel}
         closeTabPanel={closeTabPanel}
         loadMoreData={() => {}}
         hasMoreData={false}

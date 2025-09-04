@@ -148,6 +148,9 @@ const Chat = () => {
 
           const { data, event: eventType } = parsed
           scrollToBottom()
+          if (parsed?.data?.session_id) {
+            setSessionId(parsed.data.session_id)
+          }
 
           if (data?.meta?.stage === 'final') {
             if (processingBuffer.trim()) {

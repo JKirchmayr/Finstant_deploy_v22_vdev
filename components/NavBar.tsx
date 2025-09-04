@@ -19,7 +19,6 @@ import { useAuthStore } from '@/store/authStore'
 import { useFileStore } from '@/store/useCompanyProfile'
 import { InlineCard } from './chat/InlineCard'
 import { useChatStore } from '@/store/chatStore'
-import { CompanyListCard } from './chat/InlineListCard'
 
 // Files dropdown component
 const FilesDropdown = () => {

@@ -176,7 +176,7 @@ export default function CompaniesData({
         topbarClass="px-1.5 mb-1.5"
         defaultPinnedColumns={['index', 'select', 'company_name']}
         titleName="Companies List"
-        togglePanel={togglePanel}
+        // togglePanel={togglePanel}
         closeTabPanel={closeTabPanel}
       />
     </div>
