@@ -7,14 +7,16 @@ import {
   ColumnDef,
   ColumnFiltersState,
   SortingState,
+  VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { ArrowDownUp, ArrowDown, ArrowUp, CopyIcon, Trash, X } from 'lucide-react'
+import { Download, Trash, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+
 import {
   Table,
   TableBody,
@@ -24,28 +26,29 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Skeleton } from '@/components/ui/skeleton'
-import { handleCopyAsTSV } from '@/lib/utils'
-import { ExportOptions } from '../../table/export-options'
+import Image from 'next/image'
 import { toast } from 'sonner'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../ui/tooltip'
 import { useChatStore } from '@/store/chatStore'
-import { CompanyData } from '../chat.types'
-
-const TABLE_STATE_KEY = 'chat-data-table-state'
 
 interface IChatDataTableProps<T extends any> {
   data: T[]
   columns: ColumnDef<T>[]
   isLoading: boolean
-  skeletonRowCount?: number
-  hasMoreData: boolean
   loadMoreData: () => void
+  hasMoreData: boolean
+  paginationOption?: boolean
+  filterBy?: string
+  defaultPinnedColumns?: string[]
+  topbarClass?: string
+  noSearch?: boolean
   closeTabPanel: () => void
   titleName: string
   noHeader?: boolean
+  addColumn?: boolean
 }
 
-/** Pinned column styles — no extra shadows so we don't create double lines */
+// Helper function to compute pinning styles for columns
 const getPinningStyles = <T,>(column: Column<T>): CSSProperties => {
   const isPinned = column.getIsPinned()
   return {
@@ -53,315 +56,312 @@ const getPinningStyles = <T,>(column: Column<T>): CSSProperties => {
     right: isPinned === 'right' ? `${column.getAfter('right')}px` : undefined,
     position: isPinned ? 'sticky' : 'relative',
     width: column.getSize(),
-    zIndex: isPinned ? 2 : 0,
-    // background: isPinned ? 'rgba(255,255,255,0.95)' : undefined,
-    // backdropFilter: isPinned ? 'blur(2px)' : undefined,
+    zIndex: isPinned ? 1 : 0,
   }
 }
 
-const ChatDataTable = <T extends any,>({
+const ChatDataTable = <T extends any>({
   data,
   columns,
   isLoading,
-  skeletonRowCount,
-  hasMoreData,
-  loadMoreData,
   noHeader = false,
   titleName,
+  addColumn = true,
   closeTabPanel,
+  defaultPinnedColumns,
 }: IChatDataTableProps<T>) => {
-  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({})
-  const { deleteRows } = useChatStore()
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const [rowSelection, setRowSelection] = useState({})
 
   const table = useReactTable({
     data,
     columns,
-    state: { rowSelection },
-    onRowSelectionChange: setRowSelection,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
     columnResizeMode: 'onChange',
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      rowSelection,
+    },
     initialState: {
-      ...(() => {
-        try {
-          const savedStateJSON = localStorage.getItem(TABLE_STATE_KEY)
-          if (!savedStateJSON) return {}
-          const savedState = JSON.parse(savedStateJSON)
-          const validColumnIds = new Set(
-            columns.map(col => (col as any).accessorKey || (col as any).id)
-          )
-          if (savedState.sorting) {
-            savedState.sorting = savedState.sorting.filter((sort: SortingState[0]) =>
-              validColumnIds.has(sort.id)
-            )
-          }
-          if (savedState.columnFilters) {
-            savedState.columnFilters = savedState.columnFilters.filter(
-              (filter: ColumnFiltersState[0]) => validColumnIds.has(filter.id)
-            )
-          }
-          return savedState
-        } catch {
-          return {}
-        }
-      })(),
       columnPinning: {
-        left: ['select', 'rowNumber', 'name'],
+        left: defaultPinnedColumns,
         right: [],
       },
     },
-    onStateChange: updater => {
-      const state =
-        typeof updater === 'function' ? updater(table.getState()) : updater
-      const stateToSave = {
-        sorting: state.sorting,
-        columnFilters: state.columnFilters,
-        columnVisibility: state.columnVisibility,
-      }
-      localStorage.setItem(TABLE_STATE_KEY, JSON.stringify(stateToSave))
-    },
   })
+  const { isStreaming, deleteRows, activeListItemCount } = useChatStore()
 
-  const observer = useRef<IntersectionObserver | null>(null)
-  const lastRowRef = useCallback(
-    (node: HTMLElement | null) => {
-      if (isLoading) return
-      if (observer.current) observer.current.disconnect()
-      observer.current = new IntersectionObserver(entries => {
-        if (entries[0].isIntersecting && hasMoreData) {
-          loadMoreData()
-        }
-      })
-      if (node) observer.current.observe(node)
-    },
-    [isLoading, hasMoreData, loadMoreData]
-  )
+  const exportToCSV = (data: any[], filename = 'export.csv') => {
+    if (!data.length) return
 
-  const exportToExcel = (dataToExport: any[], filename = 'export.xlsx') => {
-    if (!dataToExport.length) return toast.warning('No data to export.')
-    const worksheet = XLSX.utils.json_to_sheet(dataToExport)
+    const headers = Object.keys(data[0])
+    const csvRows = [
+      headers.join(','),
+      ...data.map(row =>
+        headers
+          .map(field => {
+            const val = row[field]
+            const escaped = typeof val === 'string' ? `"${val.replace(/"/g, '""')}"` : val
+            return escaped ?? ''
+          })
+          .join(',')
+      ),
+    ]
+
+    const csvContent = csvRows.join('\n')
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+
+    const link = document.createElement('a')
+    link.setAttribute('href', url)
+    link.setAttribute('download', filename)
+    link.style.display = 'none'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  const exportToExcel = (data: any[], filename = 'export.xlsx') => {
+    if (!data.length) return
+
+    const worksheet = XLSX.utils.json_to_sheet(data)
     const workbook = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1')
+
     XLSX.writeFile(workbook, filename)
   }
 
-  const exportToCSV = (dataToExport: any[], filename = 'export.csv') => {
-    if (!dataToExport.length) return toast.warning('No data to export.')
-    const worksheet = XLSX.utils.json_to_sheet(dataToExport)
-    const csv = XLSX.utils.sheet_to_csv(worksheet)
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = filename
-    link.click()
-    URL.revokeObjectURL(url)
-  }
-
   const selectedRows = table.getSelectedRowModel().rows.map(row => row.original)
-
   const handleExport = (format: 'csv' | 'excel') => {
-    const exportData = selectedRows.length > 0 ? selectedRows : data
-    if (format === 'csv') return exportToCSV(exportData, 'export.csv')
-    exportToExcel(exportData, 'export.xlsx')
-  }
+    const exportData = selectedRows.length ? selectedRows : data
+    const filename = `${selectedRows.length ? 'selected' : 'all'}-data.${
+      format === 'csv' ? 'csv' : 'xlsx'
+    }`
 
-  const handleCopySelected = () => {
-    if (selectedRows.length === 0)
-      return toast.warning('No data selected to Copy')
-    handleCopyAsTSV(selectedRows)
-    toast.success('Copied to clipboard!')
+    format === 'csv' ? exportToCSV(exportData, filename) : exportToExcel(exportData, filename)
   }
 
   const handleDeleteSelected = () => {
-    if (selectedRows.length === 0)
-      return toast.warning('No data selected to Delete')
-    deleteRows(selectedRows as CompanyData[])
-    setRowSelection({})
-    toast.success('Rows deleted successfully')
+    if (selectedRows.length === 0) {
+      toast.warning('No data selected, Please select data to Delete')
+      return
+    }
+
+    deleteRows(selectedRows)
+    toast.success('Data Deleted Successfully')
   }
 
   return (
-    <div className="w-full flex h-full flex-col">
+    <div className="w-full flex h-full flex-col gap-3">
       {!noHeader && (
-        <div className=" px-2 py-1">
-          <div className="flex justify-between items-center">
-            <p className="text-base font-semibold px-2 text-gray-900">
-              {titleName}
-            </p>
+        <div className="">
+          <div className="py-2 space-y-1 flex justify-between items-center ">
+            <p className="text-base font-medium mb-0">{titleName}</p>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
+                  variant="secondary"
+                  size="xs"
+                  className="!px-[6px] hover:bg-gray-300"
                   onClick={closeTabPanel}
-                  aria-label="Close Panel"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="size-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>
-                <p>Close Panel</p>
+              <TooltipContent side="left" align="center">
+                <p>Close This Panel</p>
               </TooltipContent>
             </Tooltip>
           </div>
-
-          <div className="p-2 flex justify-between items-center gap-2">
-            <div className="flex gap-2 shrink-0">
-              {selectedRows.length > 0 && (
-                <>
+          <div className="py-2 space-y-1">
+            <div className="flex justify-between items-center">
+              <div className="flex gap-2 shrink-0">
+                {selectedRows?.length > 0 && (
                   <Button
                     variant="secondary"
                     size="xs"
+                    disabled={isStreaming}
+                    className="hover:bg-gray-300"
                     onClick={handleDeleteSelected}
                   >
                     Delete <Trash className="size-4 ml-1" />
                   </Button>
-                  <Button
-                    variant="secondary"
-                    size="xs"
-                    onClick={handleCopySelected}
-                  >
-                    Copy <CopyIcon className="size-4 ml-1" />
-                  </Button>
-                </>
-              )}
-            </div>
-            <div className="flex gap-2">
-              <ExportOptions
-                data={selectedRows.length > 0 ? selectedRows : data}
-                onExport={handleExport}
-              />
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="secondary"
+                  size="xs"
+                  className="h-7 py-1 text-xs hover:bg-gray-300"
+                  onClick={() => handleExport('excel')}
+                  disabled={isStreaming}
+                >
+                  Download <Download className="size-4 " />
+                </Button>
+              </div>
             </div>
           </div>
         </div>
       )}
-
-      {/* No top border -> prevents extra line above sticky header */}
-      <div className="flex-1 w-full overflow-auto rounded-md border-x border-b border-t shadow-sm">
-        <Table className="!w-full table-fixed border-separate border-spacing-0">
-          {/* Sticky header without extra shadow */}
-          <TableHeader className="sticky top-0 z-20 bg-slate-50/90 backdrop-blur supports-[backdrop-filter]:bg-slate-50/70">
+      <div className="flex flex-col w-full bg-white border overflow-auto overflow-x-auto thin-scroll">
+        <Table
+          className="!w-full bg-background [&_td]:border-border table-fixed border-separate border-spacing-0 [&_tfoot_td]:border-t [&_tr]:border-none [&_tr:not(:last-child)_td]:border-b [&_thead]:border-b-0"
+          style={{ width: table.getTotalSize() }}
+        >
+          <TableHeader className="bg-white text-[13px] h-8 sticky top-0 z-10">
             {table.getHeaderGroups().map(headerGroup => (
-              <TableRow key={headerGroup.id} className="h-11">
+              <TableRow key={headerGroup.id} className="bg-muted/50">
                 {headerGroup.headers.map(header => {
-                  const canSort = header.column.getCanSort()
-                  const sorted = header.column.getIsSorted() as false | 'asc' | 'desc'
+                  const { column } = header
+                  const isPinned = column.getIsPinned()
+                  const isLastLeftPinned = isPinned === 'left' && column.getIsLastColumn('left')
+                  const isFirstRightPinned =
+                    isPinned === 'right' && column.getIsFirstColumn('right')
+
                   return (
                     <TableHead
                       key={header.id}
+                      className="text-foreground/70 group border-b data-pinned:bg-muted/90 relative h-10 truncate data-pinned:backdrop-blur-xs px-4 text-left"
                       colSpan={header.colSpan}
-                      style={{ ...getPinningStyles(header.column) }}
-                      className="relative h-11 px-3 text-center border-b border-r text-[12px] font-semibold bg-gray-100 text-slate-700 tracking-wide uppercase select-none"
-                      aria-sort={
-                        sorted === 'asc'
-                          ? 'ascending'
-                          : sorted === 'desc'
-                          ? 'descending'
-                          : 'none'
+                      style={{ ...getPinningStyles(column) }}
+                      data-pinned={isPinned || undefined}
+                      data-last-col={
+                        isLastLeftPinned ? 'left' : isFirstRightPinned ? 'right' : undefined
                       }
                     >
-                      <div className="flex items-center justify-center gap-1.5 truncate">
-                        <span className="truncate">
-                          {flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                      <div className="flex items-center gap-2">
+                        <span className="truncate w-full flex">
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(header.column.columnDef.header, header.getContext())}
                         </span>
-                        {canSort && (
+                        {/* {!!header.column.getCanSort() && (
                           <Button
                             variant="ghost"
-                            size="icon"
-                            className="h-6 w-6"
+                            size="xs"
                             onClick={header.column.getToggleSortingHandler()}
-                            aria-label="Toggle sort"
                           >
-                            {sorted === 'asc' ? (
-                              <ArrowUp className="size-4" />
-                            ) : sorted === 'desc' ? (
-                              <ArrowDown className="size-4" />
-                            ) : (
-                              <ArrowDownUp className="size-4 opacity-60" />
-                            )}
+                            <ArrowDownUp className="size-4" />
                           </Button>
+                        )} */}
+                        {header.column.getCanResize() && (
+                          <div
+                            {...{
+                              onDoubleClick: () => header.column.resetSize(),
+                              onMouseDown: header.getResizeHandler(),
+                              onTouchStart: header.getResizeHandler(),
+                              className:
+                                'absolute top-0 h-full w-4 cursor-col-resize user-select-none touch-none -right-2 z-10 flex justify-center before:absolute before:w-px before:inset-y-0 before:bg-border before:-translate-x-px',
+                            }}
+                          />
                         )}
                       </div>
-
-                      {/* Resizer overlays the SAME pixel as border-r → single line */}
-                      {header.column.getCanResize() && (
-                        <div
-                          onMouseDown={header.getResizeHandler()}
-                          onTouchStart={header.getResizeHandler()}
-                          className="absolute top-0 right-0 h-full w-3 cursor-col-resize select-none touch-none group"
-                          aria-label="Resize column"
-                          role="separator"
-                        >
-                          <div className="w-px h-full ml-auto bg-transparent group-hover:bg-blue-500 group-active:bg-blue-600 transition-colors" />
-                        </div>
-                      )}
                     </TableHead>
                   )
                 })}
               </TableRow>
             ))}
           </TableHeader>
-
-          <TableBody>
-            {table.getRowModel().rows.map((row, idx) => {
-              const isLast = idx === table.getRowModel().rows.length - 1
-              return (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
-                  className="hover:bg-gray-50/80 even:bg-gray-50/[0.25] focus-within:bg-gray-50 h-12"
-                  ref={isLast ? (lastRowRef as any) : undefined}
-                >
-                  {row.getVisibleCells().map(cell => (
-                    <TableCell
-                      key={cell.id}
-                      style={{ ...getPinningStyles(cell.column) }}
-                      className="px-3 py-2 border-b border-r align-middle text-sm text-gray-800"
-                    >
-                      <div className="truncate">
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </div>
-                    </TableCell>
-                  ))}
-                </TableRow>
-              )
-            })}
-
-            {/* Skeleton rows */}
-            {isLoading &&
-              skeletonRowCount &&
-              skeletonRowCount - table.getRowModel().rows.length > 0 &&
-              [...Array(
-                Math.max(0, skeletonRowCount - table.getRowModel().rows.length)
-              )].map((_, i) => (
-                <TableRow key={`skeleton-${i}`} className="h-12">
-                  {columns.map((_, j) => (
-                    <TableCell
-                      key={`skeleton-cell-${j}`}
-                      className="px-3 py-2 border-b border-r align-middle"
-                    >
+          <TableBody className="max-h-[400px] overflow-auto">
+            {isLoading && !data.length ? (
+              [...Array(activeListItemCount || 5)].map((_, i) => (
+                <TableRow key={i} className="border-b border-gray-300">
+                  {[...Array(columns.length)].map((_, j) => (
+                    <TableCell key={j} className="py-4 min-h-[73px] border-r border-gray-300">
                       <Skeleton className="w-full h-4 bg-gray-100" />
                     </TableCell>
                   ))}
                 </TableRow>
-              ))}
+              ))
+            ) : (
+              <>
+                {table.getRowModel().rows.length ? (
+                  <>
+                    {table.getRowModel().rows.map((row, index) => {
+                      const isLastRow = index === table.getRowModel().rows.length - 5
+                      return (
+                        <TableRow
+                          key={row.id}
+                          className="min-h-6 border-b transition-colors hover:bg-gray-100/80"
+                        >
+                          {row.getVisibleCells().map((cell: any) => {
+                            const { column } = cell
+                            const isPinned = column.getIsPinned()
+                            const isLastLeftPinned =
+                              isPinned === 'left' && column.getIsLastColumn('left')
+                            const isFirstRightPinned =
+                              isPinned === 'right' && column.getIsFirstColumn('right')
 
-            {/* Empty state */}
-            {!isLoading && table.getRowModel().rows.length === 0 && (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-28 text-center text-sm text-gray-600"
-                >
-                  No results found.
-                </TableCell>
-              </TableRow>
+                            return (
+                              <TableCell
+                                key={cell.id}
+                                className="py-2.5 border-r border-gray-300 bg-background"
+                                style={{ ...getPinningStyles(column) }}
+                                data-pinned={isPinned || undefined}
+                                data-last-col={
+                                  isLastLeftPinned
+                                    ? 'left'
+                                    : isFirstRightPinned
+                                    ? 'right'
+                                    : undefined
+                                }
+                              >
+                                <div className="truncate">
+                                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                </div>
+                              </TableCell>
+                            )
+                          })}
+                        </TableRow>
+                      )
+                    })}
+
+                    {/* Additional placeholder rows placed below all data rows when not streaming */}
+                    {isStreaming &&
+                      Array.from({
+                        length: Math.max(0, (activeListItemCount || 0) - data.length),
+                      }).map((_, i) => (
+                        <TableRow key={`filler-${i}`} className="border-b border-gray-300">
+                          {[...Array(columns.length)].map((_, j) => (
+                            <TableCell
+                              key={j}
+                              className="py-4 min-h-[73px] border-r border-gray-300"
+                            >
+                              <Skeleton className="w-full h-4 bg-gray-100" />
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))}
+                  </>
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={columns.length}>
+                      <div className="h-40 text-center text-lg font-medium flex justify-center items-center flex-col shrink-0">
+                        <Image
+                          src="/images/no-data.png"
+                          alt="No data"
+                          width={150}
+                          height={150}
+                          className="shrink-0"
+                          style={{ mixBlendMode: 'multiply' }}
+                          unoptimized
+                        />
+                        <p className="text-sm text-muted-foreground"> No results.</p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </>
             )}
           </TableBody>
         </Table>

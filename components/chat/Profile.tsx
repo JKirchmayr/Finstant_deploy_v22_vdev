@@ -28,7 +28,7 @@ export const ProfileMessages = ({
   }
 
   useEffect(() => {
-    if (!isStreaming && streamingMarkdownContent && streamingMarkdownContent?.trim()?.length) {
+    if (streamingMarkdownContent && streamingMarkdownContent?.trim()?.length) {
       const root = containerRef.current
       if (!root) return
       if (root) {
@@ -80,9 +80,11 @@ export const ProfileMessages = ({
           span.style.display = 'inline-block'
           span.style.verticalAlign = 'middle'
           span.textContent = num
-          span.addEventListener('click', () => onOpenSources?.())
           frag.appendChild(span)
           lastIndex = re.lastIndex
+          // if (!isStreaming) {
+          //   span.addEventListener('click', () => onOpenSources?.())
+          // }
         }
         if (lastIndex < text.length) {
           frag.appendChild(document.createTextNode(text.slice(lastIndex)))
@@ -91,6 +93,8 @@ export const ProfileMessages = ({
       })
     }
   }, [streamingMarkdownContent, onOpenSources, isStreaming])
+
+  // {streamingMarkdownContent.length <= 0 }
 
   return (
     <div className="flex flex-col flex-1">

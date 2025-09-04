@@ -26,18 +26,19 @@ type ChatStore = {
   setIsListPanelOpen: (isListOpen: boolean) => void
   sourcesOpen: boolean
   setSourcesOpen: (sourcesOpen: boolean) => void
-  activeProfileName: string | null;
-  setActiveProfileName: (name: string | null) => void;
+  activeProfileName: string | null
+  setActiveProfileName: (name: string | null) => void
+  isWebSearching: boolean
+  setIsWebSearching: (isWebSearching: boolean) => void
 
-  deleteRows: (rowsToDelete: CompanyData[]) => void
+  deleteRows: (rowsToDelete: any[]) => void
   activeListMessageId: string | null
-
   activeListTitle: string
-  activeListData: CompanyData[]
+  activeListData: string[]
   activeListItemCount: number
-  openListPanel: (id: string, title: string, data: CompanyData[], itemCount: number) => void
+  openListPanel: (id: string, title: string, data: string[], itemCount: number) => void
   closeListPanel: () => void
-  streamListData: (data: CompanyData[]) => void
+  streamListData: (data: string[]) => void
   listProfileData: null
   setListProfileData: (data: any) => void
   isListProfileOpen: boolean
@@ -45,7 +46,7 @@ type ChatStore = {
   //new for
   isCompanyPopupOpen: boolean
   popupCompany: CompanyData | null
-  openCompanyPopup: (company: CompanyData) => void
+  openListItemPopup: (company: CompanyData) => void
   closeCompanyPopup: () => void
 
   append: ({
@@ -71,6 +72,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   markdown: '',
   markdownSources: [],
   isCanvasOpen: false,
+  isWebSearching: false,
   isStreaming: false,
   isListPanelOpen: false,
   listProfileData: null,
@@ -79,7 +81,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   activeListTitle: '',
   activeListData: [],
   activeListItemCount: 0,
-  openCompanyPopup: company =>
+  openListItemPopup: company =>
     set({
       popupCompany: company,
       isCompanyPopupOpen: true,
@@ -96,7 +98,8 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   setMarkdownSources: sources => set({ markdownSources: sources }),
   setMarkdown: markdown => set({ markdown }),
   activeProfileName: null,
-  setActiveProfileName: (name) => set({ activeProfileName: name }),
+  setActiveProfileName: name => set({ activeProfileName: name }),
+  setIsWebSearching: isWebSearching => set({ isWebSearching }),
   setIsCanvasOpen: isCanvasOpen =>
     set(state => ({
       isCanvasOpen: isCanvasOpen,
@@ -150,14 +153,14 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     }),
   deleteRows: rowsToDelete =>
     set(state => {
-      const namesToDelete = new Set(rowsToDelete.map(row => row.name))
-
-      const updatedActiveList = state.activeListData.filter(row => !namesToDelete.has(row.name))
-
+      const namesToDelete = new Set(rowsToDelete.map((row: any) => row.item_id))
+      const updatedActiveList = state.activeListData.filter(
+        (row: any) => !namesToDelete.has(row?.item_id)
+      )
       const updatedMessages = state.messages.map(message => {
         if (message.id === state.activeListMessageId) {
           const updatedInternalList = message.data.list.filter(
-            (item: CompanyData) => !namesToDelete.has(item.name)
+            (item: any) => !namesToDelete.has(item.item_id)
           )
 
           return { ...message, data: { ...message.data, list: updatedInternalList } }

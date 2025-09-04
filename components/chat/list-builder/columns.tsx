@@ -1,101 +1,294 @@
+'use client'
+import React, { useMemo } from 'react'
+import { useChatStore } from '@/store/chatStore'
+import { motion } from 'framer-motion'
 import { ColumnDef } from '@tanstack/react-table'
-import { CompanyData } from '../chat.types'
+import { AddColumnProvider } from '@/context/newColumn'
+import ChatDataTable from './ChatDataTable'
 import { Checkbox } from '@/components/ui/checkbox'
 import Image from 'next/image'
-import Link from 'next/link'
 import { ExpandableCell } from '@/components/table/epandable-cell'
 import { GenerateSkeleton } from './generate-skeleton'
-import { useChatStore } from '@/store/chatStore'
+import Link from 'next/link'
 
-export const companiesListColumns: ColumnDef<CompanyData>[] = [
-  {
-    id: 'select',
-    size: 60, // Increased size slightly for better spacing
-    header: ({ table }) => (
-      <div className="flex justify-center items-center w-full gap-2">
-        <Checkbox
-          checked={table.getIsAllPageRowsSelected()}
-          onCheckedChange={value => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-        <div className="text-center">#</div>
-      </div>
-    ),
-    cell: ({ row }) => (
-      <div className="flex justify-center items-center w-full gap-2">
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={value => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-        <div className="text-center">{row.index + 1}</div>
-      </div>
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: 'company_name',
-    header: 'Company',
-    size: 180, // Slightly decreased width to save space
-    cell: ({ row }) => {
-      const { openCompanyPopup } = useChatStore()
-      return (
-        <div className="inline-flex items-center hover:font-semibold transition-all duration-200">
-          <Image
-            src={row.original.company_logo || 'https://placehold.co/50x50.png'}
-            alt="logo"
-            width={20}
-            height={20}
-            className="mr-1.5 rounded flex-shrink-0"
-            unoptimized={true}
+// Heroicons (outline)
+import {
+  BuildingOffice2Icon,
+  Bars3Icon,
+  BanknotesIcon,
+  MapPinIcon,
+} from '@heroicons/react/24/outline'
+import { Globe, UsersIcon } from 'lucide-react'
+
+const HeaderWithIcon = ({ icon, label }: { icon: React.ReactNode; label: string }) => (
+  <div className="inline-flex items-center justify-center gap-2">
+    <span className="inline-flex items-center justify-center">{icon}</span>
+    <span className="truncate">{label}</span>
+  </div>
+)
+
+const toTitle = (key: string) =>
+  key
+    .replace(/_/g, ' ')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/^\w/, s => s.toUpperCase())
+
+const ensureProtocol = (url?: string) => {
+  if (!url) return undefined
+  const u = url.trim()
+  if (/^https?:\/\//i.test(u)) return u
+  return `https://${u}`
+}
+
+export const generateColumns = (data: any[]): ColumnDef<any>[] => {
+  const { isStreaming } = useChatStore()
+  const isLoading = isStreaming && !data?.length
+
+  const baseColumns: ColumnDef<any>[] = [
+    {
+      id: 'select',
+      size: 50,
+      maxSize: 50,
+      minSize: 50,
+      header: ({ table }) =>
+        isLoading ? (
+          <GenerateSkeleton isPlaceholder={true} />
+        ) : (
+          <div className="flex justify-center items-center">
+            <Checkbox
+              disabled={isStreaming}
+              className="cursor-pointer"
+              checked={table.getIsAllPageRowsSelected()}
+              onCheckedChange={value => table.toggleAllPageRowsSelected(!!value)}
+              aria-label="Select all"
+            />
+          </div>
+        ),
+      cell: ({ row }) => (
+        <div className="mr-auto">
+          <Checkbox
+            className="cursor-pointer"
+            disabled={isStreaming}
+            checked={row.getIsSelected()}
+            onCheckedChange={value => row.toggleSelected(!!value)}
+            aria-label="Select row"
           />
-          <button
-            onClick={() => openCompanyPopup(row.original)}
-            className="truncate text-left bg-transparent p-0 h-auto font-medium hover:underline focus:outline-none"
-          >
-            {row.original.company_name || 'Details'}
-          </button>
         </div>
-      )
+      ),
+      enableSorting: false,
     },
-  },
-  {
-    accessorKey: 'company_description',
-    header: 'Description',
-    size: 350, // Increased width for better readability, then let it wrap
-    cell: ({ row }) => (
-      <ExpandableCell
-        TriggerCell={
-          <p className="whitespace-pre-line line-clamp-2">{row.original.company_description}</p>
+    {
+      id: 'rowNumber',
+      header: () =>
+        isLoading ? (
+          <GenerateSkeleton isPlaceholder={true} />
+        ) : (
+          <p className="w-full  text-center">#</p>
+        ),
+      size: 50,
+      maxSize: 50,
+      minSize: 50,
+      cell: ({ row }) => (
+        <div className="text-center font-medium text-gray-600 tabular-nums">{row.index + 1}</div>
+      ),
+      enableSorting: false,
+    },
+    {
+      accessorKey: 'name',
+      header: () =>
+        isLoading ? (
+          <GenerateSkeleton isPlaceholder={true} />
+        ) : (
+          <HeaderWithIcon icon={<BuildingOffice2Icon className="h-4 w-4" />} label="Company" />
+        ),
+      size: 220,
+      cell: ({ row }) => {
+        const { openListItemPopup } = useChatStore.getState()
+        const name = row.original.name || 'Details'
+        return (
+          <div className="inline-flex items-center min-w-0">
+            <Image
+              src={row.original.logo || 'https://placehold.co/50x50.png'}
+              alt="logo"
+              width={20}
+              height={20}
+              className="mr-2 rounded flex-shrink-0"
+              unoptimized
+            />
+            <button
+              onClick={() => openListItemPopup(row.original)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  openListItemPopup(row.original)
+                }
+              }}
+              className="truncate text-left bg-transparent p-0 h-auto font-medium text-gray-900 hover:underline focus:outline-none cursor-pointer"
+              role="button"
+              title={name}
+            >
+              {name}
+            </button>
+          </div>
+        )
+      },
+    },
+    {
+      accessorKey: 'description',
+      header: () =>
+        isLoading ? (
+          <GenerateSkeleton isPlaceholder={true} />
+        ) : (
+          <HeaderWithIcon icon={<Bars3Icon className="h-4 w-4" />} label="Description" />
+        ),
+      size: 420,
+      cell: ({ row }) => (
+        <ExpandableCell
+          TriggerCell={
+            <p className="whitespace-pre-line line-clamp-2 cursor-pointer">
+              {row.original.description || '-'}
+            </p>
+          }
+        >
+          <p>{row.original.description || '-'}</p>
+        </ExpandableCell>
+      ),
+    },
+  ]
+
+  // Determine additional dynamic keys from data
+  const exclude = new Set(['name', 'description', 'logo', 'evaluations', 'item_id'])
+  const dynamicKeys: string[] = []
+  for (const item of data || []) {
+    if (!item || typeof item !== 'object') continue
+    Object.keys(item).forEach(k => {
+      if (exclude.has(k)) return
+      if (!dynamicKeys.includes(k)) dynamicKeys.push(k)
+    })
+  }
+
+  // Generate columns for dynamic keys with special renderers for known fields
+  for (const key of dynamicKeys) {
+    if (key === 'website') {
+      baseColumns.push({
+        accessorKey: 'website',
+        header: () =>
+          isLoading ? (
+            <GenerateSkeleton isPlaceholder={true} />
+          ) : (
+            <HeaderWithIcon icon={<Globe className="h-4 w-4" />} label="Website" />
+          ),
+        size: 200,
+        cell: ({ row }) => {
+          const url = ensureProtocol(row.original.website)
+          return url ? (
+            <Link href={url} target="_blank" className="text-blue-600 hover:underline truncate">
+              {row.original.website}
+            </Link>
+          ) : (
+            <span>-</span>
+          )
+        },
+      })
+      continue
+    }
+    if (key === 'employees') {
+      baseColumns.push({
+        accessorKey: 'employees',
+        header: () =>
+          isLoading ? (
+            <GenerateSkeleton isPlaceholder={true} />
+          ) : (
+            <HeaderWithIcon icon={<UsersIcon className="h-4 w-4" />} label="Employees" />
+          ),
+        size: 120,
+        cell: ({ row }) => {
+          const v = row.original.employees
+          const text = typeof v === 'number' ? new Intl.NumberFormat().format(v) : v || '-'
+          return <GenerateSkeleton isPlaceholder={false} text={text} />
+        },
+      })
+      continue
+    }
+    if (key === 'location') {
+      baseColumns.push({
+        accessorKey: 'location',
+        header: () => <HeaderWithIcon icon={<MapPinIcon className="h-4 w-4" />} label="HQ" />,
+        size: 160,
+        cell: ({ row }) =>
+          isLoading ? (
+            <GenerateSkeleton isPlaceholder={true} />
+          ) : (
+            <GenerateSkeleton isPlaceholder={false} text={row.original.location || '-'} />
+          ),
+      })
+      continue
+    }
+    if (key === 'revenue') {
+      baseColumns.push({
+        accessorKey: 'revenue',
+        header: () =>
+          isLoading ? (
+            <GenerateSkeleton isPlaceholder={true} />
+          ) : (
+            <HeaderWithIcon icon={<BanknotesIcon className="h-4 w-4" />} label="Revenue" />
+          ),
+        size: 140,
+        cell: ({ row }) => (
+          <GenerateSkeleton isPlaceholder={false} text={row.original.revenue || '-'} />
+        ),
+      })
+      continue
+    }
+    if (key === 'products') {
+      baseColumns.push({
+        accessorKey: 'products',
+        header: () =>
+          isLoading ? (
+            <GenerateSkeleton isPlaceholder={true} />
+          ) : (
+            <HeaderWithIcon icon={<Bars3Icon className="h-4 w-4" />} label="Products" />
+          ),
+        size: 180,
+        cell: ({ row }) => (
+          <GenerateSkeleton isPlaceholder={false} text={row.original.products || '-'} />
+        ),
+      })
+      continue
+    }
+
+    // Generic column for any other key
+    baseColumns.push({
+      accessorKey: key,
+      header: () =>
+        isLoading ? (
+          <GenerateSkeleton isPlaceholder={true} />
+        ) : (
+          <HeaderWithIcon icon={<Bars3Icon className="h-4 w-4" />} label={toTitle(key)} />
+        ),
+      size: 160,
+      cell: ({ row }) => {
+        const value = row.original?.[key]
+        if (value == null) return <span>-</span>
+        if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+          return <GenerateSkeleton isPlaceholder={false} text={String(value)} />
         }
-      >
-        <p>{row.original.company_description}</p>
-      </ExpandableCell>
-    ),
-  },
-  {
-    accessorKey: 'revenue',
-    header: 'Revenue',
-    size: 120, // Adjusted size
-    cell: ({ row }) => (
-      <GenerateSkeleton isPlaceholder={false} text={row.original.company_revenue} />
-    ),
-  },
-  {
-    accessorKey: 'products',
-    header: 'Products',
-    size: 150,
-    cell: ({ row }) => (
-      <GenerateSkeleton isPlaceholder={false} text={row.original.company_products} />
-    ),
-  },
-  {
-    accessorKey: 'company_location',
-    header: 'HQ',
-    size: 150, // Increased last column's size
-    cell: ({ row }) => (
-      <GenerateSkeleton isPlaceholder={false} text={row.original.company_location} />
-    ),
-  },
-]
+        // Fallback: show JSON in expandable
+        const json = (() => {
+          try {
+            return JSON.stringify(value, null, 2)
+          } catch {
+            return String(value)
+          }
+        })()
+        return (
+          <ExpandableCell TriggerCell={<span className="truncate">Details</span>}>
+            <pre className="whitespace-pre-wrap text-xs">{json}</pre>
+          </ExpandableCell>
+        )
+      },
+    })
+  }
+
+  return baseColumns
+}

@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useChatStore } from '@/store/chatStore'
 import { useFileStore } from '@/store/useCompanyProfile'
 import { v4 } from 'uuid'
-import { CompanyData, InlineCardData, InlineListCardData } from './chat.types'
+import { InlineCardData, InlineListCardData } from './chat.types'
 import MainChat from './MainChat'
 import { TabKey } from './Suggestions'
 
@@ -30,6 +30,7 @@ const Chat = () => {
     setActiveProfileName,
     closeListPanel,
     streamListData,
+    setIsWebSearching,
   } = useChatStore()
 
   const [sessionId, setSessionId] = useState<string | null>(null)
@@ -41,12 +42,12 @@ const Chat = () => {
   const [sources, setSources] = useState<Array<{ id: number; title: string; url: string }>>([])
   const { addFile, setIsProfileStreaming } = useFileStore()
   const controllerRef = useRef<AbortController | null>(null)
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const handleCardClick = (data: any) => {
     setMarkdown(data)
     setIsCanvasOpen(true)
     closeListPanel()
-    
   }
 
   const handleListCardClick = (id: string, cardData: any) => {
@@ -63,7 +64,15 @@ const Chat = () => {
   }
 
   const scrollToBottom = useCallback(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+    if (scrollTimeoutRef.current) return
+    scrollTimeoutRef.current = setTimeout(() => {
+      const end = endRef.current
+      if (end) {
+        end.scrollIntoView({ behavior: 'smooth', block: 'end' })
+      }
+      scrollTimeoutRef.current = null
+    }, 100)
+    // endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
   }, [])
 
   const handleSend = async (e: React.FormEvent) => {
@@ -74,7 +83,6 @@ const Chat = () => {
     const promptToSend = input.trim()
 
     setStreamingMessage('')
-    setStreamingCanvasContent('')
     setSources([])
     setStreamId('')
     const uuid = v4()
@@ -83,7 +91,7 @@ const Chat = () => {
     setInput('')
     scrollToBottom()
     setIsStreaming(true)
-    setActiveProfileName(null);
+    setActiveProfileName(null)
     //setIsCanvasOpen(false)
     controllerRef.current = new AbortController()
 
@@ -109,7 +117,7 @@ const Chat = () => {
       if (!reader) throw new Error('No reader available.')
 
       const decoder = new TextDecoder()
-      const companyMap = new Map<string, CompanyData>()
+      const companyMap = new Map<string, any>()
 
       let listCardTitle = 'Company List'
       let leftoverChunk = ''
@@ -139,65 +147,31 @@ const Chat = () => {
           if (!parsed) continue
 
           const { data, event: eventType } = parsed
+          scrollToBottom()
 
           if (data?.meta?.stage === 'final') {
-            console.log('DEBUG: Final stage reached. Buffer content is:', `"${processingBuffer}"`)
-            
             if (processingBuffer.trim()) {
               append({ role: 'assistant', content: processingBuffer })
               setIsStreaming(false)
-              console.log('DEBUG: Appending final message to store.')
             }
             if (companyMap.size > 0) {
               const finalListData = Array.from(companyMap.values())
               updateListData(uuid, finalListData)
             }
-            // setIsStreaming(false)
-
             break
           }
 
-          if (eventType === 'company_list_card') {
-            if (processingBuffer.trim()) {
-              append({ role: 'assistant', content: processingBuffer })
-              processingBuffer = ''
-            }
-
-            const itemCount = data?.estimated_list_item_count || 0
-            listCardTitle = data?.list_title || 'Company List'
-
-            openListPanel(uuid, listCardTitle, [], itemCount)
-
-            append({
-              id: uuid,
-              role: 'inline_list_card',
-              content: '',
-              data: {
-                profile: { title: listCardTitle, estimated_list_item_count: itemCount, ...data },
-              },
-            })
-          }
-
-          if (eventType === 'company_properties' || eventType === 'company_evaluations') {
-            const companyName = data?.company?.name
-            const companyData = data?.company || {}
-
-            if (companyName) {
-              const currentCompany = companyMap.get(companyName) || ({} as CompanyData)
-
-              companyMap.set(companyName, {
-                ...currentCompany,
-                ...companyData,
-                company_name: companyName, // Ensure name from nested object is used
-                evaluations: data.evaluations || currentCompany.evaluations,
-              })
-
-              streamListData(Array.from(companyMap.values()))
+          //------if searching web-------
+          if (eventType === 'web_search') {
+            const webSearchStage = data?.meta?.stage
+            if (webSearchStage === 'init') {
+              setIsWebSearching(true)
             }
           }
 
           if (eventType === 'text') {
             if (data?.meta?.stage === 'processing') {
+              setIsWebSearching(false)
               processingBuffer += data?.text || ''
               setStreamingMessage(processingBuffer)
             }
@@ -209,6 +183,7 @@ const Chat = () => {
               append({ role: 'assistant', content: processingBuffer })
               processingBuffer = ''
               setStreamingMessage('')
+              setStreamingCanvasContent('')
             }
             const newCompanyCardData: InlineCardData = {
               name: data?.company_name,
@@ -218,7 +193,7 @@ const Chat = () => {
             setStreamId(uuid)
 
             addFile(newCompanyCardData)
-            setActiveProfileName(data?.company_name);
+            setActiveProfileName(data?.company_name)
             append({
               id: uuid,
               role: 'inline_card',
@@ -232,6 +207,7 @@ const Chat = () => {
               append({ role: 'assistant', content: processingBuffer })
               processingBuffer = ''
               setStreamingMessage('')
+              setStreamingCanvasContent('')
             }
             const newCompanyCardData: InlineCardData = {
               name: data?.investor_name,
@@ -239,7 +215,7 @@ const Chat = () => {
               country: data?.investor_country,
             }
             setStreamId(uuid)
-            setActiveProfileName(data?.company_name);
+            setActiveProfileName(data?.company_name)
             append({
               id: uuid,
               role: 'inline_card',
@@ -252,7 +228,7 @@ const Chat = () => {
           if (eventType === 'company_profile') {
             const text = data?.text || ''
             const stage = data?.meta?.stage
-            
+
             if (stage === 'streaming') {
               setIsProfileStreaming(true)
               setIsCanvasOpen(true)
@@ -268,7 +244,7 @@ const Chat = () => {
           if (eventType === 'investor_profile') {
             const text = data?.text || ''
             const stage = data?.meta?.stage
-            
+
             if (stage === 'streaming') {
               setIsProfileStreaming(true)
               setIsCanvasOpen(true)
@@ -279,39 +255,110 @@ const Chat = () => {
               setSources(incoming)
             }
           }
+
+          //--------Company List ----------
+          if (eventType === 'company_list_card') {
+            if (processingBuffer.trim()) {
+              append({ role: 'assistant', content: processingBuffer })
+              processingBuffer = ''
+            }
+            const itemCount = data?.estimated_list_item_count || 0
+            listCardTitle = data?.list_title || 'Company List'
+            openListPanel(uuid, listCardTitle, [], itemCount)
+            append({
+              id: uuid,
+              role: 'inline_list_card',
+              content: '',
+              data: {
+                profile: { title: listCardTitle, estimated_list_item_count: itemCount },
+              },
+            })
+          }
+
+          if (eventType === 'company_properties' || eventType === 'company_evaluations') {
+            const companyId = data?.item_id
+            const companyData = data?.company || {}
+            console.log(data)
+
+            if (companyId) {
+              const currentCompany = companyMap.get(companyId || {})
+              companyMap.set(companyId, {
+                ...currentCompany,
+                ...companyData,
+                item_id: companyId,
+                evaluations: data?.evaluations || currentCompany?.evaluations,
+              })
+              console.log(companyMap)
+              streamListData(Array.from(companyMap.values()))
+            }
+          }
         }
         if (finalEventReceived) {
           break // This will exit the 'while' loop
         }
       }
     } catch (error) {
-      if (error instanceof Error && error.name !== 'AbortError') {
-        console.error('❌ Error during streaming:', error)
+      console.error('❌ Error during streaming:', error)
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          append({
+            role: 'assistant',
+            content: processingBuffer,
+          })
+          append({
+            role: 'assistant',
+            content: '***Manually stopped the request.*** 🚫',
+          })
+        } else {
+          append({
+            role: 'assistant',
+            content: `Error: ${error.message}`,
+          })
+          scrollToBottom()
+        }
+      } else {
+        append({
+          role: 'assistant',
+          content: 'An error occurred while processing your request.',
+        })
+      }
+
+      setIsStreaming(false)
+      setStreamingMessage('')
+      setIsProfileStreaming(false)
+      controllerRef.current = null
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current)
+        scrollTimeoutRef.current = null
       }
     } finally {
       setIsStreaming(false)
       setStreamingMessage('')
       setIsProfileStreaming(false)
       controllerRef.current = null
-      scrollToBottom()
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current)
+        scrollTimeoutRef.current = null
+      }
     }
   }
 
-  // useEffect(() => {
-  //   if (!!streamingCanvasContent && !isStreaming && streamId) {
-  //     const messageToUpdate = messages.find(m => m.id === streamId)
-  //     if (messageToUpdate) {
-  //       updateMessage(messageToUpdate.id, streamingCanvasContent, sources)
-  //     }
-  //   }
-  // }, [streamingCanvasContent, isStreaming, streamId, messages, updateMessage, sources])
   useEffect(() => {
-    if (!isStreaming && streamId && streamingCanvasContent) {
-      //const updateMessage = useChatStore.getState().updateMessage
-      updateMessage(streamId, streamingCanvasContent, sources)
-      setStreamId('')
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current)
+      }
     }
-  }, [isStreaming, streamId, streamingCanvasContent, sources, updateMessage])
+  }, [])
+
+  useEffect(() => {
+    if (!!streamingCanvasContent && !isStreaming && streamId) {
+      const messageToUpdate = messages.find(m => m.id === streamId)
+      if (messageToUpdate) {
+        updateMessage(messageToUpdate.id, streamingCanvasContent, sources)
+      }
+    }
+  }, [streamingCanvasContent, isStreaming, streamId, updateMessage, sources])
 
   return (
     <MainChat

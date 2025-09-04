@@ -6,6 +6,8 @@ import TypingDots from '../TypingDots'
 import { useFileStore } from '@/store/useCompanyProfile'
 import { Message } from './chat.types'
 import { InlineListCard } from './InlineListCard'
+import { useChatStore } from '@/store/chatStore'
+import { GlobeAltIcon } from '@heroicons/react/24/outline'
 
 type MessagesProps = {
   messages: Message[]
@@ -25,7 +27,8 @@ export const Messages = ({
   onCardClick,
   onListCardClick,
 }: MessagesProps) => {
-  // console.log(messages)
+  const { isWebSearching } = useChatStore()
+
   return (
     <div className={cn('overflow-y-auto px-2 pt-4 space-y-2 noscroll flex-1 min-h-0')}>
       {messages.map((m, i) => {
@@ -72,6 +75,12 @@ export const Messages = ({
           </div>
         )
       })}
+      {isWebSearching && (
+        <p className="flex gap-1 items-center animate-pulse">
+          <GlobeAltIcon className="size-5" />
+          Searching the web ...
+        </p>
+      )}
 
       {isStreaming && streamingMessage && (
         <div className="flex justify-start">
@@ -92,7 +101,7 @@ export const Messages = ({
       )}
 
       {messages.length > 1 && (
-        <div className={cn('h-1 opacity-0', { 'h-5': messages.length > 1 })} ref={endRef} />
+        <div className={cn('h-1 opacity-0', { 'h-10': messages.length > 1 })} ref={endRef} />
       )}
     </div>
   )
