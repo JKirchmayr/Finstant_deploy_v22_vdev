@@ -44,6 +44,7 @@ export const CanvasPanel = ({
           disabled={isStreaming}
           onClick={() => {
             setIsCanvasOpen(false)
+            setSourcesOpen(false)
           }}
           size="xs"
           variant="secondary"
