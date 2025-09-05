@@ -125,6 +125,7 @@ const Chat = () => {
         if (done) {
           if (processingBuffer.trim()) {
             append({ role: 'assistant', content: processingBuffer })
+            processingBuffer=''
           }
           if (companyMap.size > 0) {
             updateListData(uuid, Array.from(companyMap.values()))
@@ -152,6 +153,7 @@ const Chat = () => {
           if (data?.meta?.stage === 'final') {
             if (processingBuffer.trim()) {
               append({ role: 'assistant', content: processingBuffer })
+              processingBuffer=''
               setIsStreaming(false)
             }
             if (companyMap.size > 0) {
@@ -261,6 +263,7 @@ const Chat = () => {
             if (processingBuffer.trim()) {
               append({ role: 'assistant', content: processingBuffer })
               processingBuffer = ''
+              setStreamingMessage('')
             }
             const itemCount = data?.estimated_list_item_count || 0
             listCardTitle = data?.list_title || 'Company List'
