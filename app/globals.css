@@ -216,12 +216,19 @@ body {
   code {
     @apply bg-muted-foreground/20 cursor-pointer py-0 text-xs font-medium;
   }
+  img {
+  @apply rounded-md  shadow-md;
+  }
 
-  /* p:first-of-type,
-  p:nth-of-type(2) {
-    @apply flex-1;
-  } */
+  h2:nth-of-type(1) {
+    @apply text-left mt-6;
+  }
+  
+  p:nth-of-type(1) {
+    @apply float-left mr-4;
+  }
 }
+
 
 .noscroll::-webkit-scrollbar {
   width: 0; /* Remove scrollbar space */
@@ -309,9 +316,7 @@ body {
   background: black !important;
 }
 
-.streamdown-images img {
-  @apply rounded-md;
-}
+
 
 .custom-scrollbar-hide::-webkit-scrollbar {
   display: none;
