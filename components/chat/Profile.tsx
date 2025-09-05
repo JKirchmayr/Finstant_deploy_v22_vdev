@@ -60,10 +60,17 @@ export const ProfileMessages = ({
               ref={containerRef}
             >
               <Streamdown
-                className="streamdown-images [&_h3]:mt-3 [&_h1]:mt-3 [&_code]:bg-muted-foreground/20 [&_code]:cursor-pointer [&_code]:py-0 [&_code]:text-xs [&_code]:font-medium"
+                className="streamdown-images streamdown "
                 parseIncompleteMarkdown
                 allowedImagePrefixes={['*']}
                 rehypePlugins={[rehypeRaw]}
+                components={{
+                  table: ({ children }) => (
+                    <div className="overflow-x-auto rounded-md shadow-xl">
+                      <table className="w-full">{children}</table>
+                    </div>
+                  ),
+                }}
               >
                 {processedMarkdown}
               </Streamdown>

@@ -204,6 +204,25 @@ body {
   @apply bg-gray-100 border-gray-400 text-gray-800;
 }
 
+.streamdown {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply text-lg font-medium mt-3;
+  }
+  code {
+    @apply bg-muted-foreground/20 cursor-pointer py-0 text-xs font-medium;
+  }
+
+  /* p:first-of-type,
+  p:nth-of-type(2) {
+    @apply flex-1;
+  } */
+}
+
 .noscroll::-webkit-scrollbar {
   width: 0; /* Remove scrollbar space */
   background: transparent; /* Optional: just make scrollbar invisible */

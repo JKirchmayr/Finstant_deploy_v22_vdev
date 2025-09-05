@@ -30,7 +30,7 @@ export const CanvasPanel = ({
 
   return (
     <motion.div
-      className="flex flex-col border-l shadow-xl"
+      className="flex flex-col border-l"
       style={{ width: '65%' }}
       initial={{ opacity: 0, width: 0 }}
       animate={{ opacity: 1, width: '65%' }}
