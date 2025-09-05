@@ -4,6 +4,8 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Streamdown } from 'streamdown'
 import { useChatStore } from '@/store/chatStore'
 import { Button } from '../ui/button'
+import { CanvasSkeleton } from './CanvasSkeleton'
+import rehypeRaw from 'rehype-raw'
 
 type Source = {
   id: number
@@ -58,9 +60,10 @@ export const ProfileMessages = ({
               ref={containerRef}
             >
               <Streamdown
-                className="streamdown-images [&_h3]:mt-3 [&_h1]:mt-3 [&_code]:bg-muted-foreground/20 [&_code]:cursor-pointer"
+                className="streamdown-images [&_h3]:mt-3 [&_h1]:mt-3 [&_code]:bg-muted-foreground/20 [&_code]:cursor-pointer [&_code]:py-0 [&_code]:text-xs [&_code]:font-medium"
                 parseIncompleteMarkdown
                 allowedImagePrefixes={['*']}
+                rehypePlugins={[rehypeRaw]}
               >
                 {processedMarkdown}
               </Streamdown>

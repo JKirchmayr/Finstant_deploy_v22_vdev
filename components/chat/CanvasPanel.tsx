@@ -6,27 +6,31 @@ import { Source } from './chat.types'
 import { Button } from '../ui/button'
 import { useChatStore } from '@/store/chatStore'
 import { BuildingOffice2Icon } from '@heroicons/react/24/outline'
-
+import { CanvasSkeleton } from './CanvasSkeleton'
 
 export const CanvasPanel = ({
   streamingCanvasContent,
   sources,
+  setStreamingCanvasContent,
 }: {
   streamingCanvasContent: string
   sources: Source[]
   setSourcesOpen: (isOpen: boolean) => void
+  setStreamingCanvasContent: (content: string) => void
 }) => {
-  const { isCanvasOpen, isStreaming, setIsCanvasOpen, setSourcesOpen ,activeProfileName} = useChatStore()
+  const { isStreaming, setIsCanvasOpen, setSourcesOpen, activeProfileName } = useChatStore()
   const title = activeProfileName ? (
     <div className="flex items-center gap-2">
       <BuildingOffice2Icon className="h-5 w-5 text-gray-600" />
-      <span className="font-semibold tracking-tight">
-        Company Profile - {activeProfileName}
-      </span>
+      <span className="font-semibold tracking-tight">Company Profile - {activeProfileName}</span>
     </div>
   ) : (
     <span className="font-semibold tracking-tight">Canvas</span>
-  );
+  )
+  const isEmpty = streamingCanvasContent?.trim()?.length === 0
+
+  console.log(isEmpty, streamingCanvasContent)
+
   return (
     <motion.div
       className="flex flex-col border-l shadow-xl"
@@ -41,7 +45,10 @@ export const CanvasPanel = ({
         <h1 className="text-base font-semibold tracking-tight">{title}</h1>
         <Button
           disabled={isStreaming}
-          onClick={() => setIsCanvasOpen(false)}
+          onClick={() => {
+            setStreamingCanvasContent('')
+            setIsCanvasOpen(false)
+          }}
           size="xs"
           variant="secondary"
         >
@@ -50,11 +57,15 @@ export const CanvasPanel = ({
       </div>
 
       <div className="flex-1 overflow-y-auto p-1 scrollbar-hide">
-        <ProfileMessages
-          streamingMarkdownContent={streamingCanvasContent}
-          sources={sources}
-          isStreaming={isStreaming}
-        />
+        {isEmpty ? (
+          <CanvasSkeleton />
+        ) : (
+          <ProfileMessages
+            streamingMarkdownContent={streamingCanvasContent}
+            sources={sources}
+            isStreaming={isStreaming}
+          />
+        )}
       </div>
     </motion.div>
   )

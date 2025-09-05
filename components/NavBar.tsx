@@ -172,10 +172,8 @@ const UserAvatar = () => {
 
 // Main navbar component
 export const TopNavbar = () => {
-  const { isProfileStreaming } = useFileStore()
   return (
     <div className="h-12 border-b border-gray-200 bg-white flex items-center justify-end px-4 gap-4">
-      {/* {isProfileStreaming && <FilesDropdown />} */}
       <FilesDropdown />
       <UserAvatar />
     </div>

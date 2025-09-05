@@ -23,7 +23,7 @@ interface MainChatProps {
   sources: any[] // Consider creating a proper type for sources
   handleCardClick: (card: InlineCardData) => void
   handleListCardClick: (id: string, data: any) => void // Consider creating a proper type for data
-  //listData: CompanyData[]
+  setStreamingCanvasContent: (content: string) => void
 }
 
 export default function MainChat({
@@ -34,6 +34,7 @@ export default function MainChat({
   endRef,
   streamingMessage,
   streamingCanvasContent,
+  setStreamingCanvasContent,
   sources,
   handleCardClick,
   handleListCardClick,
@@ -154,6 +155,7 @@ export default function MainChat({
             streamingCanvasContent={markdown || streamingCanvasContent}
             sources={markdownSources || sources}
             setSourcesOpen={setSourcesOpen}
+            setStreamingCanvasContent={setStreamingCanvasContent}
           />
         )}
         {isListPanelOpen && <ListBuilder listData={activeListData} title={activeListTitle} />}

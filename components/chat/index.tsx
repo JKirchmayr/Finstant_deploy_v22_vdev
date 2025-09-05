@@ -3,7 +3,6 @@ import { cn, tryParseJSON } from '@/lib/utils'
 import React, { useEffect, useRef, useState, useCallback } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useChatStore } from '@/store/chatStore'
-import { useFileStore } from '@/store/useCompanyProfile'
 import { v4 } from 'uuid'
 import { InlineCardData, InlineListCardData } from './chat.types'
 import MainChat from './MainChat'
@@ -40,7 +39,6 @@ const Chat = () => {
   const [streamId, setStreamId] = useState<string>('')
   const [streamingCanvasContent, setStreamingCanvasContent] = useState<string>('')
   const [sources, setSources] = useState<Array<{ id: number; title: string; url: string }>>([])
-  const { addFile, setIsProfileStreaming } = useFileStore()
   const controllerRef = useRef<AbortController | null>(null)
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -91,7 +89,6 @@ const Chat = () => {
     setInput('')
     scrollToBottom()
     setIsStreaming(true)
-    setActiveProfileName(null)
     //setIsCanvasOpen(false)
     controllerRef.current = new AbortController()
 
@@ -186,8 +183,8 @@ const Chat = () => {
               append({ role: 'assistant', content: processingBuffer })
               processingBuffer = ''
               setStreamingMessage('')
-              setStreamingCanvasContent('')
             }
+            setStreamingCanvasContent('')
             const newCompanyCardData: InlineCardData = {
               name: data?.company_name,
               city: data?.company_city,
@@ -195,7 +192,6 @@ const Chat = () => {
             }
             setStreamId(uuid)
 
-            addFile(newCompanyCardData)
             setActiveProfileName(data?.company_name)
             append({
               id: uuid,
@@ -210,8 +206,8 @@ const Chat = () => {
               append({ role: 'assistant', content: processingBuffer })
               processingBuffer = ''
               setStreamingMessage('')
-              setStreamingCanvasContent('')
             }
+            setStreamingCanvasContent('')
             const newCompanyCardData: InlineCardData = {
               name: data?.investor_name,
               city: data?.investor_city,
@@ -233,7 +229,6 @@ const Chat = () => {
             const stage = data?.meta?.stage
 
             if (stage === 'streaming') {
-              setIsProfileStreaming(true)
               setIsCanvasOpen(true)
               setStreamingCanvasContent(prev => prev + text)
             }
@@ -249,7 +244,6 @@ const Chat = () => {
             const stage = data?.meta?.stage
 
             if (stage === 'streaming') {
-              setIsProfileStreaming(true)
               setIsCanvasOpen(true)
               setStreamingCanvasContent(prev => prev + text)
             }
@@ -328,7 +322,6 @@ const Chat = () => {
 
       setIsStreaming(false)
       setStreamingMessage('')
-      setIsProfileStreaming(false)
       controllerRef.current = null
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current)
@@ -337,7 +330,6 @@ const Chat = () => {
     } finally {
       setIsStreaming(false)
       setStreamingMessage('')
-      setIsProfileStreaming(false)
       controllerRef.current = null
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current)
@@ -371,6 +363,7 @@ const Chat = () => {
       endRef={endRef}
       streamingMessage={streamingMessage}
       streamingCanvasContent={streamingCanvasContent}
+      setStreamingCanvasContent={setStreamingCanvasContent}
       sources={sources}
       handleCardClick={handleCardClick}
       handleListCardClick={handleListCardClick}

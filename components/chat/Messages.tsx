@@ -14,7 +14,6 @@ type MessagesProps = {
   isStreaming: boolean
   streamingMessage: string | null
   endRef: React.RefObject<HTMLDivElement>
-  // isProfileStreaming: boolean;
   onCardClick: (data: any) => void
   onListCardClick: (id: string, data: any) => void
 }
