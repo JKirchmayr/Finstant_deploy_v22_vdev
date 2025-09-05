@@ -98,6 +98,9 @@ const ChatDataTable = <T extends any>({
         right: [],
       },
     },
+    onStateChange: state => {
+      setRowSelection([])
+    },
   })
   const { isStreaming, deleteRows, activeListItemCount } = useChatStore()
 

@@ -11,7 +11,6 @@ import { CanvasSkeleton } from './CanvasSkeleton'
 export const CanvasPanel = ({
   streamingCanvasContent,
   sources,
-  setStreamingCanvasContent,
 }: {
   streamingCanvasContent: string
   sources: Source[]
@@ -29,8 +28,6 @@ export const CanvasPanel = ({
   )
   const isEmpty = streamingCanvasContent?.trim()?.length === 0
 
-  console.log(isEmpty, streamingCanvasContent)
-
   return (
     <motion.div
       className="flex flex-col border-l shadow-xl"
@@ -46,7 +43,6 @@ export const CanvasPanel = ({
         <Button
           disabled={isStreaming}
           onClick={() => {
-            setStreamingCanvasContent('')
             setIsCanvasOpen(false)
           }}
           size="xs"

@@ -185,6 +185,8 @@ const Chat = () => {
               setStreamingMessage('')
             }
             setStreamingCanvasContent('')
+            setMarkdown('')
+
             const newCompanyCardData: InlineCardData = {
               name: data?.company_name,
               city: data?.company_city,
@@ -208,6 +210,7 @@ const Chat = () => {
               setStreamingMessage('')
             }
             setStreamingCanvasContent('')
+            setMarkdown('')
             const newCompanyCardData: InlineCardData = {
               name: data?.investor_name,
               city: data?.investor_city,
