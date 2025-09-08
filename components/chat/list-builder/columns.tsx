@@ -17,6 +17,7 @@ import {
   Bars3Icon,
   BanknotesIcon,
   MapPinIcon,
+  Bars3BottomLeftIcon,
 } from '@heroicons/react/24/outline'
 import { Globe, UsersIcon } from 'lucide-react'
 
@@ -264,7 +265,7 @@ export const generateColumns = (data: any[]): ColumnDef<any>[] => {
         isLoading ? (
           <GenerateSkeleton isPlaceholder={true} />
         ) : (
-          <HeaderWithIcon icon={<Bars3Icon className="h-4 w-4" />} label={toTitle(key)} />
+          <HeaderWithIcon icon={<Bars3BottomLeftIcon className="h-4 w-4" />} label={toTitle(key)} />
         ),
       size: 160,
       cell: ({ row }) => {

@@ -1,14 +1,20 @@
 // src/components/chat/FileCard.tsx
 import React from 'react'
 import { motion } from 'framer-motion'
-import { BuildingOffice2Icon } from '@heroicons/react/24/outline'
+import {
+  BanknotesIcon,
+  BuildingOffice2Icon,
+  CurrencyDollarIcon,
+  ListBulletIcon,
+} from '@heroicons/react/24/outline'
 import { useChatStore } from '@/store/chatStore'
 import { Source } from './chat.types'
 
 type FileCardProps = {
-  name?: string
-  city?: string
-  country?: string
+  name: string
+  city: string
+  country: string
+  type: 'company' | 'investor'
   onClick?: () => void
   date?: string
   content?: string
@@ -19,12 +25,12 @@ export const InlineCard = ({
   name,
   city,
   country,
+  type,
   onClick,
   content,
   isStreaming,
 }: FileCardProps) => {
   const { setMarkdown, setMarkdownSources, setIsCanvasOpen } = useChatStore()
-
   const onClickHandler = () => {
     if (isStreaming) return
     if (!!content && content?.trim().length > 0) {
@@ -47,7 +53,8 @@ export const InlineCard = ({
       onClick={onClickHandler}
     >
       <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center flex-shrink-0">
-        <BuildingOffice2Icon className="h-4 w-4 text-gray-800" />
+        {type === 'company' && <BuildingOffice2Icon className="h-4 w-4 text-gray-800" />}
+        {type === 'investor' && <BanknotesIcon className="h-4 w-4 text-gray-800" />}
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-gray-900 truncate">{name}</p>

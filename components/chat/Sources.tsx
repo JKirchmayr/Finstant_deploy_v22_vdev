@@ -3,32 +3,16 @@ import { XMarkIcon, LinkIcon } from '@heroicons/react/24/outline'
 import { motion } from 'framer-motion'
 import { Button } from '../ui/button'
 import { Skeleton } from '../ui/skeleton'
+import Link from 'next/link'
 
 // --- TYPE DEFINITIONS ---
 type BasicSource = {
   id: number
   title: string
   url: string
-}
-
-type EnrichedSource = BasicSource & {
-  description?: string
-  image?: string
   favicon?: string
+  description?: string
 }
-
-const SkeletonItem = () => (
-  <div className="flex items-start gap-4 p-2">
-    <Skeleton className="h-5 w-5 flex-shrink-0 rounded-full mt-1" />
-    <div className="flex-1 space-y-2">
-      <Skeleton className="h-3 w-1/3" />
-      <Skeleton className="h-4 w-full" />
-      <Skeleton className="h-4 w-5/6" />
-      <Skeleton className="h-3 w-full mt-2" />
-      <Skeleton className="h-3 w-3/4" />
-    </div>
-  </div>
-)
 
 // --- MAIN SOURCES COMPONENT ---
 type SourcesProps = {
@@ -39,33 +23,7 @@ type SourcesProps = {
 }
 
 const SourcesComponent: React.FC<SourcesProps> = ({ open, onClose, sources, isStreaming }) => {
-  const [enrichedSources, setEnrichedSources] = useState<EnrichedSource[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-
-  // --- DATA FETCHING LOGIC ---
-  useEffect(() => {
-    if (!open || !sources.length) return
-    const fetchAllMetadata = async () => {
-      setIsLoading(true)
-      const sourcesPromises = sources.map(async source => {
-        try {
-          const response = await fetch(`/api/scrape?url=${encodeURIComponent(source.url)}`)
-          if (!response.ok) return source
-          const richData = await response.json()
-          return { ...source, ...richData }
-        } catch (error) {
-          return source
-        }
-      })
-      const finalSources = await Promise.all(sourcesPromises)
-      setEnrichedSources(finalSources)
-      setIsLoading(false)
-    }
-    fetchAllMetadata()
-  }, [open, sources])
-
-  if (!open || isStreaming) return null
-
+  console.log(sources)
   return (
     <motion.div
       className="absolute inset-0 z-50 flex justify-end"
@@ -86,26 +44,17 @@ const SourcesComponent: React.FC<SourcesProps> = ({ open, onClose, sources, isSt
 
         {/* --- CONTENT AREA --- */}
         <div className="h-[calc(100%-52px)] overflow-y-auto p-4">
-          {isLoading ? (
-            <div className="space-y-4">
-              <SkeletonItem />
-              <SkeletonItem />
-              <SkeletonItem />
-              <SkeletonItem />
-            </div>
-          ) : enrichedSources.length ? (
+          {!isStreaming && sources.length ? (
             <div className="space-y-3">
-              {enrichedSources.map(s => (
-                <motion.a
+              {sources.map(s => (
+                <Link
                   key={s.id}
                   href={s.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-start gap-4 p-2 rounded-md transition-colors duration-200 hover:bg-gray-100"
-                  whileHover={{ x: 3 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                  className="flex items-start gap-4 p-2 rounded-md transition-colors duration-200 hover:bg-gray-100 border "
                 >
-                  {s.favicon ? (
+                  {s?.favicon ? (
                     <img
                       src={s.favicon}
                       alt=""
@@ -126,7 +75,7 @@ const SourcesComponent: React.FC<SourcesProps> = ({ open, onClose, sources, isSt
                       <p className="text-sm text-gray-600 line-clamp-2 mt-1">{s.description}</p>
                     )}
                   </div>
-                </motion.a>
+                </Link>
               ))}
             </div>
           ) : (

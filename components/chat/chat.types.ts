@@ -17,6 +17,7 @@ export type InlineCardData = {
   name: string
   city: string
   country: string
+  type: 'company' | 'investor' | 'list'
   // title?: string
   // estimated_list_item_count?: number
   // time?: string

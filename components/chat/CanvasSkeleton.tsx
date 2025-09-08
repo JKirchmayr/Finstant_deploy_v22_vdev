@@ -5,7 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 export const CanvasSkeleton = () => {
   return (
-    <div className="mx-auto max-w-[900px] p-3 animate-pulse space-y-8">
+    <div className="w-full p-3 animate-pulse space-y-8">
       {/* Company Name */}
       <Skeleton className="h-10 w-64 bg-gray-200 rounded-md" />
 

@@ -125,7 +125,7 @@ const Chat = () => {
         if (done) {
           if (processingBuffer.trim()) {
             append({ role: 'assistant', content: processingBuffer })
-            processingBuffer=''
+            processingBuffer = ''
           }
           if (companyMap.size > 0) {
             updateListData(uuid, Array.from(companyMap.values()))
@@ -153,7 +153,7 @@ const Chat = () => {
           if (data?.meta?.stage === 'final') {
             if (processingBuffer.trim()) {
               append({ role: 'assistant', content: processingBuffer })
-              processingBuffer=''
+              processingBuffer = ''
               setIsStreaming(false)
             }
             if (companyMap.size > 0) {
@@ -193,16 +193,18 @@ const Chat = () => {
               name: data?.company_name,
               city: data?.company_city,
               country: data?.company_country,
+              type: 'company',
             }
             setStreamId(uuid)
 
-            setActiveProfileName(data?.company_name)
+            setActiveProfileName(data?.company_name, 'company')
             append({
               id: uuid,
               role: 'inline_card',
               content: '',
               data: newCompanyCardData,
             })
+            setIsCanvasOpen(true)
           }
 
           if (eventType === 'investor_profile_card') {
@@ -217,15 +219,17 @@ const Chat = () => {
               name: data?.investor_name,
               city: data?.investor_city,
               country: data?.investor_country,
+              type: 'investor',
             }
             setStreamId(uuid)
-            setActiveProfileName(data?.company_name)
+            setActiveProfileName(data?.investor_name, 'investor')
             append({
               id: uuid,
               role: 'inline_card',
               content: '',
               data: newCompanyCardData,
             })
+            setIsCanvasOpen(true)
           }
 
           //--------Company Profile ----------
@@ -291,7 +295,7 @@ const Chat = () => {
                 item_id: companyId,
                 evaluations: data?.evaluations || currentCompany?.evaluations,
               })
-              console.log(companyMap)
+              // console.log(companyMap)
               streamListData(Array.from(companyMap.values()))
             }
           }
@@ -381,4 +385,4 @@ const Chat = () => {
   )
 }
 
-export default Chat
+export default React.memo(Chat)

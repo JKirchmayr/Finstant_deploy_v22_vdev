@@ -1,6 +1,11 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { XMarkIcon } from '@heroicons/react/24/outline'
+import {
+  BanknotesIcon,
+  CurrencyDollarIcon,
+  ListBulletIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline'
 import { ProfileMessages } from './Profile'
 import { Source } from './chat.types'
 import { Button } from '../ui/button'
@@ -18,10 +23,19 @@ export const CanvasPanel = ({
   setStreamingCanvasContent: (content: string) => void
 }) => {
   const { isStreaming, setIsCanvasOpen, setSourcesOpen, activeProfileName } = useChatStore()
-  const title = activeProfileName ? (
+  const title = activeProfileName?.name ? (
     <div className="flex items-center gap-2">
-      <BuildingOffice2Icon className="h-5 w-5 text-gray-600" />
-      <span className="font-semibold tracking-tight">Company Profile - {activeProfileName}</span>
+      {activeProfileName?.type === 'list' && <ListBulletIcon className="h-5 w-5 text-gray-600" />}
+      {activeProfileName?.type === 'company' && (
+        <BuildingOffice2Icon className="h-5 w-5 text-gray-600" />
+      )}
+      {activeProfileName?.type === 'investor' && (
+        <BanknotesIcon className="h-5 w-5 text-gray-600" />
+      )}
+      <span className="font-semibold tracking-tight">
+        {activeProfileName?.type === 'company' ? 'Company Profile' : 'Investor Profile'} -{' '}
+        {activeProfileName?.name}
+      </span>
     </div>
   ) : (
     <span className="font-semibold tracking-tight">Canvas</span>
@@ -35,7 +49,8 @@ export const CanvasPanel = ({
       initial={{ opacity: 0, width: 0 }}
       animate={{ opacity: 1, width: '65%' }}
       exit={{ opacity: 0, width: 0 }}
-      transition={{ type: 'spring', stiffness: 250, damping: 25 }}
+      // transition={{ type: 'spring', stiffness: 250, damping: 25 }}
+      transition={{ duration: 0.1 }}
       layout
     >
       <div className="border-b flex items-center justify-between sticky top-0 bg-background z-30 p-4 py-2">

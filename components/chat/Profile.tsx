@@ -3,8 +3,6 @@ import { cn } from '@/lib/utils'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Streamdown } from 'streamdown'
 import { useChatStore } from '@/store/chatStore'
-import { Button } from '../ui/button'
-import { CanvasSkeleton } from './CanvasSkeleton'
 import rehypeRaw from 'rehype-raw'
 
 type Source = {

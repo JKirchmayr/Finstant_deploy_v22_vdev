@@ -27,7 +27,11 @@ export const InlineListCard = ({ title, itemCount, onClick, isStreaming }: Inlin
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-gray-900 truncate">{title}</p>
-        <p className="text-xs text-gray-500">{itemCount && <span>~{itemCount} companies</span>}</p>
+        {itemCount && (
+          <p className="text-xs text-gray-500">
+            <span>~{itemCount} items</span>
+          </p>
+        )}
       </div>
     </motion.div>
   )

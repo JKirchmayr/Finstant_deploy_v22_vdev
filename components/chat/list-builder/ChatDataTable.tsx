@@ -14,7 +14,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { Download, Trash, X } from 'lucide-react'
+import { ArrowLeft, ChevronLeft, ChevronRight, Download, Trash, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 import {
@@ -30,6 +30,7 @@ import Image from 'next/image'
 import { toast } from 'sonner'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../ui/tooltip'
 import { useChatStore } from '@/store/chatStore'
+import { ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from '@heroicons/react/24/outline'
 
 interface IChatDataTableProps<T extends any> {
   data: T[]
@@ -102,7 +103,12 @@ const ChatDataTable = <T extends any>({
       setRowSelection([])
     },
   })
-  const { isStreaming, deleteRows, activeListItemCount } = useChatStore()
+  const { isStreaming, deleteRows, activeListItemCount, setIsCopilotOpen, isCopilotOpen } =
+    useChatStore()
+
+  const toggleChatPanel = () => {
+    setIsCopilotOpen(!isCopilotOpen)
+  }
 
   const exportToCSV = (data: any[], filename = 'export.csv') => {
     if (!data.length) return
@@ -168,8 +174,26 @@ const ChatDataTable = <T extends any>({
     <div className="w-full flex h-full flex-col gap-3">
       {!noHeader && (
         <div className="">
-          <div className="py-2 space-y-1 flex justify-between items-center ">
-            <p className="text-base font-medium mb-0">{titleName}</p>
+          <div className="pb-2 pt-1 space-y-1 flex justify-between items-center ">
+            <div className="flex gap-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="secondary"
+                    size="xs"
+                    className="!px-[6px] hover:bg-gray-300"
+                    onClick={toggleChatPanel}
+                    disabled={isStreaming}
+                  >
+                    {isCopilotOpen ? <ChevronLeft className="" /> : <ChevronRight className="" />}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="left" align="center">
+                  <p>{!isCopilotOpen ? 'Open Chat Panel' : 'Expand List Panel'}</p>
+                </TooltipContent>
+              </Tooltip>
+              <p className="text-base font-medium mb-0">{titleName}</p>
+            </div>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -234,7 +258,7 @@ const ChatDataTable = <T extends any>({
                   return (
                     <TableHead
                       key={header.id}
-                      className="text-foreground/70 group border-b  relative h-10 truncate data-pinned:backdrop-blur-xs px-4 text-left"
+                      className="text-foreground/70 group border-b relative h-10 truncate data-pinned:bg-background px-4 text-left"
                       colSpan={header.colSpan}
                       style={{ ...getPinningStyles(column) }}
                       data-pinned={isPinned || undefined}

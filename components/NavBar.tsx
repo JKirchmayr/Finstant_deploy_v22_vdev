@@ -19,16 +19,16 @@ import { useAuthStore } from '@/store/authStore'
 import { useFileStore } from '@/store/useCompanyProfile'
 import { InlineCard } from './chat/InlineCard'
 import { useChatStore } from '@/store/chatStore'
+import { InlineListCard } from './chat/InlineListCard'
 
 // Files dropdown component
 const FilesDropdown = () => {
   const [isOpen, setIsOpen] = useState(false)
-  const { messages, isStreaming } = useChatStore()
+  const { messages, isStreaming, openListPanel } = useChatStore()
 
-  const inlineCards = messages.filter(m => m.role === 'inline_card') || []
-
-  // console.log(inlineCards, 'inlineCards')
-
+  const inlineCards =
+    messages.filter(m => m.role === 'inline_card' || m.role === 'inline_list_card') || []
+  // console.log(inlineCards)
   return (
     <div className="relative">
       <Button
@@ -65,17 +65,34 @@ const FilesDropdown = () => {
             {/* 5. Dynamic Content Area */}
             <div className="flex-1 p-2 overflow-y-auto space-y-2" onClick={() => setIsOpen(false)}>
               {inlineCards.length > 0 ? (
-                inlineCards.map((card, index) => (
-                  <InlineCard
-                    key={card.id || index}
-                    name={card.data?.name}
-                    city={card.data?.city}
-                    country={card.data?.country}
-                    content={card.content}
-                    isStreaming={isStreaming}
-                    // onClick={() => setIsOpen(false)}
-                  />
-                ))
+                inlineCards.map((card, index) =>
+                  card.role === 'inline_card' ? (
+                    <InlineCard
+                      key={card.id || index}
+                      name={card.data?.name}
+                      city={card.data?.city}
+                      country={card.data?.country}
+                      type={card.data?.type}
+                      content={card.content}
+                      isStreaming={isStreaming}
+                    />
+                  ) : (
+                    <InlineListCard
+                      key={card.id || index}
+                      title={card.data?.profile?.title}
+                      itemCount={card.data?.profile?.estimated_list_item_count}
+                      isStreaming={isStreaming}
+                      onClick={() =>
+                        openListPanel(
+                          card.id,
+                          card.data?.profile?.title,
+                          card.data?.list,
+                          card.data?.profile?.estimated_list_item_count
+                        )
+                      }
+                    />
+                  )
+                )
               ) : (
                 <div className="flex items-center justify-center h-full text-center text-sm text-gray-500">
                   <p>No files generated in this session.</p>

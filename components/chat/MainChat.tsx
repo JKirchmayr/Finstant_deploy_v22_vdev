@@ -56,6 +56,7 @@ export default function MainChat({
     activeListData,
     activeListTitle,
     setIsListPanelOpen,
+    isCopilotOpen,
   } = useChatStore()
 
   return (
@@ -63,20 +64,58 @@ export default function MainChat({
       {/* LEFT PANE: messages + prompt */}
       <motion.div
         className="flex flex-col flex-1 min-h-min relative z-0 "
-        initial={false} // no animation on first render
-        animate={{ width: isCanvasOpen ? '35%' : '100%' }}
+        initial={{ width: '100%' }}
+        animate={{ width: !isCopilotOpen ? '0%' : isCanvasOpen ? '35%' : '100%' }}
         transition={{ type: 'spring', stiffness: 250, damping: 25 }}
         layout
       >
-        {/* ===== LAYOUT 1: EMPTY STATE (WHEN messages.length <= 0) ===== */}
-        {messages.length <= 0 && (
-          <div className="flex-1 flex flex-col justify-center items-center">
-            {/* This wrapper will perfectly center all the empty-state content */}
-            <div className="w-full max-w-3xl">
-              <div className="pt-10 px-2">
-                <Suggestions activeTab={activeTab} onTabChange={setActiveTab} />
+        <AnimatePresence>
+          {/* ===== LAYOUT 1: EMPTY STATE (WHEN messages.length <= 0) ===== */}
+          {isCopilotOpen && messages.length <= 0 && (
+            <div className="flex-1 flex flex-col justify-center items-center">
+              {/* This wrapper will perfectly center all the empty-state content */}
+              <div className="w-full max-w-3xl">
+                <div className="pt-10 px-2">
+                  <Suggestions activeTab={activeTab} onTabChange={setActiveTab} />
+                </div>
+                <div className="px-2 z-10">
+                  <PromptField
+                    handleSend={handleSend}
+                    input={input}
+                    handleInputChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setInput(e.target.value)
+                    }
+                    isLoading={isStreaming}
+                    messages={messages}
+                    onStop={handleStopStreaming}
+                  />
+                </div>
+                <div className="w-full max-w-3xl pb-24 text-muted-foreground mx-auto px-2">
+                  <BottomSuggestions items={SUGGESTION_BANK[activeTab] ?? []} setInput={setInput} />
+                </div>
               </div>
-              <div className="px-2 z-10">
+            </div>
+          )}
+
+          {/* ===== LAYOUT 2: ACTIVE CHAT (WHEN messages.length > 0) ===== */}
+          {isCopilotOpen && messages.length > 0 && (
+            <>
+              {/* Messages area */}
+              <div className="flex-1 flex flex-col max-w-3xl w-full mx-auto overflow-hidden">
+                <div className="flex-1 min-h-0 flex flex-col">
+                  <Messages
+                    messages={messages}
+                    isStreaming={isStreaming}
+                    streamingMessage={streamingMessage}
+                    endRef={endRef}
+                    onCardClick={handleCardClick}
+                    onListCardClick={handleListCardClick}
+                  />
+                </div>
+              </div>
+
+              {/* Prompt box */}
+              <div className="w-full max-w-3xl mx-auto z-10">
                 <PromptField
                   handleSend={handleSend}
                   input={input}
@@ -88,45 +127,9 @@ export default function MainChat({
                   onStop={handleStopStreaming}
                 />
               </div>
-              <div className="w-full max-w-3xl pb-24 text-muted-foreground mx-auto px-2">
-                <BottomSuggestions items={SUGGESTION_BANK[activeTab] ?? []} setInput={setInput} />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ===== LAYOUT 2: ACTIVE CHAT (WHEN messages.length > 0) ===== */}
-        {messages.length > 0 && (
-          <>
-            {/* Messages area */}
-            <div className="flex-1 flex flex-col max-w-3xl w-full mx-auto overflow-hidden">
-              <div className="flex-1 min-h-0 flex flex-col">
-                <Messages
-                  messages={messages}
-                  isStreaming={isStreaming}
-                  streamingMessage={streamingMessage}
-                  endRef={endRef}
-                  onCardClick={handleCardClick}
-                  onListCardClick={handleListCardClick}
-                />
-              </div>
-            </div>
-
-            {/* Prompt box */}
-            <div className="w-full max-w-3xl mx-auto z-10">
-              <PromptField
-                handleSend={handleSend}
-                input={input}
-                handleInputChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setInput(e.target.value)
-                }
-                isLoading={isStreaming}
-                messages={messages}
-                onStop={handleStopStreaming}
-              />
-            </div>
-          </>
-        )}
+            </>
+          )}
+        </AnimatePresence>
 
         {/* This component can be triggered in either state, so it lives outside */}
         <AnimatePresence>

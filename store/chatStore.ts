@@ -26,15 +26,20 @@ type ChatStore = {
   setIsListPanelOpen: (isListOpen: boolean) => void
   sourcesOpen: boolean
   setSourcesOpen: (sourcesOpen: boolean) => void
-  activeProfileName: string | null
-  setActiveProfileName: (name: string | null) => void
+  activeProfileName: {
+    name: string | null
+    type: 'company' | 'investor' | 'list' | null
+  }
+  setActiveProfileName: (name: string | null, type: 'company' | 'investor') => void
   isWebSearching: boolean
   setIsWebSearching: (isWebSearching: boolean) => void
 
   deleteRows: (rowsToDelete: any[]) => void
   activeListMessageId: string | null
   activeListTitle: string
+  setActiveListTitle: (title: string) => void
   activeListData: string[]
+  setActiveListData: (data: string[]) => void
   activeListItemCount: number
   openListPanel: (id: string, title: string, data: string[], itemCount: number) => void
   closeListPanel: () => void
@@ -48,6 +53,8 @@ type ChatStore = {
   popupCompany: CompanyData | null
   openListItemPopup: (company: CompanyData) => void
   closeCompanyPopup: () => void
+  isCopilotOpen: boolean
+  setIsCopilotOpen: (isCopilotOpen: boolean) => void
 
   append: ({
     id,
@@ -81,6 +88,8 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   activeListTitle: '',
   activeListData: [],
   activeListItemCount: 0,
+  isCopilotOpen: true,
+  setIsCopilotOpen: isCopilotOpen => set({ isCopilotOpen }),
   openListItemPopup: company =>
     set({
       popupCompany: company,
@@ -92,13 +101,18 @@ export const useChatStore = create<ChatStore>((set, get) => ({
       popupCompany: null,
     }),
   setListProfileData: data => set({ listProfileData: data }),
+  setActiveListTitle: title => set({ activeListTitle: title }),
   isListProfileOpen: false,
   setIsListProfileOpen: isListProfileOpen => set({ isListProfileOpen }),
+  setActiveListData: data => set({ activeListData: data }),
   setIsStreaming: isStreaming => set({ isStreaming }),
   setMarkdownSources: sources => set({ markdownSources: sources }),
   setMarkdown: markdown => set({ markdown }),
-  activeProfileName: null,
-  setActiveProfileName: name => set({ activeProfileName: name }),
+  activeProfileName: {
+    name: null,
+    type: null,
+  },
+  setActiveProfileName: (name, type) => set({ activeProfileName: { name, type } }),
   setIsWebSearching: isWebSearching => set({ isWebSearching }),
   setIsCanvasOpen: isCanvasOpen =>
     set(state => ({
