@@ -1,94 +1,70 @@
-import React, { useState, useEffect } from 'react';
-import { XMarkIcon, LinkIcon } from '@heroicons/react/24/outline';
-import { motion } from 'framer-motion';
-import { Button } from '../ui/button';
-import { Skeleton } from '../ui/skeleton';
-import Image from 'next/image';
+import React, { useState, useEffect } from 'react'
+import { XMarkIcon, LinkIcon } from '@heroicons/react/24/outline'
+import { motion } from 'framer-motion'
+import { Button } from '../ui/button'
+import { Skeleton } from '../ui/skeleton'
 
+// --- TYPE DEFINITIONS ---
 type BasicSource = {
-  id: number;
-  title: string;
-  url: string;
-};
+  id: number
+  title: string
+  url: string
+}
 
 type EnrichedSource = BasicSource & {
-  description?: string;
-  image?: string;
-  favicon?: string;
-};
-
-const SourceImage: React.FC<{ src?: string; favicon?: string; title: string }> = ({ src, favicon, title }) => {
-  const [hasError, setHasError] = useState(false);
-
-  if (hasError || !src) {
-    return (
-      <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-slate-100 p-2">
-        {favicon ? (
-          <img src={favicon} alt="" className="h-8 w-8 rounded-lg" />
-        ) : (
-          <LinkIcon className="h-8 w-8 text-slate-400" />
-        )}
-        <p className="text-center text-xs font-semibold text-slate-600 line-clamp-2">{title}</p>
-      </div>
-    );
-  }
-
-  return (
-    <img
-      src={src}
-      alt={title}      
-      onError={() => setHasError(true)}
-      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-    />
-  );
-};
+  description?: string
+  image?: string
+  favicon?: string
+}
 
 const SkeletonItem = () => (
-    <div className="flex items-start gap-3">
-        <Skeleton className="h-6 w-6 flex-shrink-0 rounded-md" />
-        <div className="flex-1">
-            <Skeleton className="h-28 w-full rounded-lg" />
-            <div className="p-3 space-y-2">
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-3 w-full" />
-            </div>
-        </div>
+  <div className="flex items-start gap-4 p-2">
+    <Skeleton className="h-5 w-5 flex-shrink-0 rounded-full mt-1" />
+    <div className="flex-1 space-y-2">
+      <Skeleton className="h-3 w-1/3" />
+      <Skeleton className="h-4 w-full" />
+      <Skeleton className="h-4 w-5/6" />
+      <Skeleton className="h-3 w-full mt-2" />
+      <Skeleton className="h-3 w-3/4" />
     </div>
-);
+  </div>
+)
 
+// --- MAIN SOURCES COMPONENT ---
 type SourcesProps = {
-  open: boolean;
-  onClose: () => void;
-  sources: BasicSource[];
-  isStreaming: boolean;
-};
+  open: boolean
+  onClose: () => void
+  sources: BasicSource[]
+  isStreaming: boolean
+}
 
 const SourcesComponent: React.FC<SourcesProps> = ({ open, onClose, sources, isStreaming }) => {
-  const [enrichedSources, setEnrichedSources] = useState<EnrichedSource[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [enrichedSources, setEnrichedSources] = useState<EnrichedSource[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
+  // --- DATA FETCHING LOGIC ---
   useEffect(() => {
-    if (!open || !sources.length) return;
+    if (!open || !sources.length) return
     const fetchAllMetadata = async () => {
-      setIsLoading(true);
-      const sourcesPromises = sources.map(async (source) => {
+      setIsLoading(true)
+      const sourcesPromises = sources.map(async source => {
         try {
-          const response = await fetch(`/api/scrape?url=${encodeURIComponent(source.url)}`);
-          if (!response.ok) return source;
-          const richData = await response.json();
-          return { ...source, ...richData };
+          const response = await fetch(`/api/scrape?url=${encodeURIComponent(source.url)}`)
+          if (!response.ok) return source
+          const richData = await response.json()
+          return { ...source, ...richData }
         } catch (error) {
-          return source;
+          return source
         }
-      });
-      const finalSources = await Promise.all(sourcesPromises);
-      setEnrichedSources(finalSources);
-      setIsLoading(false);
-    };
-    fetchAllMetadata();
-  }, [open, sources]);
+      })
+      const finalSources = await Promise.all(sourcesPromises)
+      setEnrichedSources(finalSources)
+      setIsLoading(false)
+    }
+    fetchAllMetadata()
+  }, [open, sources])
 
-  if (!open || isStreaming) return null;
+  if (!open || isStreaming) return null
 
   return (
     <motion.div
@@ -99,66 +75,67 @@ const SourcesComponent: React.FC<SourcesProps> = ({ open, onClose, sources, isSt
       transition={{ type: 'spring', stiffness: 250, damping: 25 }}
     >
       <div className="absolute inset-0 bg-black/10" onClick={onClose} />
-      <div className="relative bg-white w-full h-full shadow-lg" onClick={(e) => e.stopPropagation()}>
+      <div className="relative w-full h-full bg-white shadow-lg" onClick={e => e.stopPropagation()}>
+        {/* --- HEADER --- */}
         <div className="flex items-center justify-between px-4 py-2 border-b sticky top-0 bg-white z-10">
           <h2 className="font-semibold text-base">Sources</h2>
           <Button size="xs" onClick={onClose} aria-label="Close" variant="secondary">
             <XMarkIcon className="h-6 w-6" />
           </Button>
         </div>
+
+        {/* --- CONTENT AREA --- */}
         <div className="h-[calc(100%-52px)] overflow-y-auto p-4">
           {isLoading ? (
             <div className="space-y-4">
               <SkeletonItem />
               <SkeletonItem />
               <SkeletonItem />
+              <SkeletonItem />
             </div>
           ) : enrichedSources.length ? (
-            <div className="space-y-4">
-              {enrichedSources.map((s, index) => (
-                
-                <div key={s.id} className="flex items-start gap-3">
-                  
-                  <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md bg-slate-100 text-sm font-bold text-slate-600">
-                    {index + 1}
-                  </div>
+            <div className="space-y-3">
+              {enrichedSources.map(s => (
+                <motion.a
+                  key={s.id}
+                  href={s.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-start gap-4 p-2 rounded-md transition-colors duration-200 hover:bg-gray-100"
+                  whileHover={{ x: 3 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                >
+                  {s.favicon ? (
+                    <img
+                      src={s.favicon}
+                      alt=""
+                      className="h-5 w-5 flex-shrink-0 rounded-full mt-1"
+                    />
+                  ) : (
+                    <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 mt-1">
+                      <LinkIcon className="h-3 w-3 text-gray-400" />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <p className="text-xs text-gray-500 truncate">
+                      {new URL(s.url).hostname.replace(/^www\./, '')}
+                    </p>
+                    <h3 className="font-medium text-gray-800 leading-snug">{s.title}</h3>
 
-                  <motion.a
-                    href={s.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block flex-1 rounded-lg border bg-white shadow-sm transition-shadow duration-200 group hover:shadow-md"
-                    whileHover={{ y: -2 }}
-                    transition={{ type: 'spring', stiffness: 300 }}
-                  >
-                    <div className="h-38 w-full overflow-hidden rounded-t-lg">
-                      <SourceImage src={s.image} favicon={s.favicon} title={s.title} />
-                    </div>
-                    <div className="space-y-2 p-3">
-                      <div className="flex items-center">
-                        {s.favicon && (
-                            <img src={s.favicon} alt="" className="mr-2 h-4 w-4 flex-shrink-0 rounded-full" />
-                        )}
-                        <span className="truncate text-xs text-gray-500">{new URL(s.url).hostname}</span>
-                      </div>
-                      <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:underline">
-                        {s.title}
-                      </h3>
-                      {s.description && (
-                        <p className="text-sm text-gray-600 line-clamp-2">{s.description}</p>
-                      )}
-                    </div>
-                  </motion.a>
-                </div>
+                    {s.description && (
+                      <p className="text-sm text-gray-600 line-clamp-2 mt-1">{s.description}</p>
+                    )}
+                  </div>
+                </motion.a>
               ))}
             </div>
           ) : (
-            <p className="text-sm text-gray-500">No sources available</p>
+            <p className="text-sm text-center text-gray-500 mt-8">No sources available.</p>
           )}
         </div>
       </div>
     </motion.div>
-  );
-};
+  )
+}
 
-export default SourcesComponent;
+export default SourcesComponent

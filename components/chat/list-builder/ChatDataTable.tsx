@@ -234,7 +234,7 @@ const ChatDataTable = <T extends any>({
                   return (
                     <TableHead
                       key={header.id}
-                      className="text-foreground/70 group border-b data-pinned:bg-muted/90 relative h-10 truncate data-pinned:backdrop-blur-xs px-4 text-left"
+                      className="text-foreground/70 group border-b  relative h-10 truncate data-pinned:backdrop-blur-xs px-4 text-left"
                       colSpan={header.colSpan}
                       style={{ ...getPinningStyles(column) }}
                       data-pinned={isPinned || undefined}
