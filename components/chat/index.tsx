@@ -38,7 +38,7 @@ const Chat = () => {
   const endRef = useRef<HTMLDivElement>(null)
   const [streamId, setStreamId] = useState<string>('')
   const [streamingCanvasContent, setStreamingCanvasContent] = useState<string>('')
-  const [sources, setSources] = useState<Array<{ id: number; title: string; url: string }>>([])
+  const [sources, setSources] = useState<Array<{ id: number; title: string; url: string;  favicon:string; content_preview:string }>>([])
   const controllerRef = useRef<AbortController | null>(null)
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -259,10 +259,19 @@ const Chat = () => {
               setIsCanvasOpen(true)
               setStreamingCanvasContent(prev => prev + text)
             }
-            if (stage === 'sources') {
-              const incoming = Array.isArray(data?.sources) ? data.sources : []
-              setSources(incoming)
-            }
+            // if (stage === 'sources') {
+            //   const incoming = Array.isArray(data?.sources) ? data.sources : []
+            //   setSources(incoming)
+            // }
+          }
+          //----Sources -----
+          if (eventType === 'sources'){
+            console.log("In sources")
+            console.log(data?.meta?.sources)
+            const incoming = Array.isArray(data?.meta?.sources) ? data.meta.sources : []
+            console.log(incoming)
+            setSources(prevSources => [...prevSources, ...incoming])
+            console.log(sources);
           }
 
           //--------Investor Profile ----------
@@ -274,10 +283,10 @@ const Chat = () => {
               setIsCanvasOpen(true)
               setStreamingCanvasContent(prev => prev + text)
             }
-            if (stage === 'sources') {
-              const incoming = Array.isArray(data?.sources) ? data.sources : []
-              setSources(incoming)
-            }
+            // if (stage === 'sources') {
+            //   const incoming = Array.isArray(data?.sources) ? data.sources : []
+            //   setSources(incoming)
+            // }
           }
 
           //--------Company List ----------

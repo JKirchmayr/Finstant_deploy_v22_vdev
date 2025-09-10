@@ -11,7 +11,7 @@ type BasicSource = {
   title: string
   url: string
   favicon?: string
-  description?: string
+  content_preview?: string
 }
 
 // --- MAIN SOURCES COMPONENT ---
@@ -72,8 +72,8 @@ const SourcesComponent: React.FC<SourcesProps> = ({ open, onClose, sources, isSt
                     </p>
                     <h3 className="font-medium text-gray-800 leading-snug">{s.title}</h3>
 
-                    {s.description && (
-                      <p className="text-sm text-gray-600 line-clamp-2 mt-1">{s.description}</p>
+                    {s.content_preview && (
+                      <p className="text-sm text-gray-600 line-clamp-2 mt-1">{s.content_preview}</p>
                     )}
                   </div>
                 </Link>
