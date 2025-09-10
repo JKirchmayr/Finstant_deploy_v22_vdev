@@ -23,12 +23,12 @@ export const CanvasPanel = ({
   setStreamingCanvasContent: (content: string) => void
 }) => {
   const { isStreaming, setIsCanvasOpen, setSourcesOpen, activeProfile } = useChatStore()
-
+  // console.log(activeProfile)
   const title = activeProfile?.name ? (
     <div className="flex items-center gap-2">
       {activeProfile?.type === 'list' && <ListBulletIcon className="h-5 w-5 text-gray-600" />}
       {activeProfile?.type === 'company' &&
-        (!!activeProfile.logo ? (
+        (activeProfile.logo ? (
           <img
             src={activeProfile.logo}
             alt={activeProfile.name}
@@ -39,7 +39,18 @@ export const CanvasPanel = ({
         ) : (
           <BuildingOffice2Icon className="h-5 w-5 text-gray-600" />
         ))}
-      {activeProfile?.type === 'investor' && <BanknotesIcon className="h-5 w-5 text-gray-600" />}
+      {activeProfile?.type === 'investor' &&
+        (activeProfile.logo ? (
+          <img
+            src={activeProfile.logo}
+            alt={activeProfile.name}
+            className="rounded-sm object-contain"
+            width={20}
+            height={20}
+          />
+        ) : (
+          <BanknotesIcon className="h-5 w-5 text-gray-600" />
+        ))}
       <span className="font-semibold tracking-tight">
         {activeProfile?.type === 'company' ? 'Company Profile' : 'Investor Profile'} -{' '}
         {activeProfile?.name}

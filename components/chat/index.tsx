@@ -188,24 +188,24 @@ const Chat = () => {
             }
             setStreamingCanvasContent('')
             setMarkdown('')
-
+            console.log(data?.company)
             const newCompanyCardData: InlineCardData = {
-              name: data?.meta?.company_name,
-              city: data?.meta?.company_city,
-              country: data?.meta?.company_country,
-              website: data?.meta?.company_website,
-              logo: data?.meta?.company_logo,
+              name: data?.company?.company_name,
+              city: data?.company?.company_city,
+              country: data?.company?.company_country,
+              website: data?.company?.company_website,
+              logo: data?.company?.company_logo,
               type: 'company',
             }
             setStreamId(uuid)
 
             setActiveProfile(
-              data?.meta?.company_name,
+              data?.company?.company_name,
               'company',
-              data?.meta?.company_website || '',
-              data?.meta?.company_logo || '',
-              data?.meta?.company_city || '',
-              data?.meta?.company_country || ''
+              data?.company?.company_website || '',
+              data?.company?.company_logo || '',
+              data?.company?.company_city || '',
+              data?.company?.company_country || ''
             )
             append({
               id: uuid,
@@ -225,21 +225,21 @@ const Chat = () => {
             setStreamingCanvasContent('')
             setMarkdown('')
             const newInvestorCardData: InlineCardData = {
-              name: data?.meta?.investor_name,
-              city: data?.meta?.investor_city,
-              country: data?.meta?.investor_country,
-              website: data?.meta?.investor_website,
-              logo: data?.meta?.investor_logo,
+              name: data?.investor?.investor_name,
+              city: data?.investor?.investor_city,
+              country: data?.investor?.investor_country,
+              website: data?.investor?.investor_website,
+              logo: data?.investor?.investor_logo,
               type: 'investor',
             }
             setStreamId(uuid)
             setActiveProfile(
-              data?.meta?.investor_name,
+              data?.investor?.investor_name,
               'investor',
-              data?.meta?.investor_website || '',
-              data?.meta?.investor_logo || '',
-              data?.meta?.investor_city || '',
-              data?.meta?.investor_country || ''
+              data?.investor?.investor_website || '',
+              data?.investor?.investor_logo || '',
+              data?.investor?.investor_city || '',
+              data?.investor?.investor_country || ''
             )
             append({
               id: uuid,
