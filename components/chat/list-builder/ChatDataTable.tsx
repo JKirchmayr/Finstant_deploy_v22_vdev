@@ -200,7 +200,12 @@ const ChatDataTable = <T extends any>({
                   variant="secondary"
                   size="xs"
                   className="!px-[6px] hover:bg-gray-300"
-                  onClick={closeTabPanel}
+                  onClick={() => {
+                    if (!isCopilotOpen) {
+                      setIsCopilotOpen(true)
+                    }
+                    closeTabPanel()
+                  }}
                 >
                   <X className="size-4" />
                 </Button>

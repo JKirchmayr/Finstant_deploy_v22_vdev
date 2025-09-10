@@ -26,11 +26,22 @@ type ChatStore = {
   setIsListPanelOpen: (isListOpen: boolean) => void
   sourcesOpen: boolean
   setSourcesOpen: (sourcesOpen: boolean) => void
-  activeProfileName: {
+  activeProfile: {
     name: string | null
     type: 'company' | 'investor' | 'list' | null
+    website: string | null
+    logo: string | null
+    city: string | null
+    country: string | null
   }
-  setActiveProfileName: (name: string | null, type: 'company' | 'investor') => void
+  setActiveProfile: (
+    name: string | null,
+    type: 'company' | 'investor',
+    website: string | null,
+    logo: string | null,
+    city: string | null,
+    country: string | null
+  ) => void
   isWebSearching: boolean
   setIsWebSearching: (isWebSearching: boolean) => void
 
@@ -108,11 +119,16 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   setIsStreaming: isStreaming => set({ isStreaming }),
   setMarkdownSources: sources => set({ markdownSources: sources }),
   setMarkdown: markdown => set({ markdown }),
-  activeProfileName: {
+  activeProfile: {
     name: null,
     type: null,
+    website: null,
+    logo: null,
+    city: null,
+    country: null,
   },
-  setActiveProfileName: (name, type) => set({ activeProfileName: { name, type } }),
+  setActiveProfile: (name, type, website, logo, city, country) =>
+    set({ activeProfile: { name, type, website, logo, city, country } }),
   setIsWebSearching: isWebSearching => set({ isWebSearching }),
   setIsCanvasOpen: isCanvasOpen =>
     set(state => ({

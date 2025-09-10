@@ -17,7 +17,7 @@ export default function ListBuilder({ listData, title }: ListBuilderProps) {
   const isMobile = useIsMobile()
   const { isStreaming, closeListPanel, activeListItemCount, isCopilotOpen } = useChatStore()
   const columns = generateColumns(listData || [])
-  console.log(listData)
+  // console.log(listData)
   return (
     <motion.div
       className="flex flex-col border-l"
@@ -29,7 +29,7 @@ export default function ListBuilder({ listData, title }: ListBuilderProps) {
       transition={{ duration: 0.1 }}
       layout
     >
-      <div className="flex-1 p-2 overflow-auto">
+      <div className="flex-1 p-3 overflow-auto">
         <AddColumnProvider>
           <ChatDataTable
             data={listData}

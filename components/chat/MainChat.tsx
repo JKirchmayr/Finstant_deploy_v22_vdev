@@ -60,7 +60,7 @@ export default function MainChat({
   } = useChatStore()
 
   return (
-    <div className="flex h-full overflow-hidden">
+    <div className="flex h-full overflow-hidden relative">
       {/* LEFT PANE: messages + prompt */}
       <motion.div
         className="flex flex-col flex-1 min-h-min relative z-0 "
@@ -130,26 +130,26 @@ export default function MainChat({
             </>
           )}
         </AnimatePresence>
-
-        {/* This component can be triggered in either state, so it lives outside */}
-        <AnimatePresence>
-          {sourcesOpen && (
-            <SourcesComponent
-              open={sourcesOpen}
-              onClose={() => setSourcesOpen(false)}
-              sources={sources}
-              isStreaming={isStreaming}
-            />
-          )}
-          {isCompanyPopupOpen && (
-            <CompanyPopup
-              isOpen={isCompanyPopupOpen}
-              onClose={closeCompanyPopup}
-              company={popupCompany}
-            />
-          )}
-        </AnimatePresence>
       </motion.div>
+
+      {/* This component can be triggered in either state, so it lives outside */}
+      <AnimatePresence>
+        {sourcesOpen && (
+          <SourcesComponent
+            open={sourcesOpen}
+            onClose={() => setSourcesOpen(false)}
+            sources={sources}
+            isStreaming={isStreaming}
+          />
+        )}
+        {isCompanyPopupOpen && (
+          <CompanyPopup
+            isOpen={isCompanyPopupOpen}
+            onClose={closeCompanyPopup}
+            company={popupCompany}
+          />
+        )}
+      </AnimatePresence>
 
       {/* RIGHT PANE: canvas */}
       <AnimatePresence initial={false}>

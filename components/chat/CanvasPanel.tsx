@@ -22,19 +22,27 @@ export const CanvasPanel = ({
   setSourcesOpen: (isOpen: boolean) => void
   setStreamingCanvasContent: (content: string) => void
 }) => {
-  const { isStreaming, setIsCanvasOpen, setSourcesOpen, activeProfileName } = useChatStore()
-  const title = activeProfileName?.name ? (
+  const { isStreaming, setIsCanvasOpen, setSourcesOpen, activeProfile } = useChatStore()
+
+  const title = activeProfile?.name ? (
     <div className="flex items-center gap-2">
-      {activeProfileName?.type === 'list' && <ListBulletIcon className="h-5 w-5 text-gray-600" />}
-      {activeProfileName?.type === 'company' && (
-        <BuildingOffice2Icon className="h-5 w-5 text-gray-600" />
-      )}
-      {activeProfileName?.type === 'investor' && (
-        <BanknotesIcon className="h-5 w-5 text-gray-600" />
-      )}
+      {activeProfile?.type === 'list' && <ListBulletIcon className="h-5 w-5 text-gray-600" />}
+      {activeProfile?.type === 'company' &&
+        (!!activeProfile.logo ? (
+          <img
+            src={activeProfile.logo}
+            alt={activeProfile.name}
+            className="rounded-sm object-contain"
+            width={20}
+            height={20}
+          />
+        ) : (
+          <BuildingOffice2Icon className="h-5 w-5 text-gray-600" />
+        ))}
+      {activeProfile?.type === 'investor' && <BanknotesIcon className="h-5 w-5 text-gray-600" />}
       <span className="font-semibold tracking-tight">
-        {activeProfileName?.type === 'company' ? 'Company Profile' : 'Investor Profile'} -{' '}
-        {activeProfileName?.name}
+        {activeProfile?.type === 'company' ? 'Company Profile' : 'Investor Profile'} -{' '}
+        {activeProfile?.name}
       </span>
     </div>
   ) : (
@@ -69,15 +77,11 @@ export const CanvasPanel = ({
       </div>
 
       <div className="flex-1 overflow-y-auto p-1 scrollbar-hide">
-        {isEmpty ? (
-          <CanvasSkeleton />
-        ) : (
-          <ProfileMessages
-            streamingMarkdownContent={streamingCanvasContent}
-            sources={sources}
-            isStreaming={isStreaming}
-          />
-        )}
+        <ProfileMessages
+          streamingMarkdownContent={streamingCanvasContent}
+          sources={sources}
+          isStreaming={isStreaming}
+        />
       </div>
     </motion.div>
   )

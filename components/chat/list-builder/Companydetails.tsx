@@ -13,6 +13,8 @@ import {
   Package,
 } from 'lucide-react'
 import Image from 'next/image'
+import { useChatStore } from '@/store/chatStore'
+import { cn } from '@/lib/utils'
 
 interface CompanyPopupProps {
   isOpen: boolean
@@ -22,24 +24,28 @@ interface CompanyPopupProps {
 
 export const CompanyPopup: React.FC<CompanyPopupProps> = ({ isOpen, onClose, company }) => {
   if (!isOpen || !company) return null
+  const { isCopilotOpen } = useChatStore()
 
   const evaluations = company.evaluations || []
 
   return (
     <motion.div
-      className="absolute inset-0 z-50"
+      className={cn('absolute top-0 bottom-0 z-50', {
+        'right-0': !isCopilotOpen,
+        'left-0': isCopilotOpen,
+      })}
       onClick={onClose}
-      initial={{ opacity: 0, x: '100%' }}
+      initial={{ opacity: 0, x: !isCopilotOpen ? '100%' : '-100%' }}
       animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: '100%' }}
+      exit={{ opacity: 0, x: !isCopilotOpen ? '100%' : '-100%' }}
+      style={{ width: '35%' }}
       transition={{ type: 'spring', stiffness: 250, damping: 25 }}
     >
-      <div className="absolute inset-0 bg-black/10" />
       <div
         className="relative bg-white w-full h-full shadow-lg flex flex-col"
         onClick={e => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-4 py-3 border-b sticky top-0 bg-white flex-shrink-0">
+        <div className="flex items-center justify-between p-3 border-b sticky top-0 bg-white flex-shrink-0">
           <div className="flex items-start gap-3">
             {/* UPDATED to use 'logo' and 'name' */}
             {company.logo && (

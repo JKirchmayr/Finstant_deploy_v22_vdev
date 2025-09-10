@@ -28,7 +28,7 @@ const FilesDropdown = () => {
 
   const inlineCards =
     messages.filter(m => m.role === 'inline_card' || m.role === 'inline_list_card') || []
-  // console.log(inlineCards)
+  console.log(inlineCards)
   return (
     <div className="relative">
       <Button
@@ -72,6 +72,8 @@ const FilesDropdown = () => {
                       name={card.data?.name}
                       city={card.data?.city}
                       country={card.data?.country}
+                      website={card.data?.website}
+                      logo={card.data?.logo || ''}
                       type={card.data?.type}
                       content={card.content}
                       isStreaming={isStreaming}

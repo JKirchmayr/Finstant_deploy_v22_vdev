@@ -14,6 +14,8 @@ type FileCardProps = {
   name: string
   city: string
   country: string
+  website: string
+  logo: string
   type: 'company' | 'investor'
   onClick?: () => void
   date?: string
@@ -26,17 +28,20 @@ export const InlineCard = ({
   city,
   country,
   type,
+  website = '',
+  logo = '',
   onClick,
   content,
   isStreaming,
 }: FileCardProps) => {
-  const { setMarkdown, setMarkdownSources, setIsCanvasOpen } = useChatStore()
+  const { setMarkdown, setMarkdownSources, setIsCanvasOpen, setActiveProfile } = useChatStore()
   const onClickHandler = () => {
     if (isStreaming) return
     if (!!content && content?.trim().length > 0) {
       setMarkdown(content || '')
       setIsCanvasOpen(true)
     }
+    setActiveProfile(name, type, website, logo, city, country)
     onClick?.()
   }
 

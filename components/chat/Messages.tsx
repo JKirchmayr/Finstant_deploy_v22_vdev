@@ -58,6 +58,8 @@ export const Messages = ({
                   city={m.data.city}
                   country={m.data.country}
                   content={m.content}
+                  website={m.data.website}
+                  logo={m.data.logo}
                   type={m.data.type}
                   onClick={() => onCardClick(m.content)}
                   isStreaming={isStreaming}

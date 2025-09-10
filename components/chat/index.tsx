@@ -26,7 +26,7 @@ const Chat = () => {
     isStreaming,
     setIsStreaming,
     openListPanel,
-    setActiveProfileName,
+    setActiveProfile,
     closeListPanel,
     streamListData,
     setIsWebSearching,
@@ -190,14 +190,23 @@ const Chat = () => {
             setMarkdown('')
 
             const newCompanyCardData: InlineCardData = {
-              name: data?.company_name,
-              city: data?.company_city,
-              country: data?.company_country,
+              name: data?.meta?.company_name,
+              city: data?.meta?.company_city,
+              country: data?.meta?.company_country,
+              website: data?.meta?.company_website,
+              logo: data?.meta?.company_logo,
               type: 'company',
             }
             setStreamId(uuid)
 
-            setActiveProfileName(data?.company_name, 'company')
+            setActiveProfile(
+              data?.meta?.company_name,
+              'company',
+              data?.meta?.company_website || '',
+              data?.meta?.company_logo || '',
+              data?.meta?.company_city || '',
+              data?.meta?.company_country || ''
+            )
             append({
               id: uuid,
               role: 'inline_card',
@@ -215,19 +224,28 @@ const Chat = () => {
             }
             setStreamingCanvasContent('')
             setMarkdown('')
-            const newCompanyCardData: InlineCardData = {
-              name: data?.investor_name,
-              city: data?.investor_city,
-              country: data?.investor_country,
+            const newInvestorCardData: InlineCardData = {
+              name: data?.meta?.investor_name,
+              city: data?.meta?.investor_city,
+              country: data?.meta?.investor_country,
+              website: data?.meta?.investor_website,
+              logo: data?.meta?.investor_logo,
               type: 'investor',
             }
             setStreamId(uuid)
-            setActiveProfileName(data?.investor_name, 'investor')
+            setActiveProfile(
+              data?.meta?.investor_name,
+              'investor',
+              data?.meta?.investor_website || '',
+              data?.meta?.investor_logo || '',
+              data?.meta?.investor_city || '',
+              data?.meta?.investor_country || ''
+            )
             append({
               id: uuid,
               role: 'inline_card',
               content: '',
-              data: newCompanyCardData,
+              data: newInvestorCardData,
             })
             setIsCanvasOpen(true)
           }
@@ -386,3 +404,5 @@ const Chat = () => {
 }
 
 export default React.memo(Chat)
+
+// data: {"event": "company_profile_card", "data": {"text": "Render company profile card", "meta": {"type": "company_profile_card", "stage": "processing"}, "company_name": "Tesla, Inc.", "company_city": "Austin", "company_country": "United States", "company_website": "https://www.tesla.com", "company_logo": "https://logo.clearbit.com/www.tesla.com", "timestamp": "2025-09-10T11:36:12.840736"}}

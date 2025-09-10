@@ -30,6 +30,7 @@ const SourcesComponent: React.FC<SourcesProps> = ({ open, onClose, sources, isSt
       initial={{ opacity: 0, x: '100%' }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: '100%' }}
+      style={{ width: '35%' }}
       transition={{ type: 'spring', stiffness: 250, damping: 25 }}
     >
       <div className="absolute inset-0 bg-black/10" onClick={onClose} />
