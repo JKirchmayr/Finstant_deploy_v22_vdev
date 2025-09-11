@@ -31,7 +31,7 @@ export default function ListBuilder({ listData, title, type }: ListBuilderProps)
       transition={{ duration: 0.1 }}
       layout
     >
-      <div className="flex-1 p-3 overflow-auto">
+      <div className="flex-1 pt-3 pl-0 pr-0 pb-0 overflow-auto">
         <AddColumnProvider>
           <ChatDataTable
             data={listData}

@@ -179,14 +179,14 @@ const ChatDataTable = <T extends any>({
     <div className="w-full flex h-full flex-col gap-3">
       {!noHeader && (
         <div className="">
-          <div className="pb-2 pt-1 space-y-1 flex justify-between items-center ">
-            <div className="flex gap-2">
+          <div className="pb-1 pt-0 pl-2 pr-2 flex justify-between items-center ">
+            <div className="flex gap-2 items-center">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
                     variant="secondary"
                     size="xs"
-                    className="!px-[6px] hover:bg-gray-300"
+                    className="!px-[6px] h-7 hover:bg-gray-300"
                     onClick={toggleChatPanel}
                     disabled={isStreaming}
                   >
@@ -199,43 +199,45 @@ const ChatDataTable = <T extends any>({
               </Tooltip>
               <p className="text-base font-medium mb-0">{titleName}</p>
             </div>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="secondary"
-                  size="xs"
-                  className="!px-[6px] hover:bg-gray-300"
-                  onClick={() => {
-                    if (!isCopilotOpen) {
-                      setIsCopilotOpen(true)
-                    }
-                    closeListPanel()
-                  }}
-                >
-                  <X className="size-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="left" align="center">
-                <p>Close This Panel</p>
-              </TooltipContent>
-            </Tooltip>
+            <div className="flex gap-2 items-center">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="secondary"
+                    size="xs"
+                    className="!px-[6px] h-7 hover:bg-gray-300"
+                    onClick={() => {
+                      if (!isCopilotOpen) {
+                        setIsCopilotOpen(true)
+                      }
+                      closeListPanel()
+                    }}
+                  >
+                    <X className="size-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="left" align="center">
+                  <p>Close This Panel</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
           </div>
-          <div className="py-2 space-y-1">
+          <div className="pt-1 pb-0 pr-2 pl-2">
             <div className="flex justify-between items-center">
-              <div className="flex gap-2 shrink-0">
+              <div className="flex gap-2 shrink-0 min-h-[28px] items-center">
                 {selectedRows?.length > 0 && (
                   <Button
                     variant="secondary"
                     size="xs"
                     disabled={isStreaming}
-                    className="hover:bg-gray-300"
+                    className="h-7 hover:bg-gray-300"
                     onClick={handleDeleteSelected}
                   >
                     Delete <Trash className="size-4 ml-1" />
                   </Button>
                 )}
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 items-center pr-0">
                 <Button
                   variant="secondary"
                   size="xs"
@@ -250,7 +252,7 @@ const ChatDataTable = <T extends any>({
           </div>
         </div>
       )}
-      <div className="flex flex-col w-full bg-white border overflow-auto overflow-x-auto thin-scroll">
+      <div className="flex flex-col w-full bg-white overflow-auto overflow-x-auto thin-scroll border-t border-gray-300">
         <Table
           className="!w-full bg-background [&_td]:border-border table-fixed border-separate border-spacing-0 [&_tfoot_td]:border-t [&_tr]:border-none [&_tr:not(:last-child)_td]:border-b [&_thead]:border-b-0"
           style={{ width: table.getTotalSize() }}
@@ -329,7 +331,7 @@ const ChatDataTable = <T extends any>({
                       return (
                         <TableRow
                           key={row.id}
-                          className="min-h-6 border-b transition-colors hover:bg-gray-100/80"
+                          className="h-6 border-b transition-colors hover:bg-gray-100/80"
                         >
                           {row.getVisibleCells().map((cell: any) => {
                             const { column } = cell
@@ -342,7 +344,7 @@ const ChatDataTable = <T extends any>({
                             return (
                               <TableCell
                                 key={cell.id}
-                                className="py-2.5 border-r border-gray-300 bg-background"
+                                className="py-1.5 border-r border-gray-300 bg-background"
                                 style={{ ...getPinningStyles(column) }}
                                 data-pinned={isPinned || undefined}
                                 data-last-col={
