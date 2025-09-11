@@ -24,6 +24,9 @@ type SourcesProps = {
 
 const SourcesComponent: React.FC<SourcesProps> = ({ open, onClose, sources, isStreaming }) => {
   // console.log(sources)
+
+  if (isStreaming) return null
+
   return (
     <motion.div
       className="absolute inset-0 z-50 flex justify-end"

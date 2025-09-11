@@ -261,7 +261,6 @@ export default function InvestorsResponseData({
         columns={columns}
         isLoading={loading}
         // togglePanel={togglePanel}
-        closeTabPanel={closeTabPanel}
         loadMoreData={() => {}}
         hasMoreData={false}
         titleName="Investors List"
