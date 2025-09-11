@@ -20,11 +20,21 @@ import { useFileStore } from '@/store/useCompanyProfile'
 import { InlineCard } from './chat/InlineCard'
 import { useChatStore } from '@/store/chatStore'
 import { InlineListCard } from './chat/InlineListCard'
+import { Source } from './chat/chat.types'
 
 // Files dropdown component
 const FilesDropdown = () => {
   const [isOpen, setIsOpen] = useState(false)
-  const { messages, isStreaming, openListPanel } = useChatStore()
+  const {
+    messages,
+    isStreaming,
+    openListPanel,
+    setIsCanvasOpen,
+    closeListPanel,
+    setMarkdownSources,
+    setSourcesOpen,
+    closeCompanyPopup,
+  } = useChatStore()
 
   const inlineCards =
     messages.filter(m => m.role === 'inline_card' || m.role === 'inline_list_card') || []
@@ -77,6 +87,12 @@ const FilesDropdown = () => {
                       type={card.data?.type}
                       content={card.content}
                       isStreaming={isStreaming}
+                      onClick={() => {
+                        setMarkdownSources((card?.sources || []) as unknown as Source[])
+                        closeListPanel()
+                        closeCompanyPopup()
+                        setIsCanvasOpen(true)
+                      }}
                     />
                   ) : (
                     <InlineListCard
@@ -84,14 +100,16 @@ const FilesDropdown = () => {
                       title={card.data?.profile?.title}
                       itemCount={card.data?.profile?.estimated_list_item_count}
                       isStreaming={isStreaming}
-                      onClick={() =>
+                      onClick={() => {
                         openListPanel(
                           card.id,
                           card.data?.profile?.title,
                           card.data?.list,
-                          card.data?.profile?.estimated_list_item_count
+                          card.data?.profile?.estimated_list_item_count,
+                          card.data?.profile?.type
                         )
-                      }
+                        setSourcesOpen(false)
+                      }}
                     />
                   )
                 )

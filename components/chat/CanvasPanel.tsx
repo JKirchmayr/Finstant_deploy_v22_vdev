@@ -1,17 +1,11 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import {
-  BanknotesIcon,
-  CurrencyDollarIcon,
-  ListBulletIcon,
-  XMarkIcon,
-} from '@heroicons/react/24/outline'
+import { BanknotesIcon, ListBulletIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { ProfileMessages } from './Profile'
 import { Source } from './chat.types'
 import { Button } from '../ui/button'
 import { useChatStore } from '@/store/chatStore'
 import { BuildingOffice2Icon } from '@heroicons/react/24/outline'
-import { CanvasSkeleton } from './CanvasSkeleton'
 
 export const CanvasPanel = ({
   streamingCanvasContent,
@@ -27,30 +21,10 @@ export const CanvasPanel = ({
   const title = activeProfile?.name ? (
     <div className="flex items-center gap-2">
       {activeProfile?.type === 'list' && <ListBulletIcon className="h-5 w-5 text-gray-600" />}
-      {activeProfile?.type === 'company' &&
-        (activeProfile.logo ? (
-          <img
-            src={activeProfile.logo}
-            alt={activeProfile.name}
-            className="rounded-sm object-contain"
-            width={20}
-            height={20}
-          />
-        ) : (
-          <BuildingOffice2Icon className="h-5 w-5 text-gray-600" />
-        ))}
-      {activeProfile?.type === 'investor' &&
-        (activeProfile.logo ? (
-          <img
-            src={activeProfile.logo}
-            alt={activeProfile.name}
-            className="rounded-sm object-contain"
-            width={20}
-            height={20}
-          />
-        ) : (
-          <BanknotesIcon className="h-5 w-5 text-gray-600" />
-        ))}
+      {activeProfile?.type === 'company' && (
+        <BuildingOffice2Icon className="h-5 w-5 text-gray-600" />
+      )}
+      {activeProfile?.type === 'investor' && <BanknotesIcon className="h-5 w-5 text-gray-600" />}
       <span className="font-semibold tracking-tight">
         {activeProfile?.type === 'company' ? 'Company Profile' : 'Investor Profile'} -{' '}
         {activeProfile?.name}

@@ -30,20 +30,6 @@ export const ProfileMessages = ({
     setSourcesOpen(true)
   }
 
-  useEffect(() => {
-    if (containerRef.current && !isStreaming) {
-      const buttons = containerRef.current.querySelectorAll('code[data-streamdown="inline-code"]')
-      buttons.forEach(button => {
-        button.addEventListener('click', () => {
-          const num = button.textContent?.trim()
-          if (num) {
-            onOpenSources()
-          }
-        })
-      })
-    }
-  }, [isStreaming])
-
   const processedMarkdown = streamingMarkdownContent.replace(/\[(\d+)\]/g, '`$1`')
 
   return (
@@ -98,6 +84,17 @@ export const ProfileMessages = ({
                     <div className="overflow-x-auto rounded-md shadow-xl">
                       <table className="w-full">{children}</table>
                     </div>
+                  ),
+                  code: ({ children }) => (
+                    <code
+                      onClick={() => {
+                        onOpenSources()
+                      }}
+                    >
+                      <span className="bg-muted-foreground/10 cursor-pointer py-0 text-xs px-1 rounded-md font-medium">
+                        {children}
+                      </span>
+                    </code>
                   ),
                 }}
               >

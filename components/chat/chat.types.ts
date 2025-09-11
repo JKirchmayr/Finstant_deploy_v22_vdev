@@ -11,6 +11,8 @@ export type Source = {
   id: number
   title: string
   url: string
+  favicon: string
+  content_preview: string
 }
 
 export type InlineCardData = {
@@ -38,6 +40,7 @@ export type Message = {
   role: Role
   content: string
   data?: any
+  sources?: Source[]
   createdAt?: Date
 }
 

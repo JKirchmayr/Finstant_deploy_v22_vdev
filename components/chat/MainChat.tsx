@@ -7,7 +7,7 @@ import { useChatStore } from '@/store/chatStore'
 import { AnimatePresence, motion } from 'framer-motion'
 import { CanvasPanel } from './CanvasPanel'
 import SourcesComponent from './Sources'
-import { CompanyData, InlineCardData } from './chat.types'
+import { CompanyData, InlineCardData, Source } from './chat.types'
 import ListBuilder from './list-builder'
 import { CompanyPopup } from './list-builder/Companydetails'
 
@@ -20,9 +20,8 @@ interface MainChatProps {
   endRef: React.RefObject<HTMLDivElement>
   streamingMessage: string
   streamingCanvasContent: string
-  sources: any[] // Consider creating a proper type for sources
-  handleCardClick: (card: InlineCardData) => void
-  handleListCardClick: (id: string, data: any) => void // Consider creating a proper type for data
+  sources: Source[] // Consider creating a proper type for sources
+  handleListCardClick: (id: string, data: any, type: 'company' | 'investor') => void // Consider creating a proper type for data
   setStreamingCanvasContent: (content: string) => void
 }
 
@@ -36,7 +35,6 @@ export default function MainChat({
   streamingCanvasContent,
   setStreamingCanvasContent,
   sources,
-  handleCardClick,
   handleListCardClick,
 }: MainChatProps) {
   const {
@@ -54,7 +52,7 @@ export default function MainChat({
     closeCompanyPopup,
     isListPanelOpen,
     activeListData,
-    activeListTitle,
+    activeList,
     setIsListPanelOpen,
     isCopilotOpen,
   } = useChatStore()
@@ -108,7 +106,6 @@ export default function MainChat({
                     isStreaming={isStreaming}
                     streamingMessage={streamingMessage}
                     endRef={endRef}
-                    onCardClick={handleCardClick}
                     onListCardClick={handleListCardClick}
                   />
                 </div>
@@ -131,14 +128,13 @@ export default function MainChat({
           )}
         </AnimatePresence>
       </motion.div>
-
       {/* This component can be triggered in either state, so it lives outside */}
       <AnimatePresence>
         {sourcesOpen && (
           <SourcesComponent
             open={sourcesOpen}
             onClose={() => setSourcesOpen(false)}
-            sources={sources}
+            sources={markdownSources.length > 0 ? markdownSources : sources}
             isStreaming={isStreaming}
           />
         )}
@@ -161,7 +157,9 @@ export default function MainChat({
             setStreamingCanvasContent={setStreamingCanvasContent}
           />
         )}
-        {isListPanelOpen && <ListBuilder listData={activeListData} title={activeListTitle} />}
+        {isListPanelOpen && (
+          <ListBuilder listData={activeListData} title={activeList.title} type={activeList.type} />
+        )}
       </AnimatePresence>
     </div>
   )

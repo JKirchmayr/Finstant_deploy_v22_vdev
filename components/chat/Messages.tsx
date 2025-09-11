@@ -4,7 +4,7 @@ import { Markdown } from '../markdown'
 import { InlineCard } from './InlineCard'
 import TypingDots from '../TypingDots'
 import { useFileStore } from '@/store/useCompanyProfile'
-import { Message } from './chat.types'
+import { Message, Source } from './chat.types'
 import { InlineListCard } from './InlineListCard'
 import { useChatStore } from '@/store/chatStore'
 import { GlobeAltIcon } from '@heroicons/react/24/outline'
@@ -14,8 +14,7 @@ type MessagesProps = {
   isStreaming: boolean
   streamingMessage: string | null
   endRef: React.RefObject<HTMLDivElement>
-  onCardClick: (data: any) => void
-  onListCardClick: (id: string, data: any) => void
+  onListCardClick: (id: string, data: any, type: 'company' | 'investor') => void
 }
 
 export const Messages = ({
@@ -23,11 +22,11 @@ export const Messages = ({
   isStreaming,
   streamingMessage,
   endRef,
-  onCardClick,
   onListCardClick,
 }: MessagesProps) => {
-  const { isWebSearching } = useChatStore()
-
+  const { isWebSearching, setMarkdown, setMarkdownSources, closeListPanel, setIsCanvasOpen } =
+    useChatStore()
+  // console.log(messages)
   return (
     <div className={cn('overflow-y-auto px-2 pt-4 space-y-2 noscroll flex-1 min-h-0')}>
       {messages.map((m, i) => {
@@ -61,7 +60,11 @@ export const Messages = ({
                   website={m.data.website}
                   logo={m.data.logo}
                   type={m.data.type}
-                  onClick={() => onCardClick(m.content)}
+                  onClick={() => {
+                    setMarkdownSources((m.sources || []) as unknown as Source[])
+                    closeListPanel()
+                    setIsCanvasOpen(true)
+                  }}
                   isStreaming={isStreaming}
                 />
               )}
@@ -69,7 +72,7 @@ export const Messages = ({
                 <InlineListCard
                   title={m.data.profile.title}
                   itemCount={m.data.profile.estimated_list_item_count}
-                  onClick={() => onListCardClick(m.id, m.data)}
+                  onClick={() => onListCardClick(m.id, m.data, m.data.profile.type)}
                   isStreaming={isStreaming}
                 />
               )}

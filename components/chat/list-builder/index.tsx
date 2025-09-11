@@ -5,18 +5,20 @@ import { motion } from 'framer-motion'
 import { ColumnDef } from '@tanstack/react-table'
 import { AddColumnProvider } from '@/context/newColumn'
 import ChatDataTable from './ChatDataTable'
-import { generateColumns } from './columns'
+import { companyColumns, generateColumns } from './columns'
 import { useIsMobile } from '@/hooks/use-mobile'
 
 interface ListBuilderProps {
   listData: any[]
   title: string
+  type: 'company' | 'investor'
 }
 
-export default function ListBuilder({ listData, title }: ListBuilderProps) {
+export default function ListBuilder({ listData, title, type }: ListBuilderProps) {
   const isMobile = useIsMobile()
   const { isStreaming, closeListPanel, activeListItemCount, isCopilotOpen } = useChatStore()
-  const columns = generateColumns(listData || [])
+  const columns = type === 'company' ? companyColumns : generateColumns(listData || [])
+  // console.log(type)
   // console.log(listData)
   return (
     <motion.div
@@ -38,7 +40,6 @@ export default function ListBuilder({ listData, title }: ListBuilderProps) {
             hasMoreData={false}
             loadMoreData={() => {}}
             titleName={title}
-            closeTabPanel={closeListPanel}
             defaultPinnedColumns={['select', 'rowNumber', 'name']}
           />
         </AddColumnProvider>

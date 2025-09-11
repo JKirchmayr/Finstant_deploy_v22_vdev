@@ -1,17 +1,10 @@
 import { create } from 'zustand'
 import { v4 as uuidv4 } from 'uuid'
-import { CompanyData, Role, Source } from '@/components/chat/chat.types'
-
-export type ChatMessage = {
-  id: string
-  role: Role
-  content: string
-  createdAt: Date
-  data?: any
-}
+import { CompanyData, Message, Role, Source } from '@/components/chat/chat.types'
+import { type } from 'os'
 
 type ChatStore = {
-  messages: ChatMessage[]
+  messages: Message[]
   input: string
   isStreaming: boolean
   setIsStreaming: (isStreaming: boolean) => void
@@ -47,12 +40,21 @@ type ChatStore = {
 
   deleteRows: (rowsToDelete: any[]) => void
   activeListMessageId: string | null
-  activeListTitle: string
-  setActiveListTitle: (title: string) => void
+  activeList: {
+    title: string
+    type: 'company' | 'investor'
+  }
+  setActiveList: (title: string, type: 'company' | 'investor') => void
   activeListData: string[]
   setActiveListData: (data: string[]) => void
   activeListItemCount: number
-  openListPanel: (id: string, title: string, data: string[], itemCount: number) => void
+  openListPanel: (
+    id: string,
+    title: string,
+    data: string[],
+    itemCount: number,
+    type: 'company' | 'investor'
+  ) => void
   closeListPanel: () => void
   streamListData: (data: string[]) => void
   listProfileData: null
@@ -73,7 +75,7 @@ type ChatStore = {
     content,
   }: {
     id?: string
-    role: ChatMessage['role']
+    role: Message['role']
     content: string
     data?: any
     sources?: Source[]
@@ -82,7 +84,7 @@ type ChatStore = {
   updateMessage: (id: string, content: string, sources: Source[]) => void
   updateListData: (id: string, data: any) => void
   clearMessages: () => void
-  inlineCards: ChatMessage[]
+  inlineCards: Message[]
 }
 
 export const useChatStore = create<ChatStore>((set, get) => ({
@@ -96,7 +98,10 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   listProfileData: null,
   isCompanyPopupOpen: false,
   popupCompany: null,
-  activeListTitle: '',
+  activeList: {
+    title: '',
+    type: 'company',
+  },
   activeListData: [],
   activeListItemCount: 0,
   isCopilotOpen: true,
@@ -112,7 +117,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
       popupCompany: null,
     }),
   setListProfileData: data => set({ listProfileData: data }),
-  setActiveListTitle: title => set({ activeListTitle: title }),
+  setActiveList: (title, type) => set({ activeList: { title, type } }),
   isListProfileOpen: false,
   setIsListProfileOpen: isListProfileOpen => set({ isListProfileOpen }),
   setActiveListData: data => set({ activeListData: data }),
@@ -161,10 +166,13 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     return get().messages.filter(message => message.role === 'inline_card')
   },
   activeListMessageId: null,
-  openListPanel: (id, title, data, itemCount) =>
+  openListPanel: (id, title, data, itemCount, type) =>
     set({
       activeListMessageId: id,
-      activeListTitle: title,
+      activeList: {
+        title,
+        type,
+      },
       activeListData: data,
       activeListItemCount: itemCount,
       isListPanelOpen: true,
@@ -176,8 +184,12 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   closeListPanel: () =>
     set({
       isListPanelOpen: false,
+      isCompanyPopupOpen: false,
       activeListData: [],
-      activeListTitle: '',
+      activeList: {
+        title: '',
+        type: 'company',
+      },
       activeListItemCount: 0,
       activeListMessageId: null,
     }),

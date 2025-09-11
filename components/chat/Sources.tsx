@@ -23,7 +23,7 @@ type SourcesProps = {
 }
 
 const SourcesComponent: React.FC<SourcesProps> = ({ open, onClose, sources, isStreaming }) => {
-  console.log(sources)
+  // console.log(sources)
   return (
     <motion.div
       className="absolute inset-0 z-50 flex justify-end"
@@ -34,7 +34,10 @@ const SourcesComponent: React.FC<SourcesProps> = ({ open, onClose, sources, isSt
       transition={{ type: 'spring', stiffness: 250, damping: 25 }}
     >
       <div className="absolute inset-0 bg-black/10" onClick={onClose} />
-      <div className="relative w-full h-full bg-white shadow-lg" onClick={e => e.stopPropagation()}>
+      <div
+        className="relative w-full h-full bg-background shadow-lg"
+        onClick={e => e.stopPropagation()}
+      >
         {/* --- HEADER --- */}
         <div className="flex items-center justify-between px-4 py-2 border-b sticky top-0 bg-white z-10">
           <h2 className="font-semibold text-base">Sources</h2>
@@ -44,7 +47,7 @@ const SourcesComponent: React.FC<SourcesProps> = ({ open, onClose, sources, isSt
         </div>
 
         {/* --- CONTENT AREA --- */}
-        <div className="h-[calc(100%-52px)] overflow-y-auto p-4">
+        <div className="h-[calc(100%-52px)] overflow-y-auto p-4 thin-scroll">
           {!isStreaming && sources.length ? (
             <div className="space-y-3">
               {sources.map(s => (
@@ -53,7 +56,7 @@ const SourcesComponent: React.FC<SourcesProps> = ({ open, onClose, sources, isSt
                   href={s.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-start gap-4 p-2 rounded-md transition-colors duration-200 hover:bg-gray-100 border "
+                  className="flex items-start gap-4 p-2 rounded-md transition-colors duration-200 hover:bg-gray-100 border overflow-hidden "
                 >
                   {s?.favicon ? (
                     <img
@@ -62,18 +65,20 @@ const SourcesComponent: React.FC<SourcesProps> = ({ open, onClose, sources, isSt
                       className="h-5 w-5 flex-shrink-0 rounded-full mt-1"
                     />
                   ) : (
-                    <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 mt-1">
+                    <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center border rounded-full bg-gray-100 mt-1">
                       <LinkIcon className="h-3 w-3 text-gray-400" />
                     </div>
                   )}
                   <div className="flex-1">
-                    <p className="text-xs text-gray-500 truncate">
+                    {/* <p className="text-xs text-gray-500 ">
                       {new URL(s.url).hostname.replace(/^www\./, '')}
-                    </p>
-                    <h3 className="font-medium text-gray-800 leading-snug">{s.title}</h3>
+                    </p> */}
+                    <h3 className="font-medium text-gray-800 leading-snug ">{s.title}</h3>
 
                     {s.content_preview && (
-                      <p className="text-sm text-gray-600 line-clamp-2 mt-1">{s.content_preview}</p>
+                      <p className="text-xs text-gray-600 line-clamp-2 mt-1 overflow-hidden">
+                        {s.content_preview}
+                      </p>
                     )}
                   </div>
                 </Link>

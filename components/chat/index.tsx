@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useChatStore } from '@/store/chatStore'
 import { v4 } from 'uuid'
-import { InlineCardData, InlineListCardData } from './chat.types'
+import { InlineCardData, InlineListCardData, Source } from './chat.types'
 import MainChat from './MainChat'
 import { TabKey } from './Suggestions'
 
@@ -27,9 +27,10 @@ const Chat = () => {
     setIsStreaming,
     openListPanel,
     setActiveProfile,
-    closeListPanel,
+    setListProfileData,
     streamListData,
     setIsWebSearching,
+    setMarkdownSources,
   } = useChatStore()
 
   const [sessionId, setSessionId] = useState<string | null>(null)
@@ -38,21 +39,15 @@ const Chat = () => {
   const endRef = useRef<HTMLDivElement>(null)
   const [streamId, setStreamId] = useState<string>('')
   const [streamingCanvasContent, setStreamingCanvasContent] = useState<string>('')
-  const [sources, setSources] = useState<Array<{ id: number; title: string; url: string;  favicon:string; content_preview:string }>>([])
+  const [sources, setSources] = useState<Source[]>([])
   const controllerRef = useRef<AbortController | null>(null)
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  const handleCardClick = (data: any) => {
-    setMarkdown(data)
-    setIsCanvasOpen(true)
-    closeListPanel()
-  }
-
-  const handleListCardClick = (id: string, cardData: any) => {
+  const handleListCardClick = (id: string, cardData: any, type: 'company' | 'investor') => {
     const title = cardData?.profile?.title || 'Company List'
     const list = cardData?.list || []
     const itemCount = cardData?.profile?.estimated_list_item_count || list.length
-    openListPanel(id, title, list, itemCount)
+    openListPanel(id, title, list, itemCount, type)
   }
 
   const handleStopStreaming = () => {
@@ -82,6 +77,7 @@ const Chat = () => {
 
     setStreamingMessage('')
     setSources([])
+    setMarkdownSources([])
     setStreamId('')
     const uuid = v4()
 
@@ -188,7 +184,7 @@ const Chat = () => {
             }
             setStreamingCanvasContent('')
             setMarkdown('')
-            console.log(data?.company)
+            // console.log(data?.company)
             const newCompanyCardData: InlineCardData = {
               name: data?.company?.company_name,
               city: data?.company?.company_city,
@@ -265,13 +261,13 @@ const Chat = () => {
             // }
           }
           //----Sources -----
-          if (eventType === 'sources'){
-            console.log("In sources")
-            console.log(data?.meta?.sources)
+          if (eventType === 'sources') {
+            // console.log('In sources')
+            // console.log(data?.meta?.sources)
             const incoming = Array.isArray(data?.meta?.sources) ? data.meta.sources : []
-            console.log(incoming)
+            // console.log(incoming)
             setSources(prevSources => [...prevSources, ...incoming])
-            console.log(sources);
+            // console.log(sources)
           }
 
           //--------Investor Profile ----------
@@ -298,13 +294,18 @@ const Chat = () => {
             }
             const itemCount = data?.estimated_list_item_count || 0
             listCardTitle = data?.list_title || 'Company List'
-            openListPanel(uuid, listCardTitle, [], itemCount)
+            setListProfileData([])
+            openListPanel(uuid, listCardTitle, [], itemCount, 'company')
             append({
               id: uuid,
               role: 'inline_list_card',
               content: '',
               data: {
-                profile: { title: listCardTitle, estimated_list_item_count: itemCount },
+                profile: {
+                  title: listCardTitle,
+                  estimated_list_item_count: itemCount,
+                  type: 'company',
+                },
               },
             })
           }
@@ -312,7 +313,7 @@ const Chat = () => {
           if (eventType === 'company_properties' || eventType === 'company_evaluations') {
             const companyId = data?.item_id
             const companyData = data?.company || {}
-            console.log(data)
+            // console.log(data)
 
             if (companyId) {
               const currentCompany = companyMap.get(companyId || {})
@@ -391,7 +392,6 @@ const Chat = () => {
       }
     }
   }, [streamingCanvasContent, isStreaming, streamId, updateMessage, sources])
-
   return (
     <MainChat
       activeTab={activeTab}
@@ -402,7 +402,6 @@ const Chat = () => {
       streamingCanvasContent={streamingCanvasContent}
       setStreamingCanvasContent={setStreamingCanvasContent}
       sources={sources}
-      handleCardClick={handleCardClick}
       handleListCardClick={handleListCardClick}
       handleSend={handleSend}
       handleInputChange={e => {

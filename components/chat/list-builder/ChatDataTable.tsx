@@ -43,7 +43,6 @@ interface IChatDataTableProps<T extends any> {
   defaultPinnedColumns?: string[]
   topbarClass?: string
   noSearch?: boolean
-  closeTabPanel: () => void
   titleName: string
   noHeader?: boolean
   addColumn?: boolean
@@ -68,7 +67,6 @@ const ChatDataTable = <T extends any>({
   noHeader = false,
   titleName,
   addColumn = true,
-  closeTabPanel,
   defaultPinnedColumns,
 }: IChatDataTableProps<T>) => {
   const [sorting, setSorting] = useState<SortingState>([])
@@ -103,8 +101,15 @@ const ChatDataTable = <T extends any>({
       setRowSelection([])
     },
   })
-  const { isStreaming, deleteRows, activeListItemCount, setIsCopilotOpen, isCopilotOpen } =
-    useChatStore()
+  const {
+    isStreaming,
+    deleteRows,
+    activeListItemCount,
+    setIsCopilotOpen,
+    isCopilotOpen,
+    closeCompanyPopup,
+    closeListPanel,
+  } = useChatStore()
 
   const toggleChatPanel = () => {
     setIsCopilotOpen(!isCopilotOpen)
@@ -204,7 +209,7 @@ const ChatDataTable = <T extends any>({
                     if (!isCopilotOpen) {
                       setIsCopilotOpen(true)
                     }
-                    closeTabPanel()
+                    closeListPanel()
                   }}
                 >
                   <X className="size-4" />
