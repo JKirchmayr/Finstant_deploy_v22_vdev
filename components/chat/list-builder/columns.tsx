@@ -147,11 +147,11 @@ export const generateColumns = (data: any[]): ColumnDef<any>[] => {
         <ExpandableCell
           TriggerCell={
             <p className="whitespace-pre-line line-clamp-2 cursor-pointer">
-              {row.original.description || '-'}
+              {row.original.description || 'N/A'}
             </p>
           }
         >
-          <p>{row.original.description || '-'}</p>
+          <p>{row.original.description || 'N/A'}</p>
         </ExpandableCell>
       ),
     },
@@ -205,7 +205,7 @@ export const generateColumns = (data: any[]): ColumnDef<any>[] => {
         size: 120,
         cell: ({ row }) => {
           const v = row.original.employees
-          const text = typeof v === 'number' ? new Intl.NumberFormat().format(v) : v || '-'
+          const text = typeof v === 'number' ? new Intl.NumberFormat().format(v) : v || 'N/A'
           return <GenerateSkeleton isPlaceholder={false} text={text} />
         },
       })
@@ -220,7 +220,7 @@ export const generateColumns = (data: any[]): ColumnDef<any>[] => {
           isLoading ? (
             <GenerateSkeleton isPlaceholder={true} />
           ) : (
-            <GenerateSkeleton isPlaceholder={false} text={row.original.location || '-'} />
+            <GenerateSkeleton isPlaceholder={false} text={row.original.location || 'N/A'} />
           ),
       })
       continue
@@ -236,7 +236,7 @@ export const generateColumns = (data: any[]): ColumnDef<any>[] => {
           ),
         size: 140,
         cell: ({ row }) => (
-          <GenerateSkeleton isPlaceholder={false} text={row.original.revenue || '-'} />
+          <GenerateSkeleton isPlaceholder={false} text={row.original.revenue || 'N/A'} />
         ),
       })
       continue
@@ -252,7 +252,7 @@ export const generateColumns = (data: any[]): ColumnDef<any>[] => {
           ),
         size: 180,
         cell: ({ row }) => (
-          <GenerateSkeleton isPlaceholder={false} text={row.original.products || '-'} />
+          <GenerateSkeleton isPlaceholder={false} text={row.original.products || 'N/A'} />
         ),
       })
       continue
@@ -290,6 +290,7 @@ export const generateColumns = (data: any[]): ColumnDef<any>[] => {
       },
     })
   }
+  console.log(baseColumns)
   return baseColumns
 }
 
@@ -377,11 +378,11 @@ export const companyColumns: ColumnDef<any>[] = [
       <ExpandableCell
         TriggerCell={
           <p className="whitespace-pre-line line-clamp-2 cursor-pointer">
-            {row.original.description || '-'}
+            {row.original.description || 'N/A'}
           </p>
         }
       >
-        <p>{row.original.description || '-'}</p>
+        <p>{row.original.description || 'N/A'}</p>
       </ExpandableCell>
     ),
   },
@@ -407,7 +408,7 @@ export const companyColumns: ColumnDef<any>[] = [
       <HeaderWithIcon icon={<Bars3BottomLeftIcon className="h-4 w-4" />} label="Industry" />
     ),
     cell: ({ row }) => (
-      <GenerateSkeleton isPlaceholder={false} text={row.original.industry || '-'} />
+      <GenerateSkeleton isPlaceholder={false} text={row.original.industry || 'N/A'} />
     ),
   },
   {
@@ -415,7 +416,7 @@ export const companyColumns: ColumnDef<any>[] = [
     size: 160,
     header: () => <HeaderWithIcon icon={<MapPinIcon className="h-4 w-4" />} label="HQ" />,
     cell: ({ row }) => (
-      <GenerateSkeleton isPlaceholder={false} text={row.original.location || '-'} />
+      <GenerateSkeleton isPlaceholder={false} text={row.original.location || 'N/A'} />
     ),
   },
   {
@@ -424,8 +425,168 @@ export const companyColumns: ColumnDef<any>[] = [
     header: () => <HeaderWithIcon icon={<UsersIcon className="h-4 w-4" />} label="Employees" />,
     cell: ({ row }) => {
       const v = row.original.employees
-      const text = typeof v === 'number' ? new Intl.NumberFormat().format(v) : v || '-'
+      const text = typeof v === 'number' ? new Intl.NumberFormat().format(v) : v || 'N/A'
       return <GenerateSkeleton isPlaceholder={false} text={text} />
     },
+  },
+]
+
+export const investorColumns: ColumnDef<any>[] = [
+  {
+    id: 'select',
+    size: 50,
+    maxSize: 50,
+    minSize: 50,
+    header: ({ table }) => (
+      <div className="flex justify-center items-center">
+        <Checkbox
+          className="cursor-pointer"
+          checked={table.getIsAllPageRowsSelected()}
+          onCheckedChange={value => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className="mr-auto">
+        <Checkbox
+          className="cursor-pointer"
+          checked={row.getIsSelected()}
+          onCheckedChange={value => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      </div>
+    ),
+    enableSorting: false,
+  },
+  {
+    id: 'rowNumber',
+    size: 50,
+    maxSize: 50,
+    minSize: 50,
+    header: () => <p className="w-full text-center">#</p>,
+    cell: ({ row }) => (
+      <div className="text-center font-medium text-gray-600 tabular-nums">{row.index + 1}</div>
+    ),
+    enableSorting: false,
+  },
+  {
+    accessorKey: 'name',
+    size: 220,
+    header: () => (
+      <HeaderWithIcon icon={<BuildingOffice2Icon className="h-4 w-4" />} label="Investor" />
+    ),
+    cell: ({ row }) => {
+      const { openListItemPopup } = useChatStore.getState()
+      const name = row.original.name || 'Details'
+      return (
+        <div className="inline-flex items-center min-w-0">
+          <Image
+            src={row.original.logo || 'https://placehold.co/50x50.png'}
+            alt="logo"
+            width={20}
+            height={20}
+            className="mr-2 rounded flex-shrink-0"
+            unoptimized
+          />
+          <button
+            onClick={() => openListItemPopup(row.original)}
+            onKeyDown={e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                openListItemPopup(row.original)
+              }
+            }}
+            className="truncate text-left bg-transparent p-0 h-auto font-medium text-gray-900 hover:underline focus:outline-none cursor-pointer"
+            role="button"
+            title={name}
+          >
+            {name}
+          </button>
+        </div>
+      )
+    },
+  },
+  {
+    accessorKey: 'description',
+    size: 420,
+    header: () => <HeaderWithIcon icon={<Bars3Icon className="h-4 w-4" />} label="Description" />,
+    cell: ({ row }) => (
+      <ExpandableCell
+        TriggerCell={
+          <p className="whitespace-pre-line line-clamp-2 cursor-pointer">
+            {row.original.description || 'N/A'}
+          </p>
+        }
+      >
+        <p>{row.original.description || 'N/A'}</p>
+      </ExpandableCell>
+    ),
+  },
+  {
+    accessorKey: 'website',
+    size: 200,
+    header: () => <HeaderWithIcon icon={<Globe className="h-4 w-4" />} label="Website" />,
+    cell: ({ row }) => {
+      const url = ensureProtocol(row.original.website)
+      return url ? (
+        <Link href={url} target="_blank" className="text-blue-600 hover:underline truncate">
+          {row.original.website}
+        </Link>
+      ) : (
+        <span>-</span>
+      )
+    },
+  },
+  {
+    accessorKey: 'firm_type',
+    size: 160,
+    header: () => (
+      <HeaderWithIcon icon={<Bars3BottomLeftIcon className="h-4 w-4" />} label="Firm Type" />
+    ),
+    cell: ({ row }) => (
+      <GenerateSkeleton isPlaceholder={false} text={row.original.firm_type || 'N/A'} />
+    ),
+  },
+  {
+    accessorKey: 'location',
+    size: 160,
+    header: () => <HeaderWithIcon icon={<MapPinIcon className="h-4 w-4" />} label="HQ" />,
+    cell: ({ row }) => (
+      <GenerateSkeleton isPlaceholder={false} text={row.original.location || 'N/A'} />
+    ),
+  },
+  {
+    accessorKey: 'employees',
+    size: 120,
+    header: () => <HeaderWithIcon icon={<UsersIcon className="h-4 w-4" />} label="Employees" />,
+    cell: ({ row }) => {
+      const v = row.original.employees
+      const text = typeof v === 'number' ? new Intl.NumberFormat().format(v) : v || 'N/A'
+      return <GenerateSkeleton isPlaceholder={false} text={text} />
+    },
+  },
+  {
+    accessorKey: 'geographic_focus',
+    size: 170,
+    header: () => (
+      <HeaderWithIcon icon={<Bars3BottomLeftIcon className="h-4 w-4" />} label="Geographic Focus" />
+    ),
+    cell: ({ row }) => (
+      <GenerateSkeleton
+        isPlaceholder={false}
+        text={row.original.geographic_focus?.join(', ') || 'N/A'}
+      />
+    ),
+  },
+  {
+    accessorKey: 'ticket_size',
+    size: 160,
+    header: () => (
+      <HeaderWithIcon icon={<BanknotesIcon className="h-4 w-4" />} label="Ticket Size" />
+    ),
+    cell: ({ row }) => (
+      <GenerateSkeleton isPlaceholder={false} text={row.original.ticket_size || 'N/A'} />
+    ),
   },
 ]

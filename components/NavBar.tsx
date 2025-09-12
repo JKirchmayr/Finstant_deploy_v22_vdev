@@ -38,7 +38,7 @@ const FilesDropdown = () => {
   } = useChatStore()
 
   const inlineCards =
-    messages.filter(m => m.role === 'inline_card' || m.role === 'inline_list_card') || []
+    messages.filter(m => m.role === 'inline_card' || m.role === 'inline_list_card').reverse() || []
   // console.log(inlineCards)
   return (
     <div className="relative">
@@ -106,7 +106,7 @@ const FilesDropdown = () => {
                         openListPanel(
                           card.id,
                           card.data?.profile?.title,
-                          card.data?.list,
+                          card.data?.list || [],
                           card.data?.profile?.estimated_list_item_count,
                           card.data?.profile?.type
                         )

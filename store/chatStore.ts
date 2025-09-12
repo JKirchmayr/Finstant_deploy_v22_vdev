@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { v4 as uuidv4 } from 'uuid'
-import { CompanyData, Message, Role, Source } from '@/components/chat/chat.types'
+import { EntityData, Message, Role, Source } from '@/components/chat/chat.types'
 import { type } from 'os'
 
 type ChatStore = {
@@ -63,8 +63,8 @@ type ChatStore = {
   setIsListProfileOpen: (isListProfileOpen: boolean) => void
   //new for
   isCompanyPopupOpen: boolean
-  popupCompany: CompanyData | null
-  openListItemPopup: (company: CompanyData) => void
+  popupCompany: EntityData | null
+  openListItemPopup: (company: EntityData) => void
   closeCompanyPopup: () => void
   isCopilotOpen: boolean
   setIsCopilotOpen: (isCopilotOpen: boolean) => void

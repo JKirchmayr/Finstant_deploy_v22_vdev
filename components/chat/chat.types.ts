@@ -44,7 +44,7 @@ export type Message = {
   createdAt?: Date
 }
 
-export type CompanyData = {
+export type EntityData = {
   name: string
   website?: string
   logo?: string

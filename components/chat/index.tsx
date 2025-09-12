@@ -80,6 +80,7 @@ const Chat = () => {
 
     setStreamId('')
     const uuid = v4()
+    const listMap = new Map<string, any>()
 
     append({ role: 'user', content: promptToSend })
     setInput('')
@@ -110,7 +111,6 @@ const Chat = () => {
       if (!reader) throw new Error('No reader available.')
 
       const decoder = new TextDecoder()
-      const companyMap = new Map<string, any>()
 
       let listCardTitle = 'Company List'
       let leftoverChunk = ''
@@ -123,8 +123,8 @@ const Chat = () => {
             append({ role: 'assistant', content: processingBuffer })
             processingBuffer = ''
           }
-          if (companyMap.size > 0) {
-            updateListData(uuid, Array.from(companyMap.values()))
+          if (listMap.size > 0) {
+            updateListData(uuid, Array.from(listMap.values()))
           }
           finalEventReceived = true
           break
@@ -156,8 +156,8 @@ const Chat = () => {
               processingBuffer = ''
               setIsStreaming(false)
             }
-            if (companyMap.size > 0) {
-              const finalListData = Array.from(companyMap.values())
+            if (listMap.size > 0) {
+              const finalListData = Array.from(listMap.values())
               updateListData(uuid, finalListData)
             }
             break
@@ -262,19 +262,11 @@ const Chat = () => {
               setIsCanvasOpen(true)
               setStreamingCanvasContent(prev => prev + text)
             }
-            // if (stage === 'sources') {
-            //   const incoming = Array.isArray(data?.sources) ? data.sources : []
-            //   setSources(incoming)
-            // }
           }
           //----Sources -----
           if (eventType === 'sources') {
-            // console.log('In sources')
-            // console.log(data?.meta?.sources)
             const incoming = Array.isArray(data?.meta?.sources) ? data.meta.sources : []
-            // console.log(incoming)
             setSources(prevSources => [...prevSources, ...incoming])
-            // console.log(sources)
           }
 
           //--------Investor Profile ----------
@@ -286,10 +278,6 @@ const Chat = () => {
               setIsCanvasOpen(true)
               setStreamingCanvasContent(prev => prev + text)
             }
-            // if (stage === 'sources') {
-            //   const incoming = Array.isArray(data?.sources) ? data.sources : []
-            //   setSources(incoming)
-            // }
           }
 
           //--------Company List ----------
@@ -319,22 +307,33 @@ const Chat = () => {
             })
           }
 
-          if (eventType === 'entity_properties' || eventType === 'entity_evaluations') {
+          if (
+            eventType === 'entity_properties' ||
+            eventType === 'entity_evaluations' ||
+            eventType === 'entity_enrichments'
+          ) {
             const itemId = data?.item_id
-            const entityType = data?.entity_type
             const entityData = data?.entity || {}
-            // console.log(data)
+            const enrichments = data?.enrichments || []
 
-            if (itemId && entityType === 'company') {
-              const currentEntity = companyMap.get(itemId)
-              companyMap.set(itemId, {
+            if (itemId) {
+              const currentEntity = listMap.get(itemId)
+              const completedEnrichments = enrichments.reduce((acc: any, enrichment: any) => {
+                if (enrichment.status === 'completed') {
+                  acc[enrichment.column] = enrichment.result
+                }
+                return acc
+              }, {})
+
+              listMap.set(itemId, {
                 ...currentEntity,
                 ...entityData,
+                ...completedEnrichments,
                 item_id: itemId,
                 evaluations: data?.evaluations || currentEntity?.evaluations,
               })
-              // console.log(companyMap)
-              streamListData(Array.from(companyMap.values()))
+
+              streamListData(Array.from(listMap.values()))
             }
           }
         }
@@ -354,6 +353,10 @@ const Chat = () => {
             role: 'assistant',
             content: '***Manually stopped the request.*** 🚫',
           })
+          if (listMap.size > 0) {
+            const finalListData = Array.from(listMap.values())
+            updateListData(uuid, finalListData)
+          }
         } else {
           append({
             role: 'assistant',
@@ -394,8 +397,6 @@ const Chat = () => {
     }
   }, [])
 
-  console.log(isSearching)
-
   useEffect(() => {
     if (!!streamingCanvasContent && !isStreaming && streamId) {
       const messageToUpdate = messages.find(m => m.id === streamId)
@@ -425,5 +426,3 @@ const Chat = () => {
 }
 
 export default React.memo(Chat)
-
-// data: {"event": "company_profile_card", "data": {"text": "Render company profile card", "meta": {"type": "company_profile_card", "stage": "processing"}, "company_name": "Tesla, Inc.", "company_city": "Austin", "company_country": "United States", "company_website": "https://www.tesla.com", "company_logo": "https://logo.clearbit.com/www.tesla.com", "timestamp": "2025-09-10T11:36:12.840736"}}
