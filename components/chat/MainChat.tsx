@@ -23,6 +23,7 @@ interface MainChatProps {
   sources: Source[] // Consider creating a proper type for sources
   handleListCardClick: (id: string, data: any, type: 'company' | 'investor') => void // Consider creating a proper type for data
   setStreamingCanvasContent: (content: string) => void
+  isSearching: boolean
 }
 
 export default function MainChat({
@@ -36,6 +37,7 @@ export default function MainChat({
   setStreamingCanvasContent,
   sources,
   handleListCardClick,
+  isSearching,
 }: MainChatProps) {
   const {
     messages,
@@ -107,6 +109,7 @@ export default function MainChat({
                     streamingMessage={streamingMessage}
                     endRef={endRef}
                     onListCardClick={handleListCardClick}
+                    isSearching={isSearching}
                   />
                 </div>
               </div>

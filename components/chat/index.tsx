@@ -42,6 +42,7 @@ const Chat = () => {
   const [sources, setSources] = useState<Source[]>([])
   const controllerRef = useRef<AbortController | null>(null)
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const [isSearching, setIsSearching] = useState<boolean>(false)
 
   const handleListCardClick = (id: string, cardData: any, type: 'company' | 'investor') => {
     const title = cardData?.profile?.title || 'Company List'
@@ -76,8 +77,7 @@ const Chat = () => {
     const promptToSend = input.trim()
 
     setStreamingMessage('')
-    setSources([])
-    setMarkdownSources([])
+
     setStreamId('')
     const uuid = v4()
 
@@ -146,6 +146,10 @@ const Chat = () => {
             setSessionId(parsed.data.session_id)
           }
 
+          if (eventType === 'loading') {
+            setIsSearching(true)
+          }
+
           if (data?.meta?.stage === 'final') {
             if (processingBuffer.trim()) {
               append({ role: 'assistant', content: processingBuffer })
@@ -170,6 +174,7 @@ const Chat = () => {
           if (eventType === 'text') {
             if (data?.meta?.stage === 'processing') {
               setIsWebSearching(false)
+              setIsSearching(false)
               processingBuffer += data?.text || ''
               setStreamingMessage(processingBuffer)
             }
@@ -182,6 +187,8 @@ const Chat = () => {
               processingBuffer = ''
               setStreamingMessage('')
             }
+            setSources([])
+            setMarkdownSources([])
             setStreamingCanvasContent('')
             setMarkdown('')
             // console.log(data?.company)
@@ -286,16 +293,18 @@ const Chat = () => {
           }
 
           //--------Company List ----------
-          if (eventType === 'company_list_card') {
+          if (eventType === 'list_card') {
             if (processingBuffer.trim()) {
               append({ role: 'assistant', content: processingBuffer })
               processingBuffer = ''
               setStreamingMessage('')
             }
-            const itemCount = data?.estimated_list_item_count || 0
-            listCardTitle = data?.list_title || 'Company List'
+            const itemCount = data?.count || 0
+            listCardTitle = data?.title || 'Company List'
+            const entityType = data?.meta?.entity_type || 'company'
+
             setListProfileData([])
-            openListPanel(uuid, listCardTitle, [], itemCount, 'company')
+            openListPanel(uuid, listCardTitle, [], itemCount, entityType)
             append({
               id: uuid,
               role: 'inline_list_card',
@@ -304,24 +313,25 @@ const Chat = () => {
                 profile: {
                   title: listCardTitle,
                   estimated_list_item_count: itemCount,
-                  type: 'company',
+                  type: entityType,
                 },
               },
             })
           }
 
-          if (eventType === 'company_properties' || eventType === 'company_evaluations') {
-            const companyId = data?.item_id
-            const companyData = data?.company || {}
+          if (eventType === 'entity_properties' || eventType === 'entity_evaluations') {
+            const itemId = data?.item_id
+            const entityType = data?.entity_type
+            const entityData = data?.entity || {}
             // console.log(data)
 
-            if (companyId) {
-              const currentCompany = companyMap.get(companyId || {})
-              companyMap.set(companyId, {
-                ...currentCompany,
-                ...companyData,
-                item_id: companyId,
-                evaluations: data?.evaluations || currentCompany?.evaluations,
+            if (itemId && entityType === 'company') {
+              const currentEntity = companyMap.get(itemId)
+              companyMap.set(itemId, {
+                ...currentEntity,
+                ...entityData,
+                item_id: itemId,
+                evaluations: data?.evaluations || currentEntity?.evaluations,
               })
               // console.log(companyMap)
               streamListData(Array.from(companyMap.values()))
@@ -384,6 +394,8 @@ const Chat = () => {
     }
   }, [])
 
+  console.log(isSearching)
+
   useEffect(() => {
     if (!!streamingCanvasContent && !isStreaming && streamId) {
       const messageToUpdate = messages.find(m => m.id === streamId)
@@ -403,6 +415,7 @@ const Chat = () => {
       setStreamingCanvasContent={setStreamingCanvasContent}
       sources={sources}
       handleListCardClick={handleListCardClick}
+      isSearching={isSearching}
       handleSend={handleSend}
       handleInputChange={e => {
         setInput(e.target.value)

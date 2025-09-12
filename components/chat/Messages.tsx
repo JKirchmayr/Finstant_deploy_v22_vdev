@@ -15,6 +15,7 @@ type MessagesProps = {
   streamingMessage: string | null
   endRef: React.RefObject<HTMLDivElement>
   onListCardClick: (id: string, data: any, type: 'company' | 'investor') => void
+  isSearching: boolean
 }
 
 export const Messages = ({
@@ -23,6 +24,7 @@ export const Messages = ({
   streamingMessage,
   endRef,
   onListCardClick,
+  isSearching,
 }: MessagesProps) => {
   const { isWebSearching, setMarkdown, setMarkdownSources, closeListPanel, setIsCanvasOpen } =
     useChatStore()
@@ -84,6 +86,12 @@ export const Messages = ({
         <p className="flex gap-1 items-center animate-pulse">
           <GlobeAltIcon className="size-5" />
           Searching the web ...
+        </p>
+      )}
+      {isSearching && (
+        <p className="flex gap-1 items-center animate-pulse">
+          <GlobeAltIcon className="size-5" />
+          Searching for Information...
         </p>
       )}
 

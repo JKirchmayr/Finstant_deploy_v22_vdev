@@ -34,6 +34,7 @@ const FilesDropdown = () => {
     setMarkdownSources,
     setSourcesOpen,
     closeCompanyPopup,
+    setIsCopilotOpen,
   } = useChatStore()
 
   const inlineCards =
@@ -92,6 +93,7 @@ const FilesDropdown = () => {
                         closeListPanel()
                         closeCompanyPopup()
                         setIsCanvasOpen(true)
+                        setIsCopilotOpen(true)
                       }}
                     />
                   ) : (
