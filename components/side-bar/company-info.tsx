@@ -1,8 +1,8 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { ChevronsUpDown, Plus } from "lucide-react"
-import Image from "next/image"
+import * as React from 'react'
+import { ChevronsUpDown, Plus } from 'lucide-react'
+import Image from 'next/image'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,17 +11,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from '@/components/ui/dropdown-menu'
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from '@/components/ui/sidebar'
 
 export function CompanyInfo({}) {
   const { isMobile, toggleSidebar, state } = useSidebar()
-  const isExpanded = state === "expanded"
+  const isExpanded = state === 'expanded'
 
   return (
     <SidebarMenu className="bg-background hover:bg-transparent">
@@ -29,7 +29,7 @@ export function CompanyInfo({}) {
         <SidebarMenuButton size="lg" className="cursor-auto" onClick={toggleSidebar}>
           {!isExpanded && (
             <div className="flex aspect-square size-8 items-center justify-center">
-              <img src="/images/logo_small.jpg" className="size-8" />
+              <img src="/images/logo_small.jpg" alt="logo" className="size-8" />
             </div>
           )}
 
@@ -44,7 +44,7 @@ export function CompanyInfo({}) {
           {isExpanded && (
             <div className="w-full flex items-center">
               {/* <img src="/images/full-logo.png" className="w-full -ml-2.5" /> */}
-              <Image src={"/images/full-logo.png"} alt="finstant" width={130} height={120} />
+              <Image src={'/images/full-logo.png'} alt="finstant" width={130} height={120} />
             </div>
           )}
 
@@ -54,7 +54,7 @@ export function CompanyInfo({}) {
             asChild
             className="data-[state=open]:hidden ml-auto size-8 cursor-pointer shrink-0 flex justify-center items-center"
           >
-            <img src="/images/sidebar-switch.png" className="size-4 shrink-0" />
+            <img src="/images/sidebar-switch.png" alt="logo" className="size-4 shrink-0" />
           </SidebarMenuButton>
         </SidebarMenuButton>
       </SidebarMenuItem>
