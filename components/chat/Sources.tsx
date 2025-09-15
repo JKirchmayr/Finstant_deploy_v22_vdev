@@ -55,7 +55,7 @@ const SourcesComponent: React.FC<SourcesProps> = ({ open, onClose, sources, isSt
                     href={s.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-start gap-4 p-2 rounded-md transition-colors duration-200 hover:bg-gray-100 border overflow-hidden "
+                    className="flex flex-1 items-start gap-4 p-2 rounded-md transition-colors duration-200 hover:bg-gray-100 border overflow-hidden "
                   >
                     {s?.favicon ? (
                       <img
