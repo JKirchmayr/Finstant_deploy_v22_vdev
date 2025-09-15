@@ -5,6 +5,7 @@ import { ListBulletIcon } from '@heroicons/react/24/outline'
 type InlineListCardProps = {
   title?: string
   itemCount?: number
+  type?:string
   onClick?: () => void
   isStreaming: boolean
 }

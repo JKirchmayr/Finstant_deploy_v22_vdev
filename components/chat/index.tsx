@@ -227,6 +227,8 @@ const Chat = () => {
             }
             setStreamingCanvasContent('')
             setMarkdown('')
+            setSources([])
+            setMarkdownSources([])
             const newInvestorCardData: InlineCardData = {
               name: data?.investor?.investor_name,
               city: data?.investor?.investor_city,
