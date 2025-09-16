@@ -17,6 +17,7 @@ interface ListBuilderProps {
 export default function ListBuilder({ listData, title, type }: ListBuilderProps) {
   const isMobile = useIsMobile()
   const { isStreaming, closeListPanel, activeListItemCount, isCopilotOpen } = useChatStore()
+
   const columns =
     type === 'company'
       ? companyColumns
@@ -27,10 +28,10 @@ export default function ListBuilder({ listData, title, type }: ListBuilderProps)
   // console.log(listData)
   return (
     <motion.div
-      className="flex flex-col border-l"
-      style={{ width: !isCopilotOpen ? '100%' : '65%' }}
+      className="absolute right-0 top-0 z-30 flex h-full w-full flex-col border-l bg-background md:relative md:w-[65%]"
+      style={{ width: isMobile ? '100%' : !isCopilotOpen ? '100%' : '65%' }}
       initial={{ opacity: 0, width: 0 }}
-      animate={{ opacity: 1, width: !isCopilotOpen ? '100%' : '65%' }}
+      animate={{ opacity: 1, width: isMobile ? '100%' : !isCopilotOpen ? '100%' : '65%' }}
       exit={{ opacity: 0, width: 0 }}
       // transition={{ type: 'spring', stiffness: 250, damping: 25 }}
       transition={{ duration: 0.1 }}

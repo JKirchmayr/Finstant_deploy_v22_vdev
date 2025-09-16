@@ -21,6 +21,7 @@ import { InlineCard } from './chat/InlineCard'
 import { useChatStore } from '@/store/chatStore'
 import { InlineListCard } from './chat/InlineListCard'
 import { Source } from './chat/chat.types'
+import { SidebarTrigger } from '@/components/ui/sidebar'
 
 // Files dropdown component
 const FilesDropdown = () => {
@@ -212,9 +213,15 @@ const UserAvatar = () => {
 // Main navbar component
 export const TopNavbar = () => {
   return (
-    <div className="h-12 border-b border-gray-200 bg-white flex items-center justify-end px-4 gap-4">
-      <FilesDropdown />
-      <UserAvatar />
+    <div className="h-12 border-b border-gray-200 bg-white flex items-center  px-4">
+      <div className="md:hidden">
+        <SidebarTrigger />
+      </div>
+
+      <div className="flex items-center gap-4 ml-auto">
+        <FilesDropdown />
+        <UserAvatar />
+      </div>
     </div>
   )
 }

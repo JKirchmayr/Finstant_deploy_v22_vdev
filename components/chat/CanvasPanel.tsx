@@ -37,14 +37,11 @@ export const CanvasPanel = ({
 
   return (
     <motion.div
-      className="flex flex-col border-l"
-      style={{ width: '65%' }}
-      initial={{ opacity: 0, width: 0 }}
-      animate={{ opacity: 1, width: '65%' }}
-      exit={{ opacity: 0, width: 0 }}
-      // transition={{ type: 'spring', stiffness: 250, damping: 25 }}
-      transition={{ duration: 0.1 }}
-      layout
+      className="absolute right-0 top-0 z-30 flex h-full w-full flex-col border-l bg-background md:relative md:w-[65%]"
+      initial={{ x: '100%' }}
+      animate={{ x: 0 }}
+      exit={{ x: '100%' }}
+      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
     >
       <div className="border-b flex items-center justify-between sticky top-0 bg-background z-30 p-4 py-2">
         <h1 className="text-base font-semibold tracking-tight">{title}</h1>

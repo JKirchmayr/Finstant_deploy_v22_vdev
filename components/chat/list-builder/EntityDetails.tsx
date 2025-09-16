@@ -25,24 +25,41 @@ interface EntityPopupProps {
 export const EntityPopup: React.FC<EntityPopupProps> = ({ isOpen, onClose, entity }) => {
   if (!isOpen || !entity) return null
   const { isCopilotOpen } = useChatStore()
+
   console.log(entity)
   const evaluations = entity.evaluations || []
 
   return (
     <motion.div
-      className={cn('absolute top-0 bottom-0 z-30', {
+      className={cn('absolute inset-0 flex items-end justify-end z-50 md:w-[35%] ', {
         'right-0': !isCopilotOpen,
         'left-0': isCopilotOpen,
       })}
       onClick={onClose}
-      initial={{ opacity: 0, x: !isCopilotOpen ? '100%' : '-100%' }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: !isCopilotOpen ? '100%' : '-100%' }}
-      style={{ width: '35%' }}
-      transition={{ type: 'spring', stiffness: 250, damping: 25 }}
+      initial={{
+        opacity: 0,
+        x: 'var(--source-initial-x)',
+        y: 'var(--source-initial-y)',
+      }}
+      animate={{
+        opacity: 1,
+        x: 0,
+        y: 0,
+      }}
+      exit={{
+        opacity: 0,
+        x: 'var(--source-initial-x)',
+        y: 'var(--source-initial-y)',
+      }}
+      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+      //initial={{ opacity: 0, x: !isCopilotOpen ? '100%' : '-100%' }}
+      //animate={{ opacity: 1, x: 0 }}
+      //exit={{ opacity: 0, x: !isCopilotOpen ? '100%' : '-100%' }}
+      //style={{ width: '35%' }}
+      //transition={{ type: 'spring', stiffness: 250, damping: 25 }}
     >
       <div
-        className="relative bg-white w-full h-full shadow-lg flex flex-col"
+        className="relative bg-white w-full h-[70%] shadow-[0_-10px_10px_0px] shadow-gray-300 md:shadow-lg md:h-full flex flex-col"
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-3 border-b sticky top-0 bg-white flex-shrink-0">

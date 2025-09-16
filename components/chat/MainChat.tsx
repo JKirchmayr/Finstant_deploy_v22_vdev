@@ -64,11 +64,9 @@ export default function MainChat({
       {/* LEFT PANE: messages + prompt */}
       <motion.div
         className="flex flex-col flex-1 min-h-min relative z-0 "
-        initial={false}
-        style={{ width: !isCopilotOpen ? '0%' : isCanvasOpen ? '35%' : '100%' }}
-        // animate={{ width: !isCopilotOpen ? '0%' : isCanvasOpen ? '35%' : '100%' }}
-        // transition={{ duration: 0.1 }}
-        // layout
+        layout
+        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        // initial={false}
       >
         <AnimatePresence>
           {/* ===== LAYOUT 1: EMPTY STATE (WHEN messages.length <= 0) ===== */}

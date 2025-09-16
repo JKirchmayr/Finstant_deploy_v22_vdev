@@ -40,10 +40,10 @@ interface SuggestionsProps {
 }
 export const Suggestions: React.FC<SuggestionsProps> = ({ activeTab, onTabChange, className }) => {
   return (
-    <div className={cn('flex flex-col w-full items-center justify-center  my-8', className)}>
+    <div className={cn('flex flex-col w-full items-center justify-center  md:my-8', className)}>
       <Image src="/images/logo_small.jpg" alt="logo" width={40} height={40} />
       <h1
-        className="text-2xl font-normal text-gray-800 my-6 text-center"
+        className="  font-normal text-gray-800 my-6 text-center md:text-2xl"
         style={{ fontFamily: 'Times New Roman' }}
       >
         Instant Corporate Finance Workflows

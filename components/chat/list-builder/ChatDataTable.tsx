@@ -1,6 +1,6 @@
 'use client'
 
-import React, { CSSProperties, useCallback, useRef, useState } from 'react'
+import React, { CSSProperties, useCallback, useEffect, useRef, useState } from 'react'
 import * as XLSX from 'xlsx'
 import {
   Column,
@@ -31,6 +31,7 @@ import { toast } from 'sonner'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../ui/tooltip'
 import { useChatStore } from '@/store/chatStore'
 import { ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from '@heroicons/react/24/outline'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 interface IChatDataTableProps<T extends any> {
   data: T[]
@@ -73,6 +74,7 @@ const ChatDataTable = <T extends any>({
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = useState({})
+  const isMobile = useIsMobile()
 
   const table = useReactTable({
     data,
@@ -93,7 +95,7 @@ const ChatDataTable = <T extends any>({
     },
     initialState: {
       columnPinning: {
-        left: defaultPinnedColumns,
+        left: isMobile ? [] : defaultPinnedColumns,
         right: [],
       },
     },
@@ -101,6 +103,12 @@ const ChatDataTable = <T extends any>({
       setRowSelection([])
     },
   })
+  useEffect(() => {
+    table.setColumnPinning({
+      left: isMobile ? [] : defaultPinnedColumns,
+      right: [],
+    })
+  }, [isMobile, table, defaultPinnedColumns])
   const {
     isStreaming,
     deleteRows,
@@ -182,7 +190,7 @@ const ChatDataTable = <T extends any>({
           <div className="pb-1 pt-0 pl-2 pr-2 flex justify-between items-center ">
             <div className="flex gap-2 items-center">
               <Tooltip>
-                <TooltipTrigger asChild>
+                <TooltipTrigger asChild className="hidden md:block">
                   <Button
                     variant="secondary"
                     size="xs"

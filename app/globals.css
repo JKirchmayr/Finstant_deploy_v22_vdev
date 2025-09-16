@@ -349,3 +349,17 @@ body {
   background: var(--accent-foreground);
   opacity: 0.6;
 }
+
+:root {
+  /* Mobile-first: Default to sliding vertically */
+  --source-initial-x: 0;
+  --source-initial-y: 100%;
+}
+
+/* Desktop: Change variables to slide horizontally */
+@media (min-width: 768px) {
+  :root {
+    --source-initial-x: 100%;
+    --source-initial-y: 0;
+  }
+}

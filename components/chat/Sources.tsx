@@ -24,16 +24,28 @@ const SourcesComponent: React.FC<SourcesProps> = ({ open, onClose, sources, isSt
   if (isStreaming) return null
   return (
     <motion.div
-      className="absolute inset-0 z-50 flex justify-end"
-      initial={{ opacity: 0, x: '100%' }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: '100%' }}
-      style={{ width: '35%' }}
+      className="absolute inset-0 z-50  flex items-end justify-end md:w-[35%]  "
+      initial={{
+        opacity: 0,
+        x: 'var(--source-initial-x)',
+        y: 'var(--source-initial-y)',
+      }}
+      animate={{
+        opacity: 1,
+        x: 0,
+        y: 0,
+      }}
+      exit={{
+        opacity: 0,
+        x: 'var(--source-initial-x)',
+        y: 'var(--source-initial-y)',
+      }}
+      //style={{ width: '35%' }}
       transition={{ type: 'spring', stiffness: 250, damping: 25 }}
     >
       <div className="absolute inset-0 bg-black/10" onClick={onClose} />
       <div
-        className="relative w-full h-full bg-background shadow-lg"
+        className="relative w-full h-[70%] shadow-[0_-10px_10px_0px] shadow-gray-300 bg-background md:shadow-lg md:h-full"
         onClick={e => e.stopPropagation()}
       >
         {/* --- HEADER --- */}
