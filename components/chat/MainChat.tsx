@@ -71,10 +71,10 @@ export default function MainChat({
         <AnimatePresence>
           {/* ===== LAYOUT 1: EMPTY STATE (WHEN messages.length <= 0) ===== */}
           {isCopilotOpen && messages.length <= 0 && (
-            <div className="flex-1 flex flex-col justify-center items-center">
+            <div className="flex-1 w-screen h-screen flex flex-col justify-center items-center">
               {/* This wrapper will perfectly center all the empty-state content */}
               <div className="w-full max-w-3xl">
-                <div className="pt-10 px-2">
+                <div className="pt-10 px-2 pb-2">
                   <Suggestions activeTab={activeTab} onTabChange={setActiveTab} />
                 </div>
                 <div className="px-2 z-10">
