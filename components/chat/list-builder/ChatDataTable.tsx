@@ -213,7 +213,7 @@ const ChatDataTable = <T extends any>({
                   <Button
                     variant="secondary"
                     size="xs"
-                    disabled={isStreaming}
+                    disabled={isMobile ? false : isStreaming}
                     className="!px-[6px] h-7 hover:bg-gray-300"
                     onClick={() => {
                       if (!isCopilotOpen) {

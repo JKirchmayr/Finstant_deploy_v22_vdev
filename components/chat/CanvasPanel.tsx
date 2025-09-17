@@ -25,7 +25,7 @@ export const CanvasPanel = ({
         <BuildingOffice2Icon className="h-5 w-5 text-gray-600" />
       )}
       {activeProfile?.type === 'investor' && <BanknotesIcon className="h-5 w-5 text-gray-600" />}
-      <span className="font-semibold tracking-tight">
+      <span className="font-semibold tracking-tight truncate max-w-60 sm:max-w-full">
         {activeProfile?.type === 'company' ? 'Company Profile' : 'Investor Profile'} -{' '}
         {activeProfile?.name}
       </span>

@@ -22,6 +22,8 @@ import { useChatStore } from '@/store/chatStore'
 import { InlineListCard } from './chat/InlineListCard'
 import { Source } from './chat/chat.types'
 import { SidebarTrigger } from '@/components/ui/sidebar'
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 // Files dropdown component
 const FilesDropdown = () => {
@@ -37,32 +39,37 @@ const FilesDropdown = () => {
     closeCompanyPopup,
     setIsCopilotOpen,
   } = useChatStore()
-
+  const isMobile = useIsMobile()
   const inlineCards =
     messages.filter(m => m.role === 'inline_card' || m.role === 'inline_list_card').reverse() || []
   // console.log(inlineCards)
   return (
     <div className="relative">
-      <Button
-        variant="secondary"
-        size="icon"
-        onClick={() => setIsOpen(!isOpen)}
-        className="h-8 w-8 hover:bg-gray-100 relative rounded-full"
-      >
-        <FolderOpen className="h-4 w-4" />
-        {/* 4. Dynamic indicator badge */}
-        {inlineCards.length > 0 && (
-          <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-gray-700 rounded-full flex items-center justify-center border-2 border-white">
-            <span className="text-[8px] text-white font-bold">{inlineCards.length}</span>
-          </div>
-        )}
-      </Button>
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={() => setIsOpen(!isOpen)}
+            className="h-8 w-8 hover:bg-gray-100 relative rounded-full"
+          >
+            <FolderOpen className="h-4 w-4" />
+            {/* 4. Dynamic indicator badge */}
+            {inlineCards.length > 0 && (
+              <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-gray-700 rounded-full flex items-center justify-center border-2 border-white">
+                <span className="text-[8px] text-white font-bold">{inlineCards.length}</span>
+              </div>
+            )}
+          </Button>
+        </PopoverTrigger>
 
-      {isOpen && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-          <div className="absolute right-0 top-full mt-4 w-80 h-[28rem] bg-white border border-gray-200 rounded-lg shadow-lg z-50 flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
+        <PopoverContent
+          side="bottom"
+          align={isMobile ? 'center' : 'end'}
+          className="p-0 rounded-lg shadow-lg z-50 h-[28rem] w-80 flex flex-col"
+        >
+          <div className="flex flex-col h-full">
+            <div className="flex h-10 items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
               <h3 className="text-sm font-medium text-gray-900">Files</h3>
               <Button
                 variant="ghost"
@@ -123,8 +130,8 @@ const FilesDropdown = () => {
               )}
             </div>
           </div>
-        </>
-      )}
+        </PopoverContent>
+      </Popover>
     </div>
   )
 }

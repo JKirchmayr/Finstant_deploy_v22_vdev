@@ -16,6 +16,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar'
 
@@ -26,7 +27,7 @@ export function CompanyInfo({}) {
   return (
     <SidebarMenu className="bg-background hover:bg-transparent">
       <SidebarMenuItem className="hover:bg-transparent">
-        <SidebarMenuButton size="lg" className="cursor-auto" onClick={toggleSidebar}>
+        <SidebarMenuButton size="lg" className="cursor-auto">
           {!isExpanded && (
             <div className="flex aspect-square size-8 items-center justify-center">
               <img src="/images/logo_small.jpg" alt="logo" className="size-8" />
@@ -48,14 +49,18 @@ export function CompanyInfo({}) {
             </div>
           )}
 
-          <SidebarMenuButton
-            size="lg"
-            onClick={toggleSidebar}
-            asChild
-            className="data-[state=open]:hidden ml-auto size-8 cursor-pointer shrink-0 flex justify-center items-center"
-          >
-            <img src="/images/sidebar-switch.png" alt="logo" className="size-4 shrink-0" />
-          </SidebarMenuButton>
+          {!isMobile ? (
+            <SidebarMenuButton
+              size="lg"
+              onClick={toggleSidebar}
+              asChild
+              className="data-[state=open]:hidden ml-auto size-8 cursor-pointer shrink-0 flex justify-center items-center"
+            >
+              <img src="/images/sidebar-switch.png" alt="logo" className="size-4 shrink-0" />
+            </SidebarMenuButton>
+          ) : (
+            <SidebarTrigger className="ml-auto size-8 cursor-pointer shrink-0 flex justify-center items-center" />
+          )}
         </SidebarMenuButton>
       </SidebarMenuItem>
     </SidebarMenu>
