@@ -159,16 +159,6 @@ const Chat = () => {
             setIsSearching(false)
           }
 
-          // //----New event for summary --------
-          // if (eventType === 'text') {
-          //   if (data?.meta?.stage === 'summary') {
-          //     setIsWebSearching(false)
-          //     setIsSearching(false)
-          //     processingBuffer += data?.text || ''
-          //     setStreamingMessage(processingBuffer)
-          //   }
-          // }
-
           if (data?.meta?.stage === 'final') {
             if (processingBuffer.trim()) {
               append({ role: 'assistant', content: processingBuffer })
@@ -302,62 +292,6 @@ const Chat = () => {
           }
 
           //--------Company List ----------
-          // if (eventType === 'list_card') {
-          //   if (processingBuffer.trim()) {
-          //     append({ role: 'assistant', content: processingBuffer })
-          //     processingBuffer = ''
-          //     setStreamingMessage('')
-          //   }
-          //   const itemCount = data?.estimated_list_item_count || 0
-          //   listCardTitle = data?.title || 'Company List'
-          //   const entityType = data?.meta?.entity_type || 'company'
-
-          //   setListProfileData([])
-          //   openListPanel(uuid, listCardTitle, [], itemCount, entityType)
-          //   append({
-          //     id: uuid,
-          //     role: 'inline_list_card',
-          //     content: '',
-          //     data: {
-          //       profile: {
-          //         title: listCardTitle,
-          //         estimated_list_item_count: itemCount,
-          //         type: entityType,
-          //       },
-          //     },
-          //   })
-          // }
-
-          // if (
-          //   eventType === 'ENTITY_PROPERTIES' ||
-          //   eventType === 'ENTITY_EVALUATIONS' ||
-          //   eventType === 'ENTITY_ENRICHMENTS'
-          // ) {
-          //   const itemId = data?.ITEM_ID
-          //   const entityData = data?.entity || {}
-          //   const enrichments = data?.enrichments || []
-
-          //   if (itemId) {
-          //     const currentEntity = listMap.get(itemId)
-          //     const completedEnrichments = enrichments.reduce((acc: any, enrichment: any) => {
-          //       if (enrichment.status === 'completed') {
-          //         acc[enrichment.column] = enrichment.result
-          //       }
-          //       return acc
-          //     }, {})
-
-          //     listMap.set(itemId, {
-          //       ...currentEntity,
-          //       ...entityData,
-          //       ...completedEnrichments,
-          //       item_id: itemId,
-          //       evaluations: data?.evaluations || currentEntity?.evaluations,
-          //     })
-
-          //     streamListData(Array.from(listMap.values()))
-          //   }
-          // }
-          //--------Company List ----------
           if (eventType === 'list_card') {
             if (processingBuffer.trim()) {
               append({ role: 'assistant', content: processingBuffer })
@@ -394,31 +328,15 @@ const Chat = () => {
           ) {
             const rawData = data || {}
             const itemId = rawData.ITEM_ID
-            //console.log("fetching raw data:")
-            //console.log(rawData)
-            //console.log(rawData)
-            //   const normalizedData = Object.keys(rawData).reduce((acc, key) => {
-            //     acc[key.toLowerCase()] = rawData[key];
-            //     return acc;
-            // }, {} as any);
-
-            // const itemId = normalizedData.item_id;
 
             if (itemId) {
-              const mapKey = itemId.toLowerCase();
+              const mapKey = itemId.toLowerCase()
               const currentEntity = listMap.get(mapKey) || {}
               listMap.set(mapKey, {
                 ...currentEntity,
                 ...rawData,
               })
 
-              // listMap.set(itemId, {
-              //   ...currentEntity,
-              //   ...normalizedData,
-              //   evaluations: normalizedData.evaluations || currentEntity.evaluations,
-              // });
-              //console.log("Showing list map:")
-              //console.log(listMap)
               streamListData(Array.from(listMap.values()))
             }
           }

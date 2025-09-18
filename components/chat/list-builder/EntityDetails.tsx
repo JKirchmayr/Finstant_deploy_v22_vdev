@@ -3,7 +3,7 @@ import React from 'react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
-import { EntityData, Evaluation, Reference } from '../chat.types' // Ensure types are imported
+import { EntityData, Evaluation, Reference } from '../chat.types'
 import {
   CheckCircle2,
   XCircle,
@@ -25,10 +25,7 @@ interface EntityPopupProps {
 export const EntityPopup: React.FC<EntityPopupProps> = ({ isOpen, onClose, entity }) => {
   if (!isOpen || !entity) return null
   const { isCopilotOpen } = useChatStore()
-
-  //console.log(entity)
   const evaluations = entity.EVALUATIONS || []
- // console.log(evaluations)
 
   return (
     <motion.div
@@ -53,11 +50,6 @@ export const EntityPopup: React.FC<EntityPopupProps> = ({ isOpen, onClose, entit
         y: 'var(--source-initial-y)',
       }}
       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-      //initial={{ opacity: 0, x: !isCopilotOpen ? '100%' : '-100%' }}
-      //animate={{ opacity: 1, x: 0 }}
-      //exit={{ opacity: 0, x: !isCopilotOpen ? '100%' : '-100%' }}
-      //style={{ width: '35%' }}
-      //transition={{ type: 'spring', stiffness: 250, damping: 25 }}
     >
       <div
         className="relative bg-white w-full h-[70%] shadow-[0_-10px_10px_0px] shadow-gray-300 md:shadow-lg md:h-full flex flex-col"
@@ -65,7 +57,6 @@ export const EntityPopup: React.FC<EntityPopupProps> = ({ isOpen, onClose, entit
       >
         <div className="flex items-center justify-between p-3 border-b sticky top-0 bg-white flex-shrink-0">
           <div className="flex items-start gap-3">
-            {/* UPDATED to use 'logo' and 'name' */}
             {entity.LOGO && (
               <Image
                 src={entity.LOGO}
@@ -84,7 +75,6 @@ export const EntityPopup: React.FC<EntityPopupProps> = ({ isOpen, onClose, entit
         </div>
 
         <div className="flex-1 overflow-y-auto px-4 py-3 custom-scrollbar-hide min-h-0">
-          {/* UPDATED to use 'description' */}
           {entity.DESCRIPTION && (
             <div className="mb-6">
               <h3 className="font-semibold text-md text-gray-800 mb-2">Relevance Summary</h3>

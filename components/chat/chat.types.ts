@@ -22,10 +22,6 @@ export type InlineCardData = {
   website: string
   logo: string
   type: 'company' | 'investor' | 'list'
-  // title?: string
-  // estimated_list_item_count?: number
-  // time?: string
-  // type?: string
 }
 
 export type InlineListCardData = {
@@ -54,16 +50,6 @@ export type EntityData = {
   DESCRIPTION?: string
   REVENUE?: string
   PRODUCTS?: string
-
-  // company_name: string;
-  // company_website?: string;
-  // company_logo?: string;
-  // company_industry?: string;
-  // company_location?: string;
-  // company_revenue?: string;
-  // company_products?: string;
-  // company_employees?: number;
-  // company_description?: string;
   EVALUATIONS?: Evaluation[]
   hq?: string
 }

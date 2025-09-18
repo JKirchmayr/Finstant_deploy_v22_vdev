@@ -21,7 +21,7 @@ type ChatStore = {
   setSourcesOpen: (sourcesOpen: boolean) => void
   activeProfile: {
     name: string | null
-    type: 'company' | 'investor' | 'list' | null| 'transaction' | 'people'
+    type: 'company' | 'investor' | 'list' | null | 'transaction' | 'people'
     website: string | null
     logo: string | null
     city: string | null
@@ -29,7 +29,7 @@ type ChatStore = {
   }
   setActiveProfile: (
     name: string | null,
-    type: 'company' | 'investor'| 'transaction' | 'people',
+    type: 'company' | 'investor' | 'transaction' | 'people',
     website: string | null,
     logo: string | null,
     city: string | null,
@@ -42,9 +42,9 @@ type ChatStore = {
   activeListMessageId: string | null
   activeList: {
     title: string
-    type: 'company' | 'investor'| 'transaction' | 'people'
+    type: 'company' | 'investor' | 'transaction' | 'people'
   }
-  setActiveList: (title: string, type: 'company' | 'investor'| 'transaction' | 'people') => void
+  setActiveList: (title: string, type: 'company' | 'investor' | 'transaction' | 'people') => void
   activeListData: string[]
   setActiveListData: (data: string[]) => void
   activeListItemCount: number
@@ -53,7 +53,7 @@ type ChatStore = {
     title: string,
     data: string[],
     itemCount: number,
-    type: 'company' | 'investor'| 'transaction' | 'people'
+    type: 'company' | 'investor' | 'transaction' | 'people'
   ) => void
   closeListPanel: () => void
   streamListData: (data: string[]) => void
