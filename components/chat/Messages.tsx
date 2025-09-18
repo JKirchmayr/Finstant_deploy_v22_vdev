@@ -14,7 +14,7 @@ type MessagesProps = {
   isStreaming: boolean
   streamingMessage: string | null
   endRef: React.RefObject<HTMLDivElement>
-  onListCardClick: (id: string, data: any, type: 'company' | 'investor') => void
+  onListCardClick: (id: string, data: any, type: 'company' | 'investor'| 'transaction' | 'people') => void
   isSearching: boolean
 }
 

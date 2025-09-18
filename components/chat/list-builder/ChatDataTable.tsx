@@ -37,8 +37,8 @@ interface IChatDataTableProps<T extends any> {
   data: T[]
   columns: ColumnDef<T>[]
   isLoading: boolean
-  loadMoreData: () => void
-  hasMoreData: boolean
+  loadMoreData?: () => void
+  hasMoreData?: boolean
   paginationOption?: boolean
   filterBy?: string
   defaultPinnedColumns?: string[]

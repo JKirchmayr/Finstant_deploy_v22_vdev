@@ -26,8 +26,9 @@ export const EntityPopup: React.FC<EntityPopupProps> = ({ isOpen, onClose, entit
   if (!isOpen || !entity) return null
   const { isCopilotOpen } = useChatStore()
 
-  console.log(entity)
-  const evaluations = entity.evaluations || []
+  //console.log(entity)
+  const evaluations = entity.EVALUATIONS || []
+ // console.log(evaluations)
 
   return (
     <motion.div
@@ -65,17 +66,17 @@ export const EntityPopup: React.FC<EntityPopupProps> = ({ isOpen, onClose, entit
         <div className="flex items-center justify-between p-3 border-b sticky top-0 bg-white flex-shrink-0">
           <div className="flex items-start gap-3">
             {/* UPDATED to use 'logo' and 'name' */}
-            {entity.logo && (
+            {entity.LOGO && (
               <Image
-                src={entity.logo}
-                alt={`${entity.name || 'Company'} logo`}
+                src={entity.LOGO}
+                alt={`${entity.NAME || 'Company'} logo`}
                 width={32}
                 height={32}
                 className="rounded-sm"
                 unoptimized={true}
               />
             )}
-            <h2 className="font-semibold text-lg">{entity.name || 'Profile'}</h2>
+            <h2 className="font-semibold text-lg">{entity.NAME || 'Profile'}</h2>
           </div>
           <Button size="xs" onClick={onClose} aria-label="Close" variant="secondary">
             <XMarkIcon className="h-6 w-6" />
@@ -84,10 +85,10 @@ export const EntityPopup: React.FC<EntityPopupProps> = ({ isOpen, onClose, entit
 
         <div className="flex-1 overflow-y-auto px-4 py-3 custom-scrollbar-hide min-h-0">
           {/* UPDATED to use 'description' */}
-          {entity.description && (
+          {entity.DESCRIPTION && (
             <div className="mb-6">
               <h3 className="font-semibold text-md text-gray-800 mb-2">Relevance Summary</h3>
-              <p className="text-sm text-gray-600 leading-relaxed">{entity.description}</p>
+              <p className="text-sm text-gray-600 leading-relaxed">{entity.DESCRIPTION}</p>
             </div>
           )}
 
@@ -97,33 +98,33 @@ export const EntityPopup: React.FC<EntityPopupProps> = ({ isOpen, onClose, entit
               {evaluations.map((evaluation, index) => (
                 <div key={index} className="bg-gray-50/70 border rounded-lg p-4">
                   <div className="flex items-start gap-3">
-                    {evaluation.satisfied === 'yes' ? (
+                    {evaluation.SATISFIED === 'yes' ? (
                       <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
                     ) : (
                       <XCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
                     )}
                     <div>
-                      <h4 className="font-semibold text-gray-900">{evaluation.criterion}</h4>
-                      <p className="text-sm text-gray-600 mt-1">{evaluation.reasoning}</p>
+                      <h4 className="font-semibold text-gray-900">{evaluation.CRITERION}</h4>
+                      <p className="text-sm text-gray-600 mt-1">{evaluation.REASONING}</p>
                     </div>
                   </div>
 
-                  {evaluation.references && evaluation.references.length > 0 && (
+                  {evaluation.REFERENCES && evaluation.REFERENCES.length > 0 && (
                     <div className="mt-3 pt-3 border-t border-gray-200">
                       <h5 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                         Sources
                       </h5>
                       <div className="space-y-2">
-                        {evaluation.references.map((ref, refIndex) => (
+                        {evaluation.REFERENCES.map((ref, refIndex) => (
                           <div key={refIndex} className="flex items-center gap-2">
                             <LinkIcon className="h-4 w-4 text-gray-400 flex-shrink-0" />
                             <a
-                              href={ref.url}
+                              href={ref.URL}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-sm text-blue-600 hover:underline truncate"
                             >
-                              {ref.title || ref.url}
+                              {ref.TITLE || ref.URL}
                             </a>
                           </div>
                         ))}

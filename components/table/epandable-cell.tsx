@@ -16,7 +16,7 @@ export const ExpandableCell = ({ children, className, TriggerCell, triggerClassN
       </PopoverTrigger>
       <PopoverContent
         className={cn(
-          "w-full max-w-2xl -top-30 rounded-none text-xs text-foreground/90 py-2.5 border border-gray-300 shadow-none px-4 min-h-[44px] max-h-40 bg-gray-100",
+          "w-full max-w-2xl -top-30 rounded-xl shadow-lg text-xs text-foreground/90 py-2.5 border border-gray-300  px-4 min-h-[44px] max-h-80 bg-white",
           className
         )}
         side="bottom"

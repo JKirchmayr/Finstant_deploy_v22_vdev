@@ -44,8 +44,12 @@ const Chat = () => {
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const [isSearching, setIsSearching] = useState<boolean>(false)
 
-  const handleListCardClick = (id: string, cardData: any, type: 'company' | 'investor') => {
-    const title = cardData?.profile?.title || 'Company List'
+  const handleListCardClick = (
+    id: string,
+    cardData: any,
+    type: 'company' | 'investor' | 'transaction' | 'people'
+  ) => {
+    const title = cardData?.profile?.title || 'List'
     const list = cardData?.list || []
     const itemCount = cardData?.profile?.estimated_list_item_count || list.length
     openListPanel(id, title, list, itemCount, type)
@@ -150,6 +154,21 @@ const Chat = () => {
             setIsSearching(true)
           }
 
+          //----New event for ending search------
+          if (eventType === 'WEBSET_IDLE') {
+            setIsSearching(false)
+          }
+
+          // //----New event for summary --------
+          // if (eventType === 'text') {
+          //   if (data?.meta?.stage === 'summary') {
+          //     setIsWebSearching(false)
+          //     setIsSearching(false)
+          //     processingBuffer += data?.text || ''
+          //     setStreamingMessage(processingBuffer)
+          //   }
+          // }
+
           if (data?.meta?.stage === 'final') {
             if (processingBuffer.trim()) {
               append({ role: 'assistant', content: processingBuffer })
@@ -172,9 +191,9 @@ const Chat = () => {
           }
 
           if (eventType === 'text') {
-            if (data?.meta?.stage === 'processing') {
+            if (data?.meta?.stage === 'processing' || 'summary') {
               setIsWebSearching(false)
-              setIsSearching(false)
+              //setIsSearching(false)
               processingBuffer += data?.text || ''
               setStreamingMessage(processingBuffer)
             }
@@ -267,7 +286,7 @@ const Chat = () => {
           }
           //----Sources -----
           if (eventType === 'sources') {
-            const incoming = Array.isArray(data?.meta?.sources) ? data.meta.sources : []
+            const incoming = Array.isArray(data?.sources) ? data.sources : []
             setSources(prevSources => [...prevSources, ...incoming])
           }
 
@@ -283,18 +302,76 @@ const Chat = () => {
           }
 
           //--------Company List ----------
+          // if (eventType === 'list_card') {
+          //   if (processingBuffer.trim()) {
+          //     append({ role: 'assistant', content: processingBuffer })
+          //     processingBuffer = ''
+          //     setStreamingMessage('')
+          //   }
+          //   const itemCount = data?.estimated_list_item_count || 0
+          //   listCardTitle = data?.title || 'Company List'
+          //   const entityType = data?.meta?.entity_type || 'company'
+
+          //   setListProfileData([])
+          //   openListPanel(uuid, listCardTitle, [], itemCount, entityType)
+          //   append({
+          //     id: uuid,
+          //     role: 'inline_list_card',
+          //     content: '',
+          //     data: {
+          //       profile: {
+          //         title: listCardTitle,
+          //         estimated_list_item_count: itemCount,
+          //         type: entityType,
+          //       },
+          //     },
+          //   })
+          // }
+
+          // if (
+          //   eventType === 'ENTITY_PROPERTIES' ||
+          //   eventType === 'ENTITY_EVALUATIONS' ||
+          //   eventType === 'ENTITY_ENRICHMENTS'
+          // ) {
+          //   const itemId = data?.ITEM_ID
+          //   const entityData = data?.entity || {}
+          //   const enrichments = data?.enrichments || []
+
+          //   if (itemId) {
+          //     const currentEntity = listMap.get(itemId)
+          //     const completedEnrichments = enrichments.reduce((acc: any, enrichment: any) => {
+          //       if (enrichment.status === 'completed') {
+          //         acc[enrichment.column] = enrichment.result
+          //       }
+          //       return acc
+          //     }, {})
+
+          //     listMap.set(itemId, {
+          //       ...currentEntity,
+          //       ...entityData,
+          //       ...completedEnrichments,
+          //       item_id: itemId,
+          //       evaluations: data?.evaluations || currentEntity?.evaluations,
+          //     })
+
+          //     streamListData(Array.from(listMap.values()))
+          //   }
+          // }
+          //--------Company List ----------
           if (eventType === 'list_card') {
             if (processingBuffer.trim()) {
               append({ role: 'assistant', content: processingBuffer })
               processingBuffer = ''
               setStreamingMessage('')
             }
-            const itemCount = data?.count || 0
-            listCardTitle = data?.title || 'Company List'
-            const entityType = data?.meta?.entity_type || 'company'
+            const listCardData = data || {}
+            const itemCount = listCardData.estimated_list_item_count || 0
+            const listCardTitle = listCardData.list_title || 'List'
+            const entityType = listCardData.entity_type || 'company'
 
             setListProfileData([])
             openListPanel(uuid, listCardTitle, [], itemCount, entityType)
+
             append({
               id: uuid,
               role: 'inline_list_card',
@@ -305,36 +382,43 @@ const Chat = () => {
                   estimated_list_item_count: itemCount,
                   type: entityType,
                 },
+                list: [],
               },
             })
           }
 
           if (
-            eventType === 'entity_properties' ||
-            eventType === 'entity_evaluations' ||
-            eventType === 'entity_enrichments'
+            eventType === 'ENTITY_PROPERTIES' ||
+            eventType === 'ENTITY_EVALUATIONS' ||
+            eventType === 'ENTITY_ENRICHMENTS'
           ) {
-            const itemId = data?.item_id
-            const entityData = data?.entity || {}
-            const enrichments = data?.enrichments || []
+            const rawData = data || {}
+            const itemId = rawData.ITEM_ID
+            //console.log("fetching raw data:")
+            //console.log(rawData)
+            //console.log(rawData)
+            //   const normalizedData = Object.keys(rawData).reduce((acc, key) => {
+            //     acc[key.toLowerCase()] = rawData[key];
+            //     return acc;
+            // }, {} as any);
+
+            // const itemId = normalizedData.item_id;
 
             if (itemId) {
-              const currentEntity = listMap.get(itemId)
-              const completedEnrichments = enrichments.reduce((acc: any, enrichment: any) => {
-                if (enrichment.status === 'completed') {
-                  acc[enrichment.column] = enrichment.result
-                }
-                return acc
-              }, {})
-
-              listMap.set(itemId, {
+              const mapKey = itemId.toLowerCase();
+              const currentEntity = listMap.get(mapKey) || {}
+              listMap.set(mapKey, {
                 ...currentEntity,
-                ...entityData,
-                ...completedEnrichments,
-                item_id: itemId,
-                evaluations: data?.evaluations || currentEntity?.evaluations,
+                ...rawData,
               })
 
+              // listMap.set(itemId, {
+              //   ...currentEntity,
+              //   ...normalizedData,
+              //   evaluations: normalizedData.evaluations || currentEntity.evaluations,
+              // });
+              //console.log("Showing list map:")
+              //console.log(listMap)
               streamListData(Array.from(listMap.values()))
             }
           }

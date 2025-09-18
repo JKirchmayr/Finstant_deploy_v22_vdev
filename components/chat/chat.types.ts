@@ -45,15 +45,15 @@ export type Message = {
 }
 
 export type EntityData = {
-  name: string
-  website?: string
-  logo?: string
-  industry?: string
-  location?: string
-  employees?: number
-  description?: string
-  revenue?: string
-  products?: string
+  NAME: string
+  WEBSITE?: string
+  LOGO?: string
+  INDUSTRY?: string
+  LOCATIONS?: string
+  EMPLOYEES?: number
+  DESCRIPTION?: string
+  REVENUE?: string
+  PRODUCTS?: string
 
   // company_name: string;
   // company_website?: string;
@@ -64,19 +64,19 @@ export type EntityData = {
   // company_products?: string;
   // company_employees?: number;
   // company_description?: string;
-  evaluations?: Evaluation[]
+  EVALUATIONS?: Evaluation[]
   hq?: string
 }
 
 export interface Reference {
-  title: string
-  snippet: string
-  url: string
+  TITLE: string
+  SNIPPET: string
+  URL: string
 }
 
 export interface Evaluation {
-  criterion: string
-  reasoning: string
-  satisfied: 'yes' | 'no'
-  references: Reference[]
+  CRITERION: string
+  REASONING: string
+  SATISFIED: 'yes' | 'no'
+  REFERENCES: Reference[]
 }
