@@ -77,6 +77,7 @@ const Chat = () => {
     let processingBuffer = ''
     e.preventDefault()
     if (!input.trim()) return
+    if (!userId.trim()) return
 
     const promptToSend = input.trim()
 
