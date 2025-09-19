@@ -1,13 +1,13 @@
-import type { Metadata } from "next"
-import { Inter } from "next/font/google"
-import "./globals.css"
-import TanstackProvider from "@/context/TanstackProvider"
-import Providers from "@/context/Provider"
-import { Toaster } from "sonner"
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import './globals.css'
+import TanstackProvider from '@/context/TanstackProvider'
+import Providers from '@/context/Provider'
+import { Toaster } from 'sonner'
 
 const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
+  subsets: ['latin'],
+  variable: '--font-inter',
 })
 
 export const viewport = {
@@ -15,8 +15,8 @@ export const viewport = {
 }
 
 export const metadata: Metadata = {
-  title: "PmRadar - Copilot",
-  description: "-",
+  title: 'Finstant - Copilot',
+  description: '-',
 }
 
 export default function RootLayout({

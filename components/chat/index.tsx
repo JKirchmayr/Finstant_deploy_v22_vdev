@@ -160,6 +160,8 @@ const Chat = () => {
           }
 
           if (data?.meta?.stage === 'final') {
+            setIsWebSearching(false)
+            setIsSearching(false)
             if (processingBuffer.trim()) {
               append({ role: 'assistant', content: processingBuffer })
               processingBuffer = ''
@@ -176,12 +178,13 @@ const Chat = () => {
           if (eventType === 'web_search') {
             const webSearchStage = data?.meta?.stage
             if (webSearchStage === 'init') {
+              setIsSearching(false)
               setIsWebSearching(true)
             }
           }
 
           if (eventType === 'text') {
-            if (data?.meta?.stage === 'processing' || 'summary') {
+            if (data?.meta?.stage === 'processing' || data?.meta?.stage === 'summary') {
               setIsWebSearching(false)
               //setIsSearching(false)
               processingBuffer += data?.text || ''
@@ -196,6 +199,7 @@ const Chat = () => {
               processingBuffer = ''
               setStreamingMessage('')
             }
+            setIsSearching(false)
             setSources([])
             setMarkdownSources([])
             setStreamingCanvasContent('')
@@ -234,6 +238,7 @@ const Chat = () => {
               processingBuffer = ''
               setStreamingMessage('')
             }
+            setIsSearching(false)
             setStreamingCanvasContent('')
             setMarkdown('')
             setSources([])
@@ -271,6 +276,7 @@ const Chat = () => {
 
             if (stage === 'streaming') {
               setIsCanvasOpen(true)
+              setIsSearching(false)
               setStreamingCanvasContent(prev => prev + text)
             }
           }
@@ -287,6 +293,7 @@ const Chat = () => {
 
             if (stage === 'streaming') {
               setIsCanvasOpen(true)
+              setIsSearching(false)
               setStreamingCanvasContent(prev => prev + text)
             }
           }
@@ -303,6 +310,7 @@ const Chat = () => {
             const listCardTitle = listCardData.list_title || 'List'
             const entityType = listCardData.entity_type || 'company'
 
+            setIsSearching(false)
             setListProfileData([])
             openListPanel(uuid, listCardTitle, [], itemCount, entityType)
 
@@ -384,6 +392,7 @@ const Chat = () => {
       }
     } finally {
       setIsStreaming(false)
+      setIsSearching(false)
       setStreamingMessage('')
       controllerRef.current = null
       if (scrollTimeoutRef.current) {

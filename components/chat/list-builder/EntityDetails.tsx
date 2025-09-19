@@ -55,7 +55,7 @@ export const EntityPopup: React.FC<EntityPopupProps> = ({ isOpen, onClose, entit
         className="relative bg-white w-full h-[70%] shadow-[0_-10px_10px_0px] shadow-gray-300 md:shadow-lg md:h-full flex flex-col"
         onClick={e => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between p-3 border-b sticky top-0 bg-white flex-shrink-0">
+        <div className="flex items-center justify-between p-2.5 border-b sticky top-0 bg-white flex-shrink-0">
           <div className="flex items-start gap-3">
             {entity.LOGO && (
               <Image
@@ -70,7 +70,7 @@ export const EntityPopup: React.FC<EntityPopupProps> = ({ isOpen, onClose, entit
             <h2 className="font-semibold text-lg">{entity.NAME || 'Profile'}</h2>
           </div>
           <Button size="xs" onClick={onClose} aria-label="Close" variant="secondary">
-            <XMarkIcon className="h-6 w-6" />
+            <XMarkIcon className="" />
           </Button>
         </div>
 
@@ -88,11 +88,13 @@ export const EntityPopup: React.FC<EntityPopupProps> = ({ isOpen, onClose, entit
               {evaluations.map((evaluation, index) => (
                 <div key={index} className="bg-gray-50/70 border rounded-lg p-4">
                   <div className="flex items-start gap-3">
-                    {evaluation.SATISFIED === 'yes' ? (
+                    <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+
+                    {/* {evaluation.SATISFIED === 'yes' ? (
                       <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
                     ) : (
                       <XCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
-                    )}
+                    )} */}
                     <div>
                       <h4 className="font-semibold text-gray-900">{evaluation.CRITERION}</h4>
                       <p className="text-sm text-gray-600 mt-1">{evaluation.REASONING}</p>
