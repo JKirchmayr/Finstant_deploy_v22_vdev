@@ -28,11 +28,14 @@ const HeaderWithIcon = ({ icon, label }: { icon: React.ReactNode; label: string 
   </div>
 )
 
-const toTitle = (key: string) =>
-  key
-    .replace(/_/g, ' ')
-    .replace(/([a-z])([A-Z])/g, '$1 $2')
-    .replace(/^\w/, s => s.toUpperCase())
+const toTitle = (key: string) => {
+  if (!key) return '';
+  return key
+    .replace(/_/g, ' ') 
+    .replace(/([a-z])([A-Z])/g, '$1 $2') 
+    .toLowerCase() 
+    .replace(/\b\w/g, s => s.toUpperCase());
+};
 
 const ensureProtocol = (url?: string) => {
   if (!url) return undefined
@@ -251,7 +254,7 @@ export const generateColumns = (
   let columns: ColumnDef<any>[] = [
     {
       id: 'select',
-      size: 50,
+      size: 70,
       header: ({ table }) => (
         <div className="flex justify-center items-center">
           <Checkbox
@@ -298,6 +301,7 @@ export const generateColumns = (
     'LIST_TYPE',
     'ENTITY_TYPE',
     'SESSION_ID',
+    'LINKEDIN_URL',
   ])
   const extraKeys = new Set<string>()
 
@@ -311,18 +315,18 @@ export const generateColumns = (
     }
   }
 
-  extraKeys.forEach(key => {
-    columns.push({
-      accessorKey: key,
-      header: () => (
-        <HeaderWithIcon icon={<Bars3BottomLeftIcon className="h-4 w-4" />} label={toTitle(key)} />
-      ),
-      cell: ({ row }) => {
-        const value = row.original?.[key]
-        return <div className="truncate">{value != null ? String(value) : 'N/A'}</div>
-      },
-    })
-  })
+  // extraKeys.forEach(key => {
+  //   columns.push({
+  //     accessorKey: key,
+  //     header: () => (
+  //       <HeaderWithIcon icon={<Bars3BottomLeftIcon className="h-4 w-4" />} label={toTitle(key)} />
+  //     ),
+  //     cell: ({ row }) => {
+  //       const value = row.original?.[key]
+  //       return <div className="truncate">{value != null ? String(value) : 'N/A'}</div>
+  //     },
+  //   })
+  // })
 
   return columns
 }

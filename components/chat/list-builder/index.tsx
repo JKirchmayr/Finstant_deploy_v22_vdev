@@ -18,6 +18,7 @@ interface ListBuilderProps {
 export default function ListBuilder({ listData, title, type }: ListBuilderProps) {
   const isMobile = useIsMobile()
   const { isStreaming, isCopilotOpen } = useChatStore()
+  console.log(listData)
 
   // UPDATE: Simplified to always use the single, powerful generateColumns function.
   // useMemo prevents re-calculating columns on every re-render.
