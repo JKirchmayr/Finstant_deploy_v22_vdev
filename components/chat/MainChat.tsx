@@ -21,7 +21,11 @@ interface MainChatProps {
   streamingMessage: string
   streamingCanvasContent: string
   sources: Source[] // Consider creating a proper type for sources
-  handleListCardClick: (id: string, data: any, type: 'company' | 'investor'| 'transaction' | 'people') => void // Consider creating a proper type for data
+  handleListCardClick: (
+    id: string,
+    data: any,
+    type: 'company' | 'investor' | 'transaction' | 'people'
+  ) => void // Consider creating a proper type for data
   setStreamingCanvasContent: (content: string) => void
   isSearching: boolean
 }
@@ -64,8 +68,8 @@ export default function MainChat({
       {/* LEFT PANE: messages + prompt */}
       <motion.div
         className="flex flex-col flex-1 min-h-min relative z-0 "
-        layout
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        // layout
+        // transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         // initial={false}
       >
         <AnimatePresence>

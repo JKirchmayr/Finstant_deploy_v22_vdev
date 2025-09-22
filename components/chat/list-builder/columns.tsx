@@ -29,13 +29,13 @@ const HeaderWithIcon = ({ icon, label }: { icon: React.ReactNode; label: string 
 )
 
 const toTitle = (key: string) => {
-  if (!key) return '';
+  if (!key) return ''
   return key
-    .replace(/_/g, ' ') 
-    .replace(/([a-z])([A-Z])/g, '$1 $2') 
-    .toLowerCase() 
-    .replace(/\b\w/g, s => s.toUpperCase());
-};
+    .replace(/_/g, ' ')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .toLowerCase()
+    .replace(/\b\w/g, s => s.toUpperCase())
+}
 
 const ensureProtocol = (url?: string) => {
   if (!url) return undefined
@@ -72,7 +72,7 @@ export const generateColumns = (
       'DESCRIPTION',
       'POSITION',
       'COMPANY_NAME',
-      'EMPLOYEES',
+      // 'EMPLOYEES',
       'LOCATION',
       'PROFILE_URL',
     ],

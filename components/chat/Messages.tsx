@@ -8,13 +8,18 @@ import { Message, Source } from './chat.types'
 import { InlineListCard } from './InlineListCard'
 import { useChatStore } from '@/store/chatStore'
 import { GlobeAltIcon } from '@heroicons/react/24/outline'
+import { Loader2 } from 'lucide-react'
 
 type MessagesProps = {
   messages: Message[]
   isStreaming: boolean
   streamingMessage: string | null
   endRef: React.RefObject<HTMLDivElement>
-  onListCardClick: (id: string, data: any, type: 'company' | 'investor'| 'transaction' | 'people') => void
+  onListCardClick: (
+    id: string,
+    data: any,
+    type: 'company' | 'investor' | 'transaction' | 'people'
+  ) => void
   isSearching: boolean
 }
 
@@ -90,7 +95,7 @@ export const Messages = ({
       )}
       {isSearching && (
         <p className="flex gap-1 items-center animate-pulse">
-          <GlobeAltIcon className="size-5" />
+          <Loader2 className="size-4 animate-spin" />
           Searching for Information...
         </p>
       )}

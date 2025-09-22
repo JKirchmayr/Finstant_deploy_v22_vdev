@@ -59,7 +59,7 @@ export const EntityPopup: React.FC<EntityPopupProps> = ({ isOpen, onClose, entit
           <div className="flex items-start gap-3">
             {entity.LOGO && (
               <Image
-                src={entity.LOGO}
+                src={entity.LOGO || 'https://via.placeholder.com/32x32'}
                 alt={`${entity.NAME || 'Company'} logo`}
                 width={32}
                 height={32}

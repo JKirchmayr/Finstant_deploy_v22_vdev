@@ -30,8 +30,8 @@ export default function ListBuilder({ listData, title, type }: ListBuilderProps)
       style={{ width: isMobile ? '100%' : !isCopilotOpen ? '100%' : '65%' }}
       initial={{ opacity: 0, width: 0 }}
       animate={{ opacity: 1, width: isMobile ? '100%' : !isCopilotOpen ? '100%' : '65%' }}
-      exit={{ opacity: 0, width: 0 }}
-      transition={{ duration: 0.1 }}
+      // exit={{ opacity: 0, width: 0 }}
+      // transition={{ duration: 0.1 }}
       layout
     >
       <div className="flex-1 overflow-auto pt-3 pb-0 pl-0 pr-0">
