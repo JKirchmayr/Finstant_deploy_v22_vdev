@@ -6,7 +6,7 @@ import { useChatStore } from '@/store/chatStore'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Checkbox } from '@/components/ui/checkbox'
-import { ExpandableCell } from '@/components/table/epandable-cell'
+import { ExpandableCell } from '@/components/table/expandable-cell'
 
 import {
   BuildingOffice2Icon,
@@ -20,6 +20,15 @@ import {
   LinkIcon,
   CalendarDaysIcon,
 } from '@heroicons/react/24/outline'
+
+const PulseLoading = () => {
+  return (
+    <p className="flex gap-1 items-center animate-pulse">
+      <span className="animate-ping size-1 bg-green-600 rounded-full mx-1" />
+      Reading
+    </p>
+  )
+}
 
 const HeaderWithIcon = ({ icon, label }: { icon: React.ReactNode; label: string }) => (
   <div className="inline-flex items-center justify-center gap-2">
@@ -77,7 +86,6 @@ export const generateColumns = (
       'PROFILE_URL',
     ],
   }
-
   const defaultKeys = defaultColumnsConfig[type] || []
   const primaryColumnHeader = toTitle(type === 'people' ? 'Person Name' : type)
 
@@ -121,11 +129,15 @@ export const generateColumns = (
       cell: ({ row }) => (
         <ExpandableCell
           TriggerCell={
-            <p className="line-clamp-2 cursor-pointer">{row.original.DESCRIPTION || 'N/A'}</p>
+            <p className="line-clamp-2 cursor-pointer">
+              {row.original.DESCRIPTION || <span className="text-muted-foreground">n/a</span>}
+            </p>
           }
         >
-          <p className="whitespace-pre-line line-clamp-2 cursor-pointer ">
-            {row.original.DESCRIPTION || 'No description available.'}
+          <p className=" ">
+            {row.original.DESCRIPTION || (
+              <span className="text-muted-foreground">No description available.</span>
+            )}
           </p>
         </ExpandableCell>
       ),
@@ -140,7 +152,7 @@ export const generateColumns = (
             {row.original.WEBSITE}
           </Link>
         ) : (
-          <span>-</span>
+          <span className="text-muted-foreground">-</span>
         )
       },
     },
@@ -149,7 +161,9 @@ export const generateColumns = (
       header: () => (
         <HeaderWithIcon icon={<Bars3BottomLeftIcon className="h-4 w-4" />} label="Industry" />
       ),
-      cell: ({ row }) => <span>{row.original.INDUSTRY || 'N/A'}</span>,
+      cell: ({ row }) => (
+        <span>{row.original.INDUSTRY || <span className="text-muted-foreground">n/a</span>}</span>
+      ),
     },
     EMPLOYEES: {
       accessorKey: 'EMPLOYEES',
@@ -158,7 +172,9 @@ export const generateColumns = (
         const val = row.original.EMPLOYEES
         return (
           <span>
-            {typeof val === 'number' ? new Intl.NumberFormat().format(val) : val || 'N/A'}
+            {typeof val === 'number'
+              ? new Intl.NumberFormat().format(val)
+              : val || <span className="text-muted-foreground">n/a</span>}
           </span>
         )
       },
@@ -166,28 +182,44 @@ export const generateColumns = (
     LOCATION: {
       accessorKey: 'LOCATION',
       header: () => <HeaderWithIcon icon={<MapPinIcon className="h-4 w-4" />} label="Location" />,
-      cell: ({ row }) => <span>{row.original.LOCATION || 'N/A'}</span>,
+      cell: ({ row }) => (
+        <span>{row.original.LOCATION || <span className="text-muted-foreground">n/a</span>}</span>
+      ),
     },
     REVENUE_ESTIMATE: {
       accessorKey: 'REVENUE_ESTIMATE',
       header: () => (
         <HeaderWithIcon icon={<BanknotesIcon className="h-4 w-4" />} label="Revenue (Est)" />
       ),
-      cell: ({ row }) => <span>{row.original.REVENUE_ESTIMATE || 'N/A'}</span>,
+      cell: ({ row }) => (
+        <span>
+          {row.original.REVENUE_ESTIMATE || <span className="text-muted-foreground">n/a</span>}
+        </span>
+      ),
     },
     FOCUS_INDUSTRY: {
       accessorKey: 'FOCUS_INDUSTRY',
       header: () => (
         <HeaderWithIcon icon={<Bars3BottomLeftIcon className="h-4 w-4" />} label="Focus Industry" />
       ),
-      cell: ({ row }) => <span>{row.original.FOCUS_INDUSTRY || 'N/A'}</span>,
+      cell: ({ row }) => (
+        <span>
+          {row.original.FOCUS_INDUSTRY || <span className="text-muted-foreground">n/a</span>}
+        </span>
+      ),
     },
     DEAL_DATE: {
       accessorKey: 'DEAL_DATE',
+      size: 100,
+      maxSize: 100,
       header: () => <HeaderWithIcon icon={<CalendarDaysIcon className="h-4 w-4" />} label="Date" />,
       cell: ({ row }) => (
         <span>
-          {row.original.DEAL_DATE ? new Date(row.original.DEAL_DATE).toLocaleDateString() : 'N/A'}
+          {row.original.DEAL_DATE ? (
+            new Date(row.original.DEAL_DATE).toLocaleDateString()
+          ) : (
+            <span className="text-muted-foreground">n/a</span>
+          )}
         </span>
       ),
     },
@@ -196,26 +228,54 @@ export const generateColumns = (
       header: () => (
         <HeaderWithIcon icon={<BuildingOffice2Icon className="h-4 w-4" />} label="Target Name" />
       ),
-      cell: ({ row }) => <span>{row.original.TARGET_NAME || 'N/A'}</span>,
+      cell: ({ row }) => {
+        const { isStreaming } = useChatStore.getState()
+        return isStreaming ? (
+          row.original.TARGET_NAME ? (
+            <span>{row.original.TARGET_NAME}</span>
+          ) : (
+            <PulseLoading />
+          )
+        ) : (
+          <span>
+            {row.original.TARGET_NAME || <span className="text-muted-foreground">n/a</span>}
+          </span>
+        )
+      },
     },
     BUYER_NAME: {
       accessorKey: 'BUYER_NAME',
       header: () => (
         <HeaderWithIcon icon={<BuildingOffice2Icon className="h-4 w-4" />} label="Buyer Name" />
       ),
-      cell: ({ row }) => <span>{row.original.BUYER_NAME || 'N/A'}</span>,
+      cell: ({ row }) => {
+        const { isStreaming } = useChatStore.getState()
+        return isStreaming ? (
+          row.original.BUYER_NAME ? (
+            <span>{row.original.BUYER_NAME}</span>
+          ) : (
+            <PulseLoading />
+          )
+        ) : (
+          <span>
+            {row.original.BUYER_NAME || <span className="text-muted-foreground">n/a</span>}
+          </span>
+        )
+      },
     },
     DEAL_SOURCE_URL: {
       accessorKey: 'DEAL_SOURCE_URL',
+      size: 100,
+      maxSize: 100,
       header: () => <HeaderWithIcon icon={<LinkIcon className="h-4 w-4" />} label="Source" />,
       cell: ({ row }) => {
         const url = ensureProtocol(row.original.DEAL_SOURCE_URL)
         return url ? (
-          <Link href={url} target="_blank" className="text-blue-600 hover:underline">
-            Link
+          <Link href={url} target="_blank" className="text-blue-600 hover:underline ">
+            <p className="text-center w-full">Link</p>
           </Link>
         ) : (
-          <span>-</span>
+          <span className="text-muted-foreground">-</span>
         )
       },
     },
@@ -224,14 +284,20 @@ export const generateColumns = (
       header: () => (
         <HeaderWithIcon icon={<BriefcaseIcon className="h-4 w-4" />} label="Position" />
       ),
-      cell: ({ row }) => <span>{row.original.POSITION || 'N/A'}</span>,
+      cell: ({ row }) => (
+        <span>{row.original.POSITION || <span className="text-muted-foreground">n/a</span>}</span>
+      ),
     },
     COMPANY_NAME: {
       accessorKey: 'COMPANY_NAME',
       header: () => (
         <HeaderWithIcon icon={<BuildingOffice2Icon className="h-4 w-4" />} label="Company Name" />
       ),
-      cell: ({ row }) => <span>{row.original.COMPANY_NAME || 'N/A'}</span>,
+      cell: ({ row }) => (
+        <span>
+          {row.original.COMPANY_NAME || <span className="text-muted-foreground">n/a</span>}
+        </span>
+      ),
     },
     PROFILE_URL: {
       accessorKey: 'PROFILE_URL',
@@ -245,7 +311,7 @@ export const generateColumns = (
             View Profile
           </Link>
         ) : (
-          <span>-</span>
+          <span className="text-muted-foreground">-</span>
         )
       },
     },
@@ -254,7 +320,8 @@ export const generateColumns = (
   let columns: ColumnDef<any>[] = [
     {
       id: 'select',
-      size: 70,
+      size: 50,
+      maxSize: 50,
       header: ({ table }) => (
         <div className="flex justify-center items-center">
           <Checkbox
@@ -275,6 +342,7 @@ export const generateColumns = (
     {
       id: 'rowNumber',
       size: 50,
+      maxSize: 50,
       header: () => <p className="w-full text-center">#</p>,
       cell: ({ row }) => (
         <div className="text-center font-medium tabular-nums">{row.index + 1}</div>
@@ -314,19 +382,6 @@ export const generateColumns = (
       })
     }
   }
-
-  // extraKeys.forEach(key => {
-  //   columns.push({
-  //     accessorKey: key,
-  //     header: () => (
-  //       <HeaderWithIcon icon={<Bars3BottomLeftIcon className="h-4 w-4" />} label={toTitle(key)} />
-  //     ),
-  //     cell: ({ row }) => {
-  //       const value = row.original?.[key]
-  //       return <div className="truncate">{value != null ? String(value) : 'N/A'}</div>
-  //     },
-  //   })
-  // })
 
   return columns
 }

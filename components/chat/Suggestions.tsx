@@ -15,7 +15,7 @@ export const SUGGESTION_BANK: Record<TabKey, string[]> = {
     'Summarize recent news related to M&A activity in the semiconductor sector',
   ],
   profiles: [
-    'Create a company profile of Tesla',
+    'Create a company profile of Tesla Inc',
     'Create a company profile of Selux AG',
     'Create an investor profile of Investindustrial',
   ],

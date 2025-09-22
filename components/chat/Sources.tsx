@@ -71,9 +71,19 @@ const SourcesComponent: React.FC<SourcesProps> = ({ open, onClose, sources, isSt
                   >
                     {s?.favicon ? (
                       <img
-                        src={s.favicon}
+                        src={
+                          s.favicon ||
+                          `https://www.google.com/s2/favicons?domain=${new URL(s.url).hostname}`
+                        }
                         alt=""
                         className="h-5 w-5 flex-shrink-0 rounded-full mt-1"
+                        onError={e => {
+                          ;(
+                            e.currentTarget as HTMLImageElement
+                          ).src = `https://www.google.com/s2/favicons?domain=${
+                            new URL(s.url).hostname
+                          }`
+                        }}
                       />
                     ) : (
                       <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center border rounded-full bg-gray-100 mt-1">

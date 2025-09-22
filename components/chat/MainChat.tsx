@@ -64,13 +64,13 @@ export default function MainChat({
   } = useChatStore()
 
   return (
-    <div className="flex h-full overflow-hidden relative">
+    <div className="flex h-full overflow-hidden relative ">
       {/* LEFT PANE: messages + prompt */}
       <motion.div
         className="flex flex-col flex-1 min-h-min relative z-0 "
-        // layout
-        // transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        // initial={false}
+        initial={{ opacity: 0, x: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ x: '100%' }}
       >
         <AnimatePresence>
           {/* ===== LAYOUT 1: EMPTY STATE (WHEN messages.length <= 0) ===== */}

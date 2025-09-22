@@ -1,18 +1,18 @@
 // import CompanySheet from "@/components/CompanySheet"
 // import CompanySheet from "@/components/CompanySheet"
-import CompanySheet from "@/components/CompanySheet"
-import { ExpandableCell } from "@/components/table/epandable-cell"
-import { Badge } from "@/components/ui/badge"
-import { Checkbox } from "@/components/ui/checkbox"
-import { ColumnDef } from "@tanstack/react-table"
-import { ExternalLink } from "lucide-react"
-import Image from "next/image"
-import Link from "next/link"
-import { useState } from "react"
+import CompanySheet from '@/components/CompanySheet'
+import { ExpandableCell } from '@/components/table/expandable-cell'
+import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
+import { ColumnDef } from '@tanstack/react-table'
+import { ExternalLink } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useState } from 'react'
 
 const allColumns: ColumnDef<any>[] = [
   {
-    id: "select",
+    id: 'select',
     // maxSize: 45,
     size: 65,
     header: ({ table }) => (
@@ -20,7 +20,7 @@ const allColumns: ColumnDef<any>[] = [
         <Checkbox
           checked={
             table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
+            (table.getIsSomePageRowsSelected() && 'indeterminate')
           }
           onCheckedChange={value => table.toggleAllPageRowsSelected(!!value)}
           aria-label="Select all"
@@ -70,7 +70,7 @@ const allColumns: ColumnDef<any>[] = [
   //   ),
   // },
   {
-    accessorKey: "company_name",
+    accessorKey: 'company_name',
     minSize: 260,
     header: ({ column }) => {
       return <div className="text-left">Company Name</div>
@@ -98,15 +98,15 @@ const allColumns: ColumnDef<any>[] = [
         // </CompanySheet>
         <div className="inline-flex items-center hover:font-semibold transition-all duration-200">
           <Image
-            src={row.original.companies_linkedin_logo_url || "https://placehold.co/50x50.png"}
+            src={row.original.companies_linkedin_logo_url || 'https://placehold.co/50x50.png'}
             alt="logo"
             width={20}
             height={20}
             className="mr-1.5 rounded"
             unoptimized={true}
           />
-          <Link target="_blank" href={`/companies/${row.original.company_id}` || "#"}>
-            {row.getValue("company_name") || "-"}
+          <Link target="_blank" href={`/companies/${row.original.company_id}` || '#'}>
+            {row.getValue('company_name') || '-'}
           </Link>
         </div>
       )
@@ -114,7 +114,7 @@ const allColumns: ColumnDef<any>[] = [
     enablePinning: true,
   },
   {
-    accessorKey: "companies_LLM_description",
+    accessorKey: 'companies_LLM_description',
     minSize: 600,
     header: () => (
       <div className="text-left overflow-hidden w-[300px] line-clamp-2">Description</div>
@@ -124,20 +124,20 @@ const allColumns: ColumnDef<any>[] = [
       return (
         <ExpandableCell
           className={`w-${width}px`}
-          TriggerCell={<p className="line-clamp-2 ">{row.getValue("companies_LLM_description")}</p>}
+          TriggerCell={<p className="line-clamp-2 ">{row.getValue('companies_LLM_description')}</p>}
         >
-          {row.getValue("companies_LLM_description")}
+          {row.getValue('companies_LLM_description')}
         </ExpandableCell>
       )
     },
   },
   {
-    accessorKey: "company_website",
+    accessorKey: 'company_website',
     header: () => <div className="text-left">Website</div>,
     cell: ({ row }) => {
       return (
-        <Link target="_blank" href={row.original.company_website || "/"}>
-          {!row.original.company_website && "-"}
+        <Link target="_blank" href={row.original.company_website || '/'}>
+          {!row.original.company_website && '-'}
           {row.original.company_website && (
             <Badge
               className="bg-blue-50 border border-blue-200 text-blue-600 hover:bg-blue-500 hover:text-white transition-all"
@@ -152,39 +152,39 @@ const allColumns: ColumnDef<any>[] = [
     },
   },
   {
-    accessorKey: "companies_linkedin_city",
+    accessorKey: 'companies_linkedin_city',
     header: () => <div className="text-left">City</div>,
-    cell: ({ row }) => <div>{row.original.companies_linkedin_city || "-"}</div>,
+    cell: ({ row }) => <div>{row.original.companies_linkedin_city || '-'}</div>,
   },
   {
-    accessorKey: "companies_LLM_country",
+    accessorKey: 'companies_LLM_country',
     header: () => <div className="text-left">Country</div>,
-    cell: ({ row }) => <div>{row.original.companies_LLM_country || "-"}</div>,
+    cell: ({ row }) => <div>{row.original.companies_LLM_country || '-'}</div>,
   },
   {
-    accessorKey: "companies_linkedin_company_size",
+    accessorKey: 'companies_linkedin_company_size',
     header: () => <div className="text-left">Company Size</div>,
-    cell: ({ row }) => <div>{row.original.companies_linkedin_company_size || "-"}</div>,
+    cell: ({ row }) => <div>{row.original.companies_linkedin_company_size || '-'}</div>,
   },
   {
-    accessorKey: "companies_linkedin_founded",
+    accessorKey: 'companies_linkedin_founded',
     header: () => <div className="text-left">Founded</div>,
-    cell: ({ row }) => <div>{row.original.companies_linkedin_founded || "-"}</div>,
+    cell: ({ row }) => <div>{row.original.companies_linkedin_founded || '-'}</div>,
   },
   {
-    accessorKey: "companies_linkedin_industries",
+    accessorKey: 'companies_linkedin_industries',
     header: () => <div className="text-left">Industry</div>,
-    cell: ({ row }) => <div>{row.original.companies_linkedin_industries || "-"}</div>,
+    cell: ({ row }) => <div>{row.original.companies_linkedin_industries || '-'}</div>,
   },
   {
-    accessorKey: "companies_Revenue_estimate_eurM",
+    accessorKey: 'companies_Revenue_estimate_eurM',
     header: () => <div className="text-left">Revenue (EURm)</div>,
-    cell: ({ row }) => <div>{row.original.companies_Revenue_estimate_eurM || "-"}</div>,
+    cell: ({ row }) => <div>{row.original.companies_Revenue_estimate_eurM || '-'}</div>,
   },
   {
-    accessorKey: "companies_EBITDA_estimate_eurM",
+    accessorKey: 'companies_EBITDA_estimate_eurM',
     header: () => <div className="text-left">EBITDA (EURm)</div>,
-    cell: ({ row }) => <div>{row.original.companies_EBITDA_estimate_eurM || "-"}</div>,
+    cell: ({ row }) => <div>{row.original.companies_EBITDA_estimate_eurM || '-'}</div>,
   },
   // {
   //   accessorKey: "status",
@@ -278,8 +278,8 @@ export function getColumnsForData(data: any[]): ColumnDef<any>[] {
   const dataKeys = Object.keys(data[0])
   return allColumns.filter(
     col =>
-      col.id === "select" ||
-      col.id === "index" ||
-      ("accessorKey" in col && dataKeys.includes(col.accessorKey as string))
+      col.id === 'select' ||
+      col.id === 'index' ||
+      ('accessorKey' in col && dataKeys.includes(col.accessorKey as string))
   )
 }

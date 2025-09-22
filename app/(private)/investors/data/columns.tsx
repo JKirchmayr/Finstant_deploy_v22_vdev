@@ -1,17 +1,17 @@
 // import CompanySheet from "@/components/CompanySheet"
 // import CompanySheet from "@/components/CompanySheet"
-import InvestorSheet from "@/components/InvestorSheet"
-import { ExpandableCell } from "@/components/table/epandable-cell"
-import { Badge } from "@/components/ui/badge"
-import { Checkbox } from "@/components/ui/checkbox"
-import { ColumnDef } from "@tanstack/react-table"
-import { ExternalLink } from "lucide-react"
-import Image from "next/image"
-import Link from "next/link"
+import InvestorSheet from '@/components/InvestorSheet'
+import { ExpandableCell } from '@/components/table/expandable-cell'
+import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
+import { ColumnDef } from '@tanstack/react-table'
+import { ExternalLink } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
 
 const allColumns: ColumnDef<any>[] = [
   {
-    id: "select",
+    id: 'select',
     // maxSize: 45,
     size: 65,
     header: ({ table }) => (
@@ -19,7 +19,7 @@ const allColumns: ColumnDef<any>[] = [
         <Checkbox
           checked={
             table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
+            (table.getIsSomePageRowsSelected() && 'indeterminate')
           }
           onCheckedChange={value => table.toggleAllPageRowsSelected(!!value)}
           aria-label="Select all"
@@ -68,22 +68,22 @@ const allColumns: ColumnDef<any>[] = [
   //   ),
   // },
   {
-    accessorKey: "investor_name",
+    accessorKey: 'investor_name',
     minSize: 300,
     header: () => <div className="text-left min-w-[110px]">Investor Name</div>,
     cell: ({ row }) => {
       return (
         <div className="inline-flex items-center hover:font-semibold transition-all duration-200">
           <Image
-            src={row.original.investor_linkedin_logo.trimEnd() || "https://placehold.co/50x50.png"}
+            src={row.original.investor_linkedin_logo.trimEnd() || 'https://placehold.co/50x50.png'}
             alt="logo"
             width={20}
             height={20}
             className="mr-1.5 rounded"
             unoptimized={true}
           />
-          <Link target="_blank" href={`/investors/${row.original.investor_id}` || "#"}>
-            {row.getValue("investor_name") || "-"}
+          <Link target="_blank" href={`/investors/${row.original.investor_id}` || '#'}>
+            {row.getValue('investor_name') || '-'}
           </Link>
         </div>
         // <InvestorSheet investor={row.original}>
@@ -105,49 +105,49 @@ const allColumns: ColumnDef<any>[] = [
     },
   },
   {
-    accessorKey: "investor_type",
+    accessorKey: 'investor_type',
     minSize: 150,
     header: () => <div className="text-left">Type</div>,
-    cell: ({ row }) => <div>{row.getValue("investor_type") || "-"}</div>,
+    cell: ({ row }) => <div>{row.getValue('investor_type') || '-'}</div>,
   },
   {
-    accessorKey: "investor_asset_classes",
+    accessorKey: 'investor_asset_classes',
     minSize: 150,
     header: () => <div className="text-left">Asset Class</div>,
-    cell: ({ row }) => <div>{row.getValue("investor_asset_classes") || "-"}</div>,
+    cell: ({ row }) => <div>{row.getValue('investor_asset_classes') || '-'}</div>,
   },
   {
-    accessorKey: "investor_strategy",
+    accessorKey: 'investor_strategy',
     minSize: 150,
     header: () => <div className="text-left">Strategy</div>,
-    cell: ({ row }) => <div>{row.getValue("investor_strategy") || "-"}</div>,
+    cell: ({ row }) => <div>{row.getValue('investor_strategy') || '-'}</div>,
   },
   {
-    accessorKey: "investor_LLM_country",
+    accessorKey: 'investor_LLM_country',
     minSize: 150,
     header: () => <div className="text-left">Country</div>,
-    cell: ({ row }) => <div>{row.getValue("investor_LLM_country") || "-"}</div>,
+    cell: ({ row }) => <div>{row.getValue('investor_LLM_country') || '-'}</div>,
   },
   {
-    accessorKey: "investor_linkedin_city",
+    accessorKey: 'investor_linkedin_city',
     minSize: 150,
     header: () => <div className="text-left">City</div>,
-    cell: ({ row }) => <div>{row.getValue("investor_linkedin_city") || "-"}</div>,
+    cell: ({ row }) => <div>{row.getValue('investor_linkedin_city') || '-'}</div>,
   },
   {
-    accessorKey: "investor_linkedin_founded",
+    accessorKey: 'investor_linkedin_founded',
     minSize: 100,
     header: () => <div className="text-left">Founded</div>,
-    cell: ({ row }) => <div>{row.getValue("investor_linkedin_founded") || "-"}</div>,
+    cell: ({ row }) => <div>{row.getValue('investor_linkedin_founded') || '-'}</div>,
   },
   {
-    accessorKey: "investor_website",
+    accessorKey: 'investor_website',
     minSize: 150,
     header: () => <div className="text-left">Website</div>,
     cell: ({ row }) => {
       return (
-        <Link target="_blank" href={row.original.investor_website || "#"}>
-          {!row.original.investor_website && "-"}
+        <Link target="_blank" href={row.original.investor_website || '#'}>
+          {!row.original.investor_website && '-'}
           {row.original.investor_website && (
             <Badge
               className="bg-blue-50 border border-blue-200 text-blue-600 hover:bg-blue-500 hover:text-white transition-all"
@@ -162,13 +162,13 @@ const allColumns: ColumnDef<any>[] = [
     },
   },
   {
-    accessorKey: "investor_linekdin_url",
+    accessorKey: 'investor_linekdin_url',
     minSize: 150,
     header: () => <div className="text-left">LinkedIn</div>,
     cell: ({ row }) => {
       return (
-        <Link target="_blank" href={row.original.investor_linekdin_url || "#"}>
-          {!row.original.investor_linekdin_url && "-"}
+        <Link target="_blank" href={row.original.investor_linekdin_url || '#'}>
+          {!row.original.investor_linekdin_url && '-'}
           {row.original.investor_linekdin_url && (
             <Badge
               className="bg-blue-50 border border-blue-200 text-blue-600 hover:bg-blue-500 hover:text-white transition-all"
@@ -183,7 +183,7 @@ const allColumns: ColumnDef<any>[] = [
     },
   },
   {
-    accessorKey: "investors_LLM_description",
+    accessorKey: 'investors_LLM_description',
     minSize: 400,
     header: () => (
       <div className="text-left overflow-hidden w-[300px] line-clamp-2">Description</div>
@@ -192,9 +192,9 @@ const allColumns: ColumnDef<any>[] = [
       return (
         <ExpandableCell
           className="w-[600px]"
-          TriggerCell={<p>{row.getValue("investors_LLM_description")}</p>}
+          TriggerCell={<p>{row.getValue('investors_LLM_description')}</p>}
         >
-          {row.getValue("investors_LLM_description")}
+          {row.getValue('investors_LLM_description')}
         </ExpandableCell>
       )
     },
@@ -291,8 +291,8 @@ export function getColumnsForData(data: any[]): ColumnDef<any>[] {
   const dataKeys = Object.keys(data[0])
   return allColumns.filter(
     col =>
-      col.id === "select" ||
-      col.id === "index" ||
-      ("accessorKey" in col && dataKeys.includes(col.accessorKey as string))
+      col.id === 'select' ||
+      col.id === 'index' ||
+      ('accessorKey' in col && dataKeys.includes(col.accessorKey as string))
   )
 }

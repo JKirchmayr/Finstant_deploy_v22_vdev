@@ -340,7 +340,7 @@ const ChatDataTable = <T extends any>({
                       return (
                         <TableRow
                           key={row.id}
-                          className="h-6 border-b transition-colors hover:bg-gray-100/80"
+                          className="h-auto border-b transition-colors hover:bg-gray-100/80"
                         >
                           {row.getVisibleCells().map((cell: any) => {
                             const { column } = cell
@@ -364,7 +364,7 @@ const ChatDataTable = <T extends any>({
                                     : undefined
                                 }
                               >
-                                <div className="truncate">
+                                <div className="truncate w-full">
                                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                 </div>
                               </TableCell>

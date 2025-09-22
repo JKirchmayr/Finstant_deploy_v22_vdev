@@ -30,7 +30,7 @@ export const ProfileMessages = ({
     setSourcesOpen(true)
   }
 
-  const processedMarkdown = streamingMarkdownContent.replace(/\[(\d+)\]/g, '`$1`')
+  const processedMarkdown = streamingMarkdownContent.replace(/\[(\d+)\]/g, '`$1`\u00A0')
 
   return (
     <div className="flex flex-col flex-1">
