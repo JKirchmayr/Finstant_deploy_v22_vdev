@@ -125,6 +125,7 @@ export const generateColumns = (
     },
     DESCRIPTION: {
       accessorKey: 'DESCRIPTION',
+      size: 200,
       header: () => <HeaderWithIcon icon={<Bars3Icon className="h-4 w-4" />} label="Description" />,
       cell: ({ row }) => (
         <ExpandableCell
@@ -202,11 +203,20 @@ export const generateColumns = (
       header: () => (
         <HeaderWithIcon icon={<Bars3BottomLeftIcon className="h-4 w-4" />} label="Focus Industry" />
       ),
-      cell: ({ row }) => (
-        <span>
-          {row.original.FOCUS_INDUSTRY || <span className="text-muted-foreground">n/a</span>}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const { isReading } = useChatStore.getState()
+        return isReading ? (
+          row.original.TARGET_INDUSTRY ? (
+            <span>{row.original.TARGET_INDUSTRY}</span>
+          ) : (
+            <PulseLoading />
+          )
+        ) : (
+          <span>
+            {row.original.TARGET_INDUSTRY || <span className="text-muted-foreground">n/a</span>}
+          </span>
+        )
+      },
     },
     DEAL_DATE: {
       accessorKey: 'DEAL_DATE',
@@ -229,16 +239,25 @@ export const generateColumns = (
         <HeaderWithIcon icon={<BuildingOffice2Icon className="h-4 w-4" />} label="Target Name" />
       ),
       cell: ({ row }) => {
-        const { isStreaming } = useChatStore.getState()
-        return isStreaming ? (
+        const { isReading, openListItemPopup } = useChatStore.getState()
+        return isReading ? (
           row.original.TARGET_NAME ? (
-            <span>{row.original.TARGET_NAME}</span>
+            <span className="line-clamp-2 break-all">{row.original.TARGET_NAME}</span>
           ) : (
             <PulseLoading />
           )
         ) : (
-          <span>
-            {row.original.TARGET_NAME || <span className="text-muted-foreground">n/a</span>}
+          <span className="line-clamp-2 break-all">
+            {row.original.TARGET_NAME ? (
+              <button
+                className="cursor-pointer hover:underline line-clamp-2 break-all text-start"
+                onClick={() => openListItemPopup(row.original)}
+              >
+                {row.original.TARGET_NAME}
+              </button>
+            ) : (
+              <span className="text-muted-foreground">n/a</span>
+            )}
           </span>
         )
       },
@@ -249,8 +268,8 @@ export const generateColumns = (
         <HeaderWithIcon icon={<BuildingOffice2Icon className="h-4 w-4" />} label="Buyer Name" />
       ),
       cell: ({ row }) => {
-        const { isStreaming } = useChatStore.getState()
-        return isStreaming ? (
+        const { isReading } = useChatStore.getState()
+        return isReading ? (
           row.original.BUYER_NAME ? (
             <span>{row.original.BUYER_NAME}</span>
           ) : (
@@ -265,14 +284,14 @@ export const generateColumns = (
     },
     DEAL_SOURCE_URL: {
       accessorKey: 'DEAL_SOURCE_URL',
-      size: 100,
-      maxSize: 100,
+      size: 80,
+      maxSize: 80,
       header: () => <HeaderWithIcon icon={<LinkIcon className="h-4 w-4" />} label="Source" />,
       cell: ({ row }) => {
         const url = ensureProtocol(row.original.DEAL_SOURCE_URL)
         return url ? (
           <Link href={url} target="_blank" className="text-blue-600 hover:underline ">
-            <p className="text-center w-full">Link</p>
+            <p className=" w-full">Link</p>
           </Link>
         ) : (
           <span className="text-muted-foreground">-</span>

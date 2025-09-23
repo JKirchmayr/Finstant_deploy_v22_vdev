@@ -75,6 +75,8 @@ const ChatDataTable = <T extends any>({
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = useState({})
   const isMobile = useIsMobile()
+  const tableRef = useRef<HTMLDivElement>(null)
+  const [isScrolledX, setIsScrolledX] = useState(false)
 
   const table = useReactTable({
     data,
@@ -101,14 +103,38 @@ const ChatDataTable = <T extends any>({
     },
     onStateChange: state => {
       setRowSelection([])
+      // Reset scroll position when column state changes
+      if (tableRef.current) {
+        tableRef.current.scrollLeft = 0
+        setIsScrolledX(false)
+      }
     },
   })
+
   useEffect(() => {
     table.setColumnPinning({
       left: isMobile ? [] : defaultPinnedColumns,
       right: [],
     })
   }, [isMobile, table, defaultPinnedColumns])
+
+  useEffect(() => {
+    const checkScroll = () => {
+      if (tableRef.current) {
+        setIsScrolledX(tableRef.current.scrollLeft > 0)
+      }
+    }
+
+    const element = tableRef.current
+    if (element) {
+      element.scrollLeft = 0
+      setIsScrolledX(false)
+
+      element.addEventListener('scroll', checkScroll)
+      return () => element.removeEventListener('scroll', checkScroll)
+    }
+  }, [])
+
   const {
     isStreaming,
     deleteRows,
@@ -194,7 +220,6 @@ const ChatDataTable = <T extends any>({
                   <Button
                     variant="secondary"
                     size="xs"
-                    className="!px-[6px] h-7 hover:bg-gray-300"
                     onClick={toggleChatPanel}
                     disabled={isStreaming}
                   >
@@ -214,7 +239,6 @@ const ChatDataTable = <T extends any>({
                     variant="secondary"
                     size="xs"
                     disabled={isMobile ? false : isStreaming}
-                    className="!px-[6px] h-7 hover:bg-gray-300"
                     onClick={() => {
                       if (!isCopilotOpen) {
                         setIsCopilotOpen(true)
@@ -222,7 +246,7 @@ const ChatDataTable = <T extends any>({
                       closeListPanel()
                     }}
                   >
-                    <X className="size-4" />
+                    <X className="" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="left" align="center">
@@ -261,7 +285,10 @@ const ChatDataTable = <T extends any>({
           </div>
         </div>
       )}
-      <div className="flex flex-col w-full bg-white overflow-auto overflow-x-auto thin-scroll border-t border-gray-300">
+      <div
+        className="flex flex-col w-full bg-white overflow-auto overflow-x-auto thin-scroll border-t border-gray-300"
+        ref={tableRef}
+      >
         <Table
           className="!w-full bg-background [&_td]:border-border table-fixed border-separate border-spacing-0 [&_tfoot_td]:border-t [&_tr]:border-none [&_tr:not(:last-child)_td]:border-b [&_thead]:border-b-0"
           style={{ width: table.getTotalSize() }}
@@ -293,15 +320,6 @@ const ChatDataTable = <T extends any>({
                             ? null
                             : flexRender(header.column.columnDef.header, header.getContext())}
                         </span>
-                        {/* {!!header.column.getCanSort() && (
-                          <Button
-                            variant="ghost"
-                            size="xs"
-                            onClick={header.column.getToggleSortingHandler()}
-                          >
-                            <ArrowDownUp className="size-4" />
-                          </Button>
-                        )} */}
                         {header.column.getCanResize() && (
                           <div
                             {...{
@@ -364,7 +382,7 @@ const ChatDataTable = <T extends any>({
                                     : undefined
                                 }
                               >
-                                <div className="truncate w-full">
+                                <div className="line-clamp-2 w-full max-h-[40px]">
                                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                 </div>
                               </TableCell>

@@ -25,11 +25,12 @@ const Chat = () => {
     setIsCanvasOpen,
     isStreaming,
     setIsStreaming,
+    setIsReading,
     openListPanel,
     setActiveProfile,
     setListProfileData,
     streamListData,
-    setIsWebSearching,
+    setIsSearching,
     setMarkdownSources,
   } = useChatStore()
 
@@ -42,7 +43,6 @@ const Chat = () => {
   const [sources, setSources] = useState<Source[]>([])
   const controllerRef = useRef<AbortController | null>(null)
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const [isSearching, setIsSearching] = useState<boolean>(false)
 
   const handleListCardClick = (
     id: string,
@@ -91,6 +91,9 @@ const Chat = () => {
     setInput('')
     scrollToBottom()
     setIsStreaming(true)
+    setIsReading(false)
+    setIsSearching('streaming')
+
     //setIsCanvasOpen(false)
     controllerRef.current = new AbortController()
 
@@ -152,17 +155,17 @@ const Chat = () => {
           }
 
           if (eventType === 'loading') {
-            setIsSearching(true)
+            setIsSearching('searching')
           }
 
           //----New event for ending search------
           if (eventType === 'WEBSET_IDLE') {
-            setIsSearching(false)
+            setIsSearching('idle')
           }
 
           if (data?.meta?.stage === 'final') {
-            setIsWebSearching(false)
-            setIsSearching(false)
+            setIsSearching('idle')
+            setIsReading(false)
             if (processingBuffer.trim()) {
               append({ role: 'assistant', content: processingBuffer })
               processingBuffer = ''
@@ -179,15 +182,13 @@ const Chat = () => {
           if (eventType === 'web_search') {
             const webSearchStage = data?.meta?.stage
             if (webSearchStage === 'init') {
-              setIsSearching(false)
-              setIsWebSearching(true)
+              setIsSearching('web')
             }
           }
 
           if (eventType === 'text') {
             if (data?.meta?.stage === 'processing' || data?.meta?.stage === 'summary') {
-              setIsWebSearching(false)
-              //setIsSearching(false)
+              setIsSearching('idle')
               processingBuffer += data?.text || ''
               setStreamingMessage(processingBuffer)
             }
@@ -200,7 +201,7 @@ const Chat = () => {
               processingBuffer = ''
               setStreamingMessage('')
             }
-            setIsSearching(false)
+            setIsSearching('idle')
             setSources([])
             setMarkdownSources([])
             setStreamingCanvasContent('')
@@ -239,7 +240,7 @@ const Chat = () => {
               processingBuffer = ''
               setStreamingMessage('')
             }
-            setIsSearching(false)
+            setIsSearching('idle')
             setStreamingCanvasContent('')
             setMarkdown('')
             setSources([])
@@ -277,7 +278,7 @@ const Chat = () => {
 
             if (stage === 'streaming') {
               setIsCanvasOpen(true)
-              setIsSearching(false)
+              setIsSearching('idle')
               setStreamingCanvasContent(prev => prev + text)
             }
           }
@@ -294,7 +295,7 @@ const Chat = () => {
 
             if (stage === 'streaming') {
               setIsCanvasOpen(true)
-              setIsSearching(false)
+              setIsSearching('idle')
               setStreamingCanvasContent(prev => prev + text)
             }
           }
@@ -310,11 +311,11 @@ const Chat = () => {
             const itemCount = listCardData.estimated_list_item_count || 0
             const listCardTitle = listCardData.list_title || 'List'
             const entityType = listCardData.entity_type || 'company'
-
-            setIsSearching(false)
+            setIsSearching('idle')
             setListProfileData([])
             openListPanel(uuid, listCardTitle, [], itemCount, entityType)
-
+            setIsReading(true)
+            setIsSearching('searching')
             append({
               id: uuid,
               role: 'inline_list_card',
@@ -393,8 +394,9 @@ const Chat = () => {
       }
     } finally {
       setIsStreaming(false)
-      setIsSearching(false)
+      setIsSearching('idle')
       setStreamingMessage('')
+      setIsReading(false)
       controllerRef.current = null
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current)
@@ -430,7 +432,6 @@ const Chat = () => {
       setStreamingCanvasContent={setStreamingCanvasContent}
       sources={sources}
       handleListCardClick={handleListCardClick}
-      isSearching={isSearching}
       handleSend={handleSend}
       handleInputChange={e => {
         setInput(e.target.value)

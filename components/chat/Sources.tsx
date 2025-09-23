@@ -52,7 +52,7 @@ const SourcesComponent: React.FC<SourcesProps> = ({ open, onClose, sources, isSt
         <div className="flex items-center justify-between px-4 py-2 border-b sticky top-0 bg-white z-10">
           <h2 className="font-semibold text-base">Sources</h2>
           <Button size="xs" onClick={onClose} aria-label="Close" variant="secondary">
-            <XMarkIcon className="h-6 w-6" />
+            <XMarkIcon className="" />
           </Button>
         </div>
         {/* --- CONTENT AREA --- */}

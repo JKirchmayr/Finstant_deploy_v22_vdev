@@ -35,8 +35,8 @@ type ChatStore = {
     city: string | null,
     country: string | null
   ) => void
-  isWebSearching: boolean
-  setIsWebSearching: (isWebSearching: boolean) => void
+  isSearching: 'idle' | 'web' | 'searching' | 'streaming'
+  setIsSearching: (isWebSearching: 'idle' | 'web' | 'searching' | 'streaming') => void
 
   deleteRows: (rowsToDelete: any[]) => void
   activeListMessageId: string | null
@@ -85,6 +85,8 @@ type ChatStore = {
   updateListData: (id: string, data: any) => void
   clearMessages: () => void
   inlineCards: Message[]
+  isReading: boolean
+  setIsReading: (isReading: boolean) => void
 }
 
 export const useChatStore = create<ChatStore>((set, get) => ({
@@ -92,7 +94,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   markdown: '',
   markdownSources: [],
   isCanvasOpen: false,
-  isWebSearching: false,
+  isSearching: 'idle',
   isStreaming: false,
   isListPanelOpen: false,
   listProfileData: null,
@@ -105,6 +107,8 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   activeListData: [],
   activeListItemCount: 0,
   isCopilotOpen: true,
+  isReading: false,
+  setIsReading: isReading => set({ isReading }),
   setIsCopilotOpen: isCopilotOpen => set({ isCopilotOpen }),
   openListItemPopup: company =>
     set({
@@ -134,7 +138,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   },
   setActiveProfile: (name, type, website, logo, city, country) =>
     set({ activeProfile: { name, type, website, logo, city, country } }),
-  setIsWebSearching: isWebSearching => set({ isWebSearching }),
+  setIsSearching: isSearching => set({ isSearching }),
   setIsCanvasOpen: isCanvasOpen =>
     set(state => ({
       isCanvasOpen: isCanvasOpen,

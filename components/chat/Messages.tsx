@@ -20,7 +20,6 @@ type MessagesProps = {
     data: any,
     type: 'company' | 'investor' | 'transaction' | 'people'
   ) => void
-  isSearching: boolean
 }
 
 export const Messages = ({
@@ -29,10 +28,8 @@ export const Messages = ({
   streamingMessage,
   endRef,
   onListCardClick,
-  isSearching,
 }: MessagesProps) => {
-  const { isWebSearching, setMarkdown, setMarkdownSources, closeListPanel, setIsCanvasOpen } =
-    useChatStore()
+  const { isSearching, setMarkdownSources, closeListPanel, setIsCanvasOpen } = useChatStore()
   // console.log(messages)
   return (
     <div className={cn('overflow-y-auto px-2 pt-4 space-y-2 noscroll flex-1 min-h-0')}>
@@ -87,13 +84,13 @@ export const Messages = ({
           </div>
         )
       })}
-      {isWebSearching && (
+      {isSearching === 'web' && (
         <p className="flex gap-1 items-center animate-pulse">
           <GlobeAltIcon className="size-5" />
           Searching the web ...
         </p>
       )}
-      {isSearching && (
+      {isSearching === 'searching' && (
         <p className="flex gap-1 items-center animate-pulse">
           <Loader2 className="size-4 animate-spin" />
           Searching for Information...
@@ -108,7 +105,7 @@ export const Messages = ({
         </div>
       )}
 
-      {isStreaming && (
+      {isStreaming && isSearching === 'streaming' && (
         <div className="flex justify-start">
           <div className="rounded-2xl text-sm text-gray-600 max-w-[75%]">
             <div className="px-2">
