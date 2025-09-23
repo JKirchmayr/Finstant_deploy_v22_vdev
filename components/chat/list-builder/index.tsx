@@ -20,9 +20,7 @@ export default function ListBuilder({ listData, title, type }: ListBuilderProps)
   const { isStreaming, isCopilotOpen } = useChatStore()
   //console.log(listData)
 
-  // UPDATE: Simplified to always use the single, powerful generateColumns function.
-  // useMemo prevents re-calculating columns on every re-render.
-  const columns = useMemo(() => generateColumns(listData, type), [listData, type])
+  const columns = () => generateColumns(listData, type)
 
   return (
     <motion.div
@@ -39,7 +37,7 @@ export default function ListBuilder({ listData, title, type }: ListBuilderProps)
         <AddColumnProvider>
           <ChatDataTable
             data={listData}
-            columns={columns as ColumnDef<unknown>[]}
+            columns={columns()}
             isLoading={isStreaming && listData.length === 0}
             titleName={title}
             defaultPinnedColumns={['select', 'rowNumber', 'NAME']}

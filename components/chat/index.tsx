@@ -312,8 +312,8 @@ const Chat = () => {
             const listCardTitle = listCardData.list_title || 'List'
             const entityType = listCardData.entity_type || 'company'
             setIsSearching('idle')
-            setListProfileData([])
             openListPanel(uuid, listCardTitle, [], itemCount, entityType)
+            setListProfileData([])
             setIsReading(true)
             setIsSearching('searching')
             append({
