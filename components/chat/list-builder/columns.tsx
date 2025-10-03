@@ -102,14 +102,24 @@ export const generateColumns = (
         const { openListItemPopup } = useChatStore.getState()
         const name = row.original.NAME || 'Details'
         const logo = row.original.LOGO || row.original.PROFILE_PIC_URL
+        const website = row.original.WEBSITE
         return (
           <div className="inline-flex items-center cursor-pointer min-w-0">
             <Image
-              src={logo || 'https://placehold.co/50x50.png'}
+              src={
+                logo ||
+                `https://www.google.com/s2/favicons?domain=${new URL(website).hostname}` ||
+                'https://placehold.co/50x50.png'
+              }
               alt={`${name} logo`}
               width={20}
               height={20}
               className="mr-2 rounded-sm flex-shrink-0"
+              onError={e => {
+                ;(
+                  e.currentTarget as HTMLImageElement
+                ).src = `https://www.google.com/s2/favicons?domain=${new URL(website).hostname}`
+              }}
               unoptimized
             />
             <button
