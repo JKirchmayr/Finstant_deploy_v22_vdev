@@ -1,14 +1,5 @@
-"use client"
+'use client'
 
-import { Folder, Forward, MoreHorizontal, Trash2, type LucideIcon } from "lucide-react"
-
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -17,50 +8,38 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
-import Link from "next/link"
+} from '@/components/ui/sidebar'
+import Link from 'next/link'
+import { useGetUserSessionsQuery } from '@/queries/sessions'
+import { SessionRow } from '@/types/common.types'
 
-const projects = [
-  {
-    name: "Healthcare Investor Search",
-    url: "#",
-  },
-  {
-    name: "Biotech Target List",
-    url: "#",
-  },
-  {
-    name: "Company Profile Siemens",
-    url: "#",
-  },
-  {
-    name: "Company Profile Provital",
-    url: "#",
-  },
-]
+type SessionTypes = SessionRow & {
+  date_group: string
+}
 
 export function NavSessions({}) {
-  const { isMobile } = useSidebar()
+  const { data, isLoading } = useGetUserSessionsQuery()
+
+  if (isLoading || !data) return null
 
   return (
-    <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Sessions</SidebarGroupLabel>
+    <SidebarGroup className="group-data-[collapsible=icon]:hidden sm:hidden group-data-[state=expanded]:flex">
+      <SidebarGroupLabel className="text-sm">History</SidebarGroupLabel>
       <SidebarMenu>
-        {projects.map(item => (
-          <SidebarMenuItem key={item.name}>
-            <SidebarMenuButton asChild>
-              <Link href={item.url}>
-                <span>{item.name}</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+        {Object.entries(data?.data).map(([group, sessions]) => (
+          <SidebarGroup key={group} className="p-0">
+            <SidebarGroupLabel>{group}</SidebarGroupLabel>
+            {(sessions as SessionTypes[]).map(session => (
+              <SidebarMenuItem key={session.id}>
+                <SidebarMenuButton asChild>
+                  <Link href={`/sessions/${session.id}`}>
+                    <span>{session.session_title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarGroup>
         ))}
-        {/* <SidebarMenuItem>
-          <SidebarMenuButton className="text-sidebar-foreground/70">
-            <MoreHorizontal className="text-sidebar-foreground/70" />
-            <span>More</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem> */}
       </SidebarMenu>
     </SidebarGroup>
   )

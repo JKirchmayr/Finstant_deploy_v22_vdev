@@ -1,10 +1,10 @@
-"use server"
+'use server'
 
-import { createClient } from "@/lib/supabase/server"
-import { cookies } from "next/headers"
-import { redirect } from "next/navigation"
+import { createClient } from '@/lib/supabase/server'
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 
-import { LoginCredType, SignupCredType } from "@/types/auth"
+import { LoginCredType, SignupCredType } from '@/types/auth'
 
 export async function login({ email, password }: { email: string; password: string }) {
   const supabase = await createClient()
@@ -13,14 +13,14 @@ export async function login({ email, password }: { email: string; password: stri
 
   if (error) {
     throw new Error(
-      error.message.includes("Invalid login credentials")
-        ? "No account found for this email. Please sign up or check your credentials."
+      error.message.includes('Invalid login credentials')
+        ? 'No account found for this email. Please sign up or check your credentials.'
         : error.message
     )
   }
 
   if (!data.session) {
-    throw new Error("Login failed. No session returned.")
+    throw new Error('Login failed. No session returned.')
   }
 
   return data.session
@@ -51,29 +51,6 @@ export async function login({ email, password }: { email: string; password: stri
 
 //   return data
 // }
-
-export async function getUserProfile() {
-  const supabase = await createClient()
-  const { data, error } = await supabase.auth.getUser()
-
-  return null
-  // if (error || !data.user) {
-  //   redirect("/login")
-  // }
-
-  // // Fetch user profile from DB
-  // const { data: userProfile, error: userError } = await supabase
-  //   .from("users")
-  //   .select("*")
-  //   .eq("auth_user_id", data.user.id)
-  //   .single()
-
-  // if (userError) {
-  //   throw new Error("Failed to fetch profile")
-  // }
-
-  // return userProfile
-}
 
 // export async function updateUserProfile(profileData: { fname: string; lname: string }) {
 //   const supabase = await createClient()

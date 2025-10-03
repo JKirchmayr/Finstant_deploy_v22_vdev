@@ -1,44 +1,29 @@
-"use client"
+'use client'
 
-import { ChatBubbleLeftIcon } from "@heroicons/react/24/outline"
+import { ChatBubbleLeftIcon, ListBulletIcon } from '@heroicons/react/24/outline'
 
 import {
   SidebarGroup,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-} from "@/components/ui/sidebar"
-import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
+} from '@/components/ui/sidebar'
+import Link from 'next/link'
+import { usePathname, useRouter } from 'next/navigation'
 
-const items = [{ name: "New Chat", url: "/", Icon: ChatBubbleLeftIcon }]
+const items = [
+  { name: 'New Chat', url: '/', Icon: ChatBubbleLeftIcon },
+  { name: 'Saved Lists', url: '/saved-lists', Icon: ListBulletIcon },
+]
 
 export function NavMain({}) {
   const pathname = usePathname()
   const router = useRouter()
-  const isCopilot = pathname.includes("/copilot")
+  const isCopilot = pathname.includes('/copilot')
 
   return (
     <SidebarGroup>
       <SidebarMenu>
-        {/* {items.map((item) => {
-          const { Icon } = item;
-          return (
-            <SidebarMenuItem key={item.name}>
-              <SidebarMenuButton
-                asChild
-                tooltip={item.name}
-                isActive={pathname === item.url}
-              >
-                <Link href={item.url}>
-                  
-                  <Icon className="size-5" /> 
-                  <span className="mb-0.5">{item.name}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          );
-        })} */}
         <SidebarMenuItem key="new-chat">
           <SidebarMenuButton
             asChild
@@ -48,7 +33,7 @@ export function NavMain({}) {
               if (isCopilot) {
                 window.location.reload()
               } else {
-                router.push("/copilot")
+                router.push('/copilot')
               }
             }}
           >
