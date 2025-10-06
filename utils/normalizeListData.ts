@@ -3,7 +3,7 @@ export const normalizeListData = (
   type: 'company' | 'investor' | 'transaction' | 'people'
 ) => {
   if (!Array.isArray(data)) return []
-  console.log({ type })
+  // console.log({ type })
   switch (type) {
     case 'investor':
       return data.map((item: any) => ({

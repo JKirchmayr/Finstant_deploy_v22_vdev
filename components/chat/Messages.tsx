@@ -108,19 +108,22 @@ export const Messages = ({
   const profileSources = profile?.profile_sources
   const profileContent = profile?.profile_content || ''
 
-  console.log({ profileContent }, { profileSources })
-
   useEffect(() => {
     if (profileId && isProfileFetched && profileContent) {
       setMarkdown(profileContent)
-      const message = messages.find(m => (m as any)?.message_id === messageId)
-      console.log(message)
+      const message = messages.find(m => (m as any)?.message_id === messageId) as
+        | (Message & { message_id: string })
+        | undefined
+      if (message) {
+        message.content = profileContent
+      }
+      console.log({ message })
       setMarkdownSources(JSON.parse(profileSources) || [])
       setSelectedListId('')
     }
   }, [profileId, isProfileFetched, profileContent, profileSources, messageId])
 
-  console.log(messages)
+  // console.log(messages)
   return (
     <div className={cn('overflow-y-auto px-2 pt-4 space-y-2 noscroll flex-1 min-h-0')}>
       {messages.map((m, i) => {
