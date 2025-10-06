@@ -21,12 +21,8 @@ interface MainChatProps {
   streamingMessage: string
   streamingCanvasContent: string
   sources: Source[] // Consider creating a proper type for sources
-  handleListCardClick: (
-    id: string,
-    data: any,
-    type: 'company' | 'investor' | 'transaction' | 'people'
-  ) => void // Consider creating a proper type for data
   setStreamingCanvasContent: (content: string) => void
+  userId: string
 }
 
 export default function MainChat({
@@ -39,7 +35,7 @@ export default function MainChat({
   streamingCanvasContent,
   setStreamingCanvasContent,
   sources,
-  handleListCardClick,
+  userId,
 }: MainChatProps) {
   const {
     messages,
@@ -109,7 +105,7 @@ export default function MainChat({
                     isStreaming={isStreaming}
                     streamingMessage={streamingMessage}
                     endRef={endRef}
-                    onListCardClick={handleListCardClick}
+                    userId={userId}
                   />
                 </div>
               </div>

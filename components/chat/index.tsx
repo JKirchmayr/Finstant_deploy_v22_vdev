@@ -7,10 +7,12 @@ import { v4 } from 'uuid'
 import { InlineCardData, InlineListCardData, Source } from './chat.types'
 import MainChat from './MainChat'
 import { TabKey } from './Suggestions'
+import { usePathname, useRouter } from 'next/navigation'
+import { useSessionMessages } from '@/queries/sessions'
 
 const backendURL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
 
-const Chat = () => {
+const Chat = ({ id }: { id?: string }) => {
   const { user, loading } = useAuth()
   const userId = user?.user_id ?? ''
 
@@ -32,9 +34,11 @@ const Chat = () => {
     streamListData,
     setIsSearching,
     setMarkdownSources,
+    setMessages,
   } = useChatStore()
 
-  const [sessionId, setSessionId] = useState<string | null>(null)
+  const [sessionId, setSessionId] = useState<string | null>(id || null)
+  const [isNewSession, setIsNewSession] = useState<boolean>(false)
   const [streamingMessage, setStreamingMessage] = useState<string>('')
   const [activeTab, setActiveTab] = useState<TabKey>('research')
   const endRef = useRef<HTMLDivElement>(null)
@@ -43,17 +47,38 @@ const Chat = () => {
   const [sources, setSources] = useState<Source[]>([])
   const controllerRef = useRef<AbortController | null>(null)
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const router = useRouter()
 
-  const handleListCardClick = (
-    id: string,
-    cardData: any,
-    type: 'company' | 'investor' | 'transaction' | 'people'
-  ) => {
-    const title = cardData?.profile?.title || 'List'
-    const list = cardData?.list || []
-    const itemCount = cardData?.profile?.estimated_list_item_count || list.length
-    openListPanel(id, title, list, itemCount, type)
-  }
+  const { data: sessionMessages, isLoading: isLoadingMessages } = useSessionMessages(
+    sessionId ?? '',
+    userId,
+    { enabled: !!id && !isNewSession }
+  )
+
+  // console.log(isNewSession)
+  console.log(sessionMessages?.messages)
+
+  useEffect(() => {
+    if (
+      id &&
+      !isNewSession &&
+      Array.isArray(sessionMessages?.messages) &&
+      sessionMessages.messages.length > 0 &&
+      messages.length === 0
+    ) {
+      setMessages(sessionMessages.messages)
+    }
+  }, [id, sessionMessages, isNewSession])
+
+  const pathname = usePathname()
+  const isCopilot = pathname.includes('/copilot')
+
+  useEffect(() => {
+    if (isCopilot) {
+      setSessionId(id || null)
+      setMessages([])
+    }
+  }, [id, isCopilot])
 
   const handleStopStreaming = () => {
     if (controllerRef.current) {
@@ -120,7 +145,7 @@ const Chat = () => {
 
       const decoder = new TextDecoder()
 
-      let listCardTitle = 'Company List'
+      // let listCardTitle = 'Company List'
       let leftoverChunk = ''
       let finalEventReceived = false
 
@@ -142,6 +167,11 @@ const Chat = () => {
         const events = leftoverChunk.split('\n\n')
         leftoverChunk = events.pop() || ''
 
+        if (!id && sessionId && isCopilot) {
+          window.history.replaceState({}, '', `/sessions/${sessionId}`)
+          // router.push(`/sessions/${sessionId}`, { scroll: false })
+        }
+
         for (const event of events) {
           if (!event.trim() || !event.startsWith('data:')) continue
           const cleaned = event.replace(/^data:/, '').trim()
@@ -150,8 +180,9 @@ const Chat = () => {
 
           const { data, event: eventType } = parsed
           scrollToBottom()
-          if (parsed?.data?.session_id) {
+          if (parsed?.data?.session_id && !sessionId) {
             setSessionId(parsed.data.session_id)
+            setIsNewSession(true)
           }
 
           if (eventType === 'loading') {
@@ -421,6 +452,11 @@ const Chat = () => {
       }
     }
   }, [streamingCanvasContent, isStreaming, streamId, updateMessage, sources])
+
+  if (id && isLoadingMessages && messages.length === 0) {
+    return null
+  }
+
   return (
     <MainChat
       activeTab={activeTab}
@@ -431,8 +467,8 @@ const Chat = () => {
       streamingCanvasContent={streamingCanvasContent}
       setStreamingCanvasContent={setStreamingCanvasContent}
       sources={sources}
-      handleListCardClick={handleListCardClick}
       handleSend={handleSend}
+      userId={userId}
       handleInputChange={e => {
         setInput(e.target.value)
       }}

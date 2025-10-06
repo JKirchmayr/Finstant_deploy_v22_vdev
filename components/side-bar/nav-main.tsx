@@ -8,13 +8,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
 } from '@/components/ui/sidebar'
-import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-
-const items = [
-  { name: 'New Chat', url: '/', Icon: ChatBubbleLeftIcon },
-  { name: 'Saved Lists', url: '/saved-lists', Icon: ListBulletIcon },
-]
 
 export function NavMain({}) {
   const pathname = usePathname()

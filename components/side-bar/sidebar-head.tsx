@@ -52,7 +52,7 @@ export function SidebarHead() {
               asChild
               tooltip=""
               isActive={isSavedLists}
-              onClick={() => router.push('/saved-lists')}
+              onClick={() => router.push('/saved-list')}
             >
               <div className="flex items-center cursor-pointer">
                 <ListBulletIcon className="size-5" />

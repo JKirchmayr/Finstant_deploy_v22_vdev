@@ -23,12 +23,12 @@ export function NavSessions({}) {
   if (isLoading || !data) return null
 
   return (
-    <SidebarGroup className="group-data-[collapsible=icon]:hidden sm:hidden group-data-[state=expanded]:flex">
+    <SidebarGroup className="group-data-[collapsible=icon]:hidden sm:hidden group-data-[state=expanded]:flex ">
       <SidebarGroupLabel className="text-sm">History</SidebarGroupLabel>
-      <SidebarMenu>
+      <SidebarMenu className="">
         {Object.entries(data?.data).map(([group, sessions]) => (
           <SidebarGroup key={group} className="p-0">
-            <SidebarGroupLabel>{group}</SidebarGroupLabel>
+            <SidebarGroupLabel className="truncate">{group}</SidebarGroupLabel>
             {(sessions as SessionTypes[]).map(session => (
               <SidebarMenuItem key={session.id}>
                 <SidebarMenuButton asChild>

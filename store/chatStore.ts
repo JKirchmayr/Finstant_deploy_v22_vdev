@@ -7,6 +7,7 @@ type ChatStore = {
   messages: Message[]
   input: string
   isStreaming: boolean
+  setMessages: (messages: Message[]) => void
   setIsStreaming: (isStreaming: boolean) => void
   setInput: (input: string) => void
   markdown: string
@@ -26,6 +27,7 @@ type ChatStore = {
     logo: string | null
     city: string | null
     country: string | null
+    isLoading?: boolean
   }
   setActiveProfile: (
     name: string | null,
@@ -33,7 +35,8 @@ type ChatStore = {
     website: string | null,
     logo: string | null,
     city: string | null,
-    country: string | null
+    country: string | null,
+    isLoading?: (isLoading: boolean) => void
   ) => void
   isSearching: 'idle' | 'web' | 'searching' | 'streaming'
   setIsSearching: (isWebSearching: 'idle' | 'web' | 'searching' | 'streaming') => void
@@ -108,6 +111,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   activeListItemCount: 0,
   isCopilotOpen: true,
   isReading: false,
+  setMessages: messages => set({ messages }),
   setIsReading: isReading => set({ isReading }),
   setIsCopilotOpen: isCopilotOpen => set({ isCopilotOpen }),
   openListItemPopup: company =>

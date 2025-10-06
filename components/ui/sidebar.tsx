@@ -200,7 +200,7 @@ function Sidebar({
 
   return (
     <div
-      className="w-12 relative group peer hidden md:block text-sidebar-foreground flex-shrink-0"
+      className="w-12 relative group peer hidden md:block text-sidebar-foreground flex-shrink-0 z-[9999]"
       data-state={collapsible === 'expand-on-hover' && isHovered ? 'expanded' : state}
       data-collapsible={state === 'collapsed' ? collapsible : ''}
       data-variant={variant}
