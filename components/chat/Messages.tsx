@@ -12,6 +12,7 @@ import { Loader2 } from 'lucide-react'
 import { useSessionListDetails, useSessionProfileDetails } from '@/queries/sessions'
 import { useParams } from 'next/navigation'
 import { normalizeListData } from '@/utils/normalizeListData'
+import { useMessageInteractions } from '@/hooks/useMessageInteractions'
 
 type MessagesProps = {
   messages: Message[]
@@ -35,95 +36,19 @@ export const Messages = ({
     setIsCanvasOpen,
     openListPanel,
     setMarkdown,
+    setMessages,
   } = useChatStore()
   const params = useParams()
   const sessionIdFromUrl = params.id?.toString() ?? ''
-  const [selectedListId, setSelectedListId] = useState('')
-  const [type, setType] = useState<'company' | 'investor' | 'transaction' | 'people'>('company')
-  const [title, setTitle] = useState('List')
-  const [listCardId, setListCardId] = useState('')
-  const [profileId, setProfileId] = useState('')
-  const [messageId, setMessageId] = useState('')
 
-  const {
-    data: listDetails,
-    isLoading: isListLoading,
-    isFetched,
-  } = useSessionListDetails(selectedListId, sessionIdFromUrl, userId, { enabled: !!selectedListId })
+  const { handleListCardClick, handleProfileClick, loadingMessageId } = useMessageInteractions({
+    messages,
+    sessionId: sessionIdFromUrl,
+    userId,
+  })
 
-  useEffect(() => {
-    if (isFetched && selectedListId && listDetails) {
-      const rawData = listDetails?.items || []
-      // console.log('raw', rawData)
-      const formatted = normalizeListData(rawData, 'investor')
-      // console.log(formatted)
-      openListPanel(listCardId, title, formatted, formatted.length, 'investor')
-      setSelectedListId('')
-    }
-  }, [isFetched, selectedListId, listDetails, listCardId, title, type])
+  console.log({ messages })
 
-  const handleListCardClick = (
-    id: string,
-    cardData: any,
-    type: 'company' | 'investor' | 'transaction' | 'people',
-    list_id?: string
-  ) => {
-    const title = cardData?.profile?.title || 'List'
-    const list = cardData?.list || []
-    const itemCount = cardData?.profile?.estimated_list_item_count || list.length
-
-    setType('investor')
-    setTitle(title)
-    setListCardId(id)
-
-    if (list_id) {
-      setSelectedListId(list_id)
-      return
-    }
-
-    openListPanel(id, title, list, itemCount, type)
-  }
-
-  const {
-    data: profileDetails,
-    isLoading: isProfileLoading,
-    isFetched: isProfileFetched,
-    refetch,
-  } = useSessionProfileDetails(profileId ?? '', sessionIdFromUrl, userId, { enabled: !!profileId })
-
-  const handleProfileClick = (id?: string, source?: Source[], messageId?: string) => {
-    console.log({ id })
-    if (!!id) {
-      setProfileId(id)
-      // refetch()
-      setMessageId(messageId || '')
-    } else {
-      setMarkdownSources((source || []) as unknown as Source[])
-    }
-    closeListPanel()
-    setIsCanvasOpen(true)
-  }
-
-  const profile = profileDetails?.profile_details || {}
-  const profileSources = profile?.profile_sources
-  const profileContent = profile?.profile_content || ''
-
-  useEffect(() => {
-    if (profileId && isProfileFetched && profileContent) {
-      setMarkdown(profileContent)
-      const message = messages.find(m => (m as any)?.message_id === messageId) as
-        | (Message & { message_id: string })
-        | undefined
-      if (message) {
-        message.content = profileContent
-      }
-      console.log({ message })
-      setMarkdownSources(JSON.parse(profileSources) || [])
-      setSelectedListId('')
-    }
-  }, [profileId, isProfileFetched, profileContent, profileSources, messageId])
-
-  // console.log(messages)
   return (
     <div className={cn('overflow-y-auto px-2 pt-4 space-y-2 noscroll flex-1 min-h-0')}>
       {messages.map((m, i) => {
@@ -142,7 +67,7 @@ export const Messages = ({
           >
             <div
               className={cn('max-w-full text-sm leading-relaxed px-1 py-1 rounded-md', {
-                'ml-auto bg-secondary/40 border font-normal px-4 py-1 rounded-md max-w-xs  ':
+                'ml-auto bg-secondary/40 border font-normal px-4 py-1 rounded-md max-w-sm  ':
                   isUser,
                 'text-gray-800 mr-auto border-none rounded-md': !isUser,
               })}
@@ -157,8 +82,10 @@ export const Messages = ({
                   website={m.data.website}
                   logo={m.data.logo}
                   type={m.data.type}
+                  isLoading={m.loading || (m as any).message_id === loadingMessageId}
                   onClick={() => {
                     handleProfileClick(
+                      m.id || '',
                       (m as any)?.profile_id || '',
                       m.sources,
                       (m as any)?.message_id
@@ -173,12 +100,14 @@ export const Messages = ({
                   itemCount={
                     m.data?.profile?.estimated_list_item_count || m?.data?.estimated_list_count
                   }
+                  isLoading={m.loading || (m as any).message_id === loadingMessageId}
                   onClick={() =>
                     handleListCardClick(
-                      m.id,
+                      m.id || '',
                       m.data,
                       m.data?.profile?.type || m?.data?.type,
-                      (m as any).list_id ?? ''
+                      (m as any).list_id ?? '',
+                      (m as any)?.message_id || ''
                     )
                   }
                   isStreaming={isStreaming}

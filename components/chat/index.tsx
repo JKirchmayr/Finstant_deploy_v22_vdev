@@ -24,7 +24,7 @@ const Chat = ({
 }) => {
   const { user, loading } = useAuth()
   const userId = user?.user_id ?? ''
-  console.log({ initialMessages })
+  // console.log({ initialMessages })
   const {
     messages,
     input,

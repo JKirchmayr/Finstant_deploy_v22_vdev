@@ -38,3 +38,11 @@ export const normalizeListData = (
       return data
   }
 }
+
+export const normalizeListType = (listType: string) => {
+  if (listType === 'company_list') return 'company'
+  if (listType === 'investor_list') return 'investor'
+  if (listType === 'transaction_list') return 'transaction'
+  if (listType === 'people_list') return 'people'
+  return listType as 'company' | 'investor' | 'transaction' | 'people'
+}

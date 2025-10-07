@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getUserProfile } from '@/actions/auth'
 import supabaseAdmin from '@/lib/supabase/admin'
-import { differenceInDays, parseISO } from 'date-fns'
+import { differenceInCalendarDays, differenceInDays, parseISO } from 'date-fns'
 
 export async function GET(req: NextRequest) {
   const url = req.nextUrl
@@ -33,7 +33,9 @@ export async function GET(req: NextRequest) {
     const sessions =
       data?.map(session => {
         const createdAt = parseISO(session.created_at)
-        const diffDays = differenceInDays(now, createdAt)
+        const diffDays = differenceInCalendarDays(now, createdAt)
+
+        // console.log({ now }, { createdAt }, { diffDays })
 
         let date_group = 'Older'
         if (diffDays === 0) date_group = 'Today'
