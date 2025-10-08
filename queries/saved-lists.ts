@@ -8,23 +8,25 @@ import {
   getUserListItems,
   updateUserList,
   UpdateUserListAction,
+  UserListPayload,
 } from '@/services/saved-lists'
 
 // --- Get all user lists ---
-export const useUserLists = (userId: string, limit?: number) => {
+export const useUserLists = (userId: string, limit?: number, enabled?: boolean) => {
   return useQuery({
     queryKey: ['userLists', userId],
     queryFn: () => getUserLists(userId, limit),
-    enabled: !!userId,
+    enabled: !!userId && (enabled ?? true),
+    staleTime: Infinity,
   })
 }
 
 // --- Get specific list items ---
-export const useUserListItems = (userId: string, listId: string) => {
+export const useUserListItems = (userId: string, listId: string, enabled?: boolean) => {
   return useQuery({
     queryKey: ['userListItems', listId],
     queryFn: () => getUserListItems(userId, listId),
-    enabled: !!userId && !!listId,
+    enabled: !!userId && !!listId && (enabled ?? true),
   })
 }
 
@@ -32,7 +34,8 @@ export const useUserListItems = (userId: string, listId: string) => {
 export const useCreateUserList = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ userId, data }: { userId: string; data: any }) => createUserList(userId, data),
+    mutationFn: ({ userId, data }: { userId: string; data: UserListPayload }) =>
+      createUserList(userId, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['userLists'] }),
   })
 }
@@ -41,8 +44,15 @@ export const useCreateUserList = () => {
 export const useAddItemsToList = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ userId, listId, data }: { userId: string; listId: string; data: any }) =>
-      addItemsToUserList(userId, listId, data),
+    mutationFn: ({
+      userId,
+      listId,
+      webset_item_ids,
+    }: {
+      userId: string
+      listId: string
+      webset_item_ids: string[]
+    }) => addItemsToUserList(userId, listId, webset_item_ids),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['userListItems', variables.listId] })
     },
@@ -50,7 +60,7 @@ export const useAddItemsToList = () => {
 }
 
 // --- Remove items ---
-export const useRemoveItemsFromList = () => {
+export const useRemoveItemsFromList = (enabled: boolean) => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({ userId, listId, data }: { userId: string; listId: string; data: any }) =>

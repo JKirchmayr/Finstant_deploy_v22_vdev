@@ -1,5 +1,8 @@
 import React from 'react'
+import { SavedListPage } from './data'
 
 export default function page() {
-  return <div>page</div>
+  return (
+    <SavedListPage/>
+  )
 }
