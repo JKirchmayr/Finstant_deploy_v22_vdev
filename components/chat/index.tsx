@@ -56,6 +56,7 @@ const Chat = ({
   const controllerRef = useRef<AbortController | null>(null)
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const router = useRouter()
+  const queryClient = useQueryClient()
 
   useEffect(() => {
     if (!isNewSession && initialMessages.length > 0) {
@@ -106,7 +107,6 @@ const Chat = ({
     setStreamId('')
     const uuid = v4()
     const listMap = new Map<string, any>()
-    const queryClient = useQueryClient()
 
     append({ role: 'user', content: promptToSend })
     setInput('')

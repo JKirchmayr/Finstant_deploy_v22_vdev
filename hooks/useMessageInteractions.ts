@@ -44,7 +44,7 @@ export const useMessageInteractions = ({
     if (isListFetched && listDetails && selectedListId) {
       const rawData = listDetails?.items || []
       const profile = listDetails?.list_details
-      const formatted = normalizeListData(rawData, type)
+      const formatted = normalizeListData(rawData, normalizeListType(type))
 
       const msg = messages.find(m => (m as any).message_id === loadingMessageId)
       if (msg && msg.data) {
@@ -53,6 +53,8 @@ export const useMessageInteractions = ({
           estimated_list_item_count: formatted?.length || 3,
           type: normalizeListType(profile?.list_type),
         }
+        console.log({ type }, { formatted })
+
         msg.data.list = formatted
         msg.id = loadingMessageId
         msg.loading = false
@@ -84,7 +86,7 @@ export const useMessageInteractions = ({
     const list = cardData?.list || []
     const itemCount = cardData?.profile?.estimated_list_item_count || list.length
 
-    setType(type)
+    setType(normalizeListType(type))
     setTitle(title)
     setListCardId(id)
 
