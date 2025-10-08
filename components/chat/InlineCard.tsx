@@ -55,7 +55,7 @@ export const InlineCard = ({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
-      className={`flex w-full items-center gap-3 p-3 px-6 relative bg-gray-100 rounded-lg ${
+      className={`flex w-full max-w-sm items-center gap-3 p-3 px-6 relative bg-gray-100 overflow-hidden rounded-lg ${
         !isStreaming ? 'cursor-pointer hover:bg-gray-200' : 'cursor-default'
       } transition-colors`}
       role="button"

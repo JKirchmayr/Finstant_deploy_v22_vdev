@@ -24,6 +24,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useChatStore } from '@/store/chatStore'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
+import { useParams } from 'next/navigation'
 
 export interface Item {
   LOGO: string
@@ -55,7 +56,7 @@ export function AddToListDialog({
   //   const [selected, setSelected] = useState<Item[]>(initialSelected)
   const [selectedList, setSelectedList] = useState<string>('')
   const { user } = useAuth()
-  const { data } = useUserLists(user?.user_id || '', undefined, open)
+  const { data, isLoading } = useUserLists(user?.user_id || '', undefined, open)
   const lists = (data?.lists || []) as SavedList[]
   const { mutate: addItemsToList, isPending } = useAddItemsToList()
 
@@ -68,7 +69,7 @@ export function AddToListDialog({
       toast.error('Please select at least one item.')
       return
     }
-    console.log({ selectedList }, { initialSelected })
+    // console.log({ selectedList }, { initialSelected })
     addItemsToList(
       {
         userId: user?.user_id || '',
@@ -107,8 +108,10 @@ export function AddToListDialog({
                 <SelectTrigger className="w-full border-foreground/70">
                   <SelectValue placeholder="Select list to add to" />
                 </SelectTrigger>
-                <SelectContent className="z-60 max-h-40">
-                  {lists.length === 0 ? (
+                <SelectContent className="z-60 max-h-40 divider-y">
+                  {isLoading ? (
+                    <SelectItem value="none">Loading lists...</SelectItem>
+                  ) : lists.length === 0 ? (
                     <SelectItem value="none">No list found</SelectItem>
                   ) : (
                     lists.map((item, i) => (
@@ -126,7 +129,7 @@ export function AddToListDialog({
             </div>
             <div className="grid gap-3 ">
               <Label>Selected Items</Label>
-              <div className="grid gap-2 max-h-40 overflow-y-auto">
+              <div className="grid gap-2 max-h-40 overflow-y-auto thin-scroll py-1">
                 {initialSelected.length === 0 ? (
                   <p>No items initialSelected.</p>
                 ) : (
@@ -165,15 +168,16 @@ export function CreateNewListDialog({
   initialSelected: Item[]
   onConfirm?: () => void
 }) {
+  const { id } = useParams()
   //   console.log(initialSelected)
   const [open, setOpen] = useState(false)
   const { activeList } = useChatStore()
   //   const [selected, setSelected] = useState<Item[]>(initialSelected)
-  const [listType, setListType] = useState('company_list')
-  const [name, setName] = useState(activeList.title || '')
+  const [listType, setListType] = useState('company')
+  const [name, setName] = useState(activeList?.title || '')
   const { user } = useAuth()
   const { mutate: createUserList, isPending } = useCreateUserList()
-
+  // console.log(activeList)
   const handleSubmit = () => {
     if (name.trim()?.length < 4) {
       toast.error('List name must be at least 4 characters long.')
@@ -232,16 +236,16 @@ export function CreateNewListDialog({
                   <SelectValue placeholder="Select list type" />
                 </SelectTrigger>
                 <SelectContent className="z-60 max-h-40">
-                  <SelectItem value="company_list">Company List</SelectItem>
-                  <SelectItem value="investor_list">Investor List</SelectItem>
-                  <SelectItem value="people_list">People List</SelectItem>
-                  <SelectItem value="transaction_list">Transaction List</SelectItem>
+                  <SelectItem value="company">Company List</SelectItem>
+                  <SelectItem value="investor">Investor List</SelectItem>
+                  <SelectItem value="people">People List</SelectItem>
+                  <SelectItem value="transaction">Transaction List</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="grid gap-3 ">
               <Label>Selected Items</Label>
-              <div className="grid gap-2 max-h-40 overflow-y-auto">
+              <div className="grid gap-2 max-h-40 overflow-y-auto thin-scroll">
                 {initialSelected.length === 0 ? (
                   <p>No items initialSelected.</p>
                 ) : (

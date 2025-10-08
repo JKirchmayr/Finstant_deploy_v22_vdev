@@ -12,6 +12,7 @@ import {
 import Link from 'next/link'
 import { useGetUserSessionsQuery } from '@/queries/sessions'
 import { SessionRow } from '@/types/common.types'
+import { useParams } from 'next/navigation'
 
 type SessionTypes = SessionRow & {
   date_group: string
@@ -19,7 +20,8 @@ type SessionTypes = SessionRow & {
 
 export function NavSessions({}) {
   const { data, isLoading } = useGetUserSessionsQuery()
-
+  const { id } = useParams()
+  const isActive = (sessionId: string) => sessionId === id
   if (isLoading || !data) return null
 
   return (
@@ -35,7 +37,7 @@ export function NavSessions({}) {
             </SidebarGroupLabel>
             {(sessions as SessionTypes[]).map(session => (
               <SidebarMenuItem key={session.id}>
-                <SidebarMenuButton asChild>
+                <SidebarMenuButton asChild isActive={isActive(session.id)}>
                   <Link href={`/sessions/${session.id}`}>
                     <span>{session.session_title}</span>
                   </Link>

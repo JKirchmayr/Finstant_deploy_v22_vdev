@@ -44,7 +44,7 @@ export const useMessageInteractions = ({
     if (isListFetched && listDetails && selectedListId) {
       const rawData = listDetails?.items || []
       const profile = listDetails?.list_details
-      const formatted = normalizeListData(rawData, 'company')
+      const formatted = normalizeListData(rawData, type)
 
       const msg = messages.find(m => (m as any).message_id === loadingMessageId)
       if (msg && msg.data) {

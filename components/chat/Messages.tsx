@@ -29,15 +29,7 @@ export const Messages = ({
   endRef,
   userId,
 }: MessagesProps) => {
-  const {
-    isSearching,
-    setMarkdownSources,
-    closeListPanel,
-    setIsCanvasOpen,
-    openListPanel,
-    setMarkdown,
-    setMessages,
-  } = useChatStore()
+  const { isSearching } = useChatStore()
   const params = useParams()
   const sessionIdFromUrl = params.id?.toString() ?? ''
 

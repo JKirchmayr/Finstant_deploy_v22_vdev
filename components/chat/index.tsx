@@ -8,8 +8,8 @@ import { InlineCardData, InlineListCardData, Message, Source } from './chat.type
 import MainChat from './MainChat'
 import { TabKey } from './Suggestions'
 import { usePathname, useRouter } from 'next/navigation'
-import { useSessionMessages } from '@/queries/sessions'
 import { Loader } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
 
 const backendURL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
 
@@ -106,6 +106,7 @@ const Chat = ({
     setStreamId('')
     const uuid = v4()
     const listMap = new Map<string, any>()
+    const queryClient = useQueryClient()
 
     append({ role: 'user', content: promptToSend })
     setInput('')
@@ -422,8 +423,8 @@ const Chat = ({
     } finally {
       if (!id && sessionId && isCopilot) {
         window.history.replaceState({}, '', `/sessions/${sessionId}`)
-        // router.push(`/sessions/${sessionId}`, { scroll: false })
       }
+      queryClient.invalidateQueries({ queryKey: ['sessions'] })
       setIsStreaming(false)
       setIsSearching('idle')
       setStreamingMessage('')

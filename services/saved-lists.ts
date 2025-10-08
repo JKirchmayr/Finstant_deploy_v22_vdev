@@ -10,14 +10,19 @@ export type UserListPayload = {
 export type UpdateUserListAction = 'delete' | 'archive' | 'reactivate'
 
 // Create a new user list
-export const createUserList = async (userId: string, data: UserListPayload) => {
+export const createUserList = async (
+  userId: string,
+  data: UserListPayload,
+  type?: 'session' | 'manual'
+) => {
   try {
     const res = await api.post(`/user-lists`, data, {
       headers: { 'user-id': userId },
     })
     return res.data
   } catch (error) {
-    getApiErrorMessage(error)
+    console.log(getApiErrorMessage(error))
+    throw new Error('Failed to fetch user sessions')
   }
 }
 
@@ -35,7 +40,8 @@ export const addItemsToUserList = async (
     )
     return res.data
   } catch (error) {
-    getApiErrorMessage(error)
+    console.log(getApiErrorMessage(error))
+    throw new Error('Failed to fetch user sessions')
   }
 }
 
@@ -48,7 +54,8 @@ export const removeItemsFromUserList = async (userId: string, listId: string, da
     })
     return res.data
   } catch (error) {
-    getApiErrorMessage(error)
+    console.log(getApiErrorMessage(error))
+    throw new Error('Failed to fetch user sessions')
   }
 }
 
@@ -62,7 +69,8 @@ export const getUserLists = async (userId: string, limit?: number) => {
     })
     return res.data
   } catch (error) {
-    getApiErrorMessage(error)
+    console.log(getApiErrorMessage(error))
+    throw new Error('Failed to fetch user sessions')
   }
 }
 
@@ -75,7 +83,8 @@ export const getUserListItems = async (userId: string, listId: string) => {
     })
     return res.data
   } catch (error) {
-    getApiErrorMessage(error)
+    console.log(getApiErrorMessage(error))
+    throw new Error('Failed to fetch user sessions')
   }
 }
 
@@ -94,6 +103,7 @@ export const updateUserList = async (
     )
     return res.data
   } catch (error) {
-    getApiErrorMessage(error)
+    console.log(getApiErrorMessage(error))
+    throw new Error('Failed to fetch user sessions')
   }
 }

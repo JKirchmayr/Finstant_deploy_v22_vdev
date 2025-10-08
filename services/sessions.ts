@@ -23,10 +23,15 @@ export const getSessionMessages = async (sessionId: string, userId: string) => {
 
 // --- 2. Get Session List Details ---
 export const getSessionListDetails = async (listId: string, sessionId: string, userId: string) => {
-  const res = await api.get(`/session-lists/${listId}`, {
-    headers: { 'session-id': sessionId, 'user-id': userId },
-  })
-  return res.data
+  try {
+    const res = await api.get(`/session-lists/${listId}`, {
+      headers: { 'session-id': sessionId, 'user-id': userId },
+    })
+    return res.data
+  } catch (error) {
+    console.error('Error fetching session list details:', error)
+    throw new Error('Failed to fetch session list details')
+  }
 }
 
 // --- 3. Get Session Profile Details ---
@@ -35,10 +40,15 @@ export const getSessionProfileDetails = async (
   sessionId: string,
   userId: string
 ) => {
-  const res = await api.get(`/session-profiles/${profileId}`, {
-    headers: { 'session-id': sessionId, 'user-id': userId },
-  })
-  return res.data
+  try {
+    const res = await api.get(`/session-profiles/${profileId}`, {
+      headers: { 'session-id': sessionId, 'user-id': userId },
+    })
+    return res.data
+  } catch (error) {
+    console.error('Error fetching session profile details:', error)
+    throw new Error('Failed to fetch session profile details')
+  }
 }
 
 // --- 4. Delete Session List Items ---
@@ -48,9 +58,14 @@ export const deleteSessionListItems = async (
   userId: string,
   data: { webset_item_ids: string[] }
 ) => {
-  const res = await api.delete(`/session-lists/${listId}/items`, {
-    headers: { 'session-id': sessionId, 'user-id': userId },
-    data,
-  })
-  return res.data
+  try {
+    const res = await api.delete(`/session-lists/${listId}/items`, {
+      headers: { 'session-id': sessionId, 'user-id': userId },
+      data,
+    })
+    return res.data
+  } catch (error) {
+    console.error('Error deleting session list items:', error)
+    throw new Error('Failed to delete session list items')
+  }
 }
