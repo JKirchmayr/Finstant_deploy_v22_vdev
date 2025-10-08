@@ -1,4 +1,5 @@
 'use client'
+
 import React, { useState, useMemo, useEffect } from 'react'
 import {
   ColumnDef,
@@ -7,143 +8,158 @@ import {
   getFilteredRowModel,
   flexRender,
 } from '@tanstack/react-table'
+import { useRouter } from 'next/navigation'
+import * as XLSX from 'xlsx'
 
-import { useUserLists, useUpdateUserList, useUserListItems } from '@/queries/saved-lists'
-
+import { useUserLists, useUpdateUserList } from '@/queries/saved-lists'
 import { useAuth } from '@/hooks/useAuth'
 
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Loader2 } from 'lucide-react'
 import { UpdateUserListAction } from '@/services/saved-lists'
-interface ListTypeBadgeProps {
-  type: string
+import { UserList } from '@/types/saved-list'
+import { toast } from 'sonner'
+
+// Heroicons (icons requested)
+import {
+  BuildingOffice2Icon,
+  BanknotesIcon,
+  UserGroupIcon,
+} from '@heroicons/react/24/outline'
+
+/** ------ Utils ------ */
+
+type NormalizedType = 'company' | 'investor' | 'people' | 'unknown'
+const normalizeListType = (value?: string): NormalizedType => {
+  const v = (value ?? '').toLowerCase()
+  if (v.includes('company')) return 'company'
+  if (v.includes('investor')) return 'investor'
+  if (v.includes('people') || v.includes('person')) return 'people'
+  return 'unknown'
 }
-const ListTypeBadge: React.FC<ListTypeBadgeProps> = ({ type }) => {
-  const displayType =
-    type.replace('_list', '').charAt(0).toUpperCase() + type.replace('_list', '').slice(1)
-  const icons: Record<string, string> = {
-    Company: '🏢',
-    Investor: '💼',
-    People: '👤',
+
+const ListTypeIcon: React.FC<{ type: NormalizedType }> = ({ type }) => {
+  if (type === 'company') {
+    return <BuildingOffice2Icon className="h-4 w-4 text-gray-800" aria-hidden />
   }
-  return (
-    <div className="inline-flex items-center gap-1.5 bg-gray-100 py-1 px-2.5 rounded-full text-sm font-medium text-gray-700">
-      <span>{icons[displayType] || '📄'}</span>
-      <span>{displayType}</span>
-    </div>
-  )
-}
-interface UserList {
-  saved_list_id: string
-  list_name: string
-  list_type: string
-  item_count: number
-  created_at: string
-  list_status: 'active' | 'archived'
+  if (type === 'investor') {
+    return <BanknotesIcon className="h-4 w-4 text-gray-800" aria-hidden />
+  }
+  if (type === 'people') {
+    return <UserGroupIcon className="h-4 w-4 text-gray-800" aria-hidden />
+  }
+  return <span className="inline-block h-4 w-4 rounded bg-gray-300" aria-hidden />
 }
 
 export const SavedListPage = () => {
-  const [activeTab, setActiveTab] = useState<
-    'All' | 'Companies' | 'Investors' | 'People' | 'Archive'
-  >('All')
+  const router = useRouter()
+  const [activeTab, setActiveTab] = useState<'All' | 'Companies' | 'Investors' | 'People' | 'Archive'>('All')
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({})
   const [globalFilter, setGlobalFilter] = useState('')
-  const [selectedListId, setSelectedListId] = useState<string | null>(null)
 
   const { user, loading: isAuthLoading } = useAuth()
   const userId = user?.user_id ?? ''
   const { data: apiResponse, isLoading, isError } = useUserLists(userId)
-
-  const { data: listItems, isLoading: isItemsLoading } = useUserListItems(
-    userId,
-    selectedListId ?? '',
-    !!selectedListId
-  )
-
-  useEffect(() => {
-    if (selectedListId && listItems) {
-      console.log('Items for list', selectedListId, listItems)
-    }
-  }, [selectedListId, listItems])
-
   const { mutateAsync: updateUserList, isPending: isUpdating } = useUpdateUserList()
+
   const userListsArray: UserList[] = apiResponse?.lists ?? []
+
+  const handleDownload = () => {
+    const selectedRows = table.getSelectedRowModel().rows
+    if (selectedRows.length === 0) {
+      toast('Please select rows to download.')
+      return
+    }
+    const dataToExport = selectedRows.map(row => row.original)
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Saved Lists')
+    XLSX.writeFile(workbook, 'selected_lists.xlsx')
+  }
 
   const tabFilteredLists = useMemo(() => {
     return userListsArray.filter(list => {
-      if (activeTab === 'All') return list.list_status !== 'archived'
-      if (activeTab === 'Archive') return list.list_status === 'archived'
-      const typeMap: Record<'Companies' | 'Investors' | 'People', string> = {
-        Companies: 'company_list',
-        Investors: 'investor_list',
-        People: 'people_list',
-      }
-      return list.list_type === typeMap[activeTab] && list.list_status !== 'archived'
+      const nType = normalizeListType((list as any).list_type)
+      const isArchived = (list as any).list_status === 'archived'
+      if (activeTab === 'All') return !isArchived
+      if (activeTab === 'Archive') return isArchived
+      if (activeTab === 'Companies') return nType === 'company' && !isArchived
+      if (activeTab === 'Investors') return nType === 'investor' && !isArchived
+      if (activeTab === 'People') return nType === 'people' && !isArchived
+      return true
     })
   }, [userListsArray, activeTab])
 
-  const columns = useMemo<ColumnDef<UserList>[]>(
-    () => [
-      {
-        id: 'select',
-        header: ({ table }) => (
-          <Checkbox
-            checked={
-              table.getIsAllRowsSelected() || (table.getIsSomeRowsSelected() && 'indeterminate')
-            }
-            onCheckedChange={value => table.toggleAllRowsSelected(!!value)}
-            aria-label="Select all"
-          />
-        ),
-        cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={value => row.toggleSelected(!!value)}
-            aria-label="Select row"
-          />
-        ),
+  const columns = useMemo<ColumnDef<UserList>[]>(() => [
+    {
+      id: 'select',
+      header: ({ table }) => (
+        <Checkbox
+          checked={table.getIsAllRowsSelected() || (table.getIsSomeRowsSelected() && 'indeterminate')}
+          onCheckedChange={value => table.toggleAllRowsSelected(!!value)}
+          aria-label="Select all"
+          className="cursor-pointer"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={value => row.toggleSelected(!!value)}
+          aria-label="Select row"
+          onClick={e => e.stopPropagation()}
+          className="cursor-pointer"
+        />
+      ),
+    },
+    {
+      accessorKey: 'list_name',
+      header: 'List Name',
+      cell: ({ row }) => {
+        const name = (row.original as any).list_name || 'Untitled'
+        return <span className="font-medium">{name}</span>
       },
-      {
-        accessorKey: 'list_name',
-        header: 'List Name',
+    },
+    {
+      accessorKey: 'list_type',
+      header: 'Type',
+      cell: ({ row }) => {
+        const nType = normalizeListType((row.original as any).list_type)
+        return (
+          <div className="inline-flex items-center gap-2">
+            <ListTypeIcon type={nType} />
+            <span className="text-gray-700 capitalize">
+              {nType !== 'unknown' ? nType : (row.original as any).list_type}
+            </span>
+          </div>
+        )
       },
-      {
-        accessorKey: 'list_type',
-        header: 'List Type',
-        cell: ({ row }) => <ListTypeBadge type={row.original.list_type} />,
+    },
+    {
+      accessorKey: 'item_count',
+      header: '# Items',
+    },
+    {
+      accessorKey: 'created_at',
+      header: 'Created on',
+      cell: ({ row }) => {
+        try {
+          const date = new Date((row.original as any).created_at)
+          return date.toLocaleDateString('de-DE')
+        } catch {
+          return (row.original as any).created_at
+        }
       },
-      {
-        accessorKey: 'item_count',
-        header: '# Items',
-      },
-      {
-        accessorKey: 'created_at',
-        header: 'Created on',
-        cell: ({ row }) => {
-          try {
-            const date = new Date(row.original.created_at)
-            return date.toLocaleDateString('de-DE')
-          } catch {
-            return row.original.created_at
-          }
-        },
-      },
-    ],
-    []
-  )
+    },
+  ], [])
+
   const table = useReactTable({
-    data: tabFilteredLists,
+    data: tabFilteredLists as any[],
     columns,
     state: { rowSelection, globalFilter },
     onRowSelectionChange: setRowSelection,
@@ -153,12 +169,13 @@ export const SavedListPage = () => {
   })
 
   useEffect(() => {
-    // @ts-ignore – setPageIndex is defined when the pagination plugin is used
-    table.setPageIndex?.(0)
-  }, [activeTab, table])
+    // Reset selection and (if present) pagination page when changing tabs
+    table.resetRowSelection()
+    ;(table as any).setPageIndex?.(0)
+  }, [activeTab]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleBulkAction = async (action: UpdateUserListAction) => {
-    const selectedIds = table.getSelectedRowModel().rows.map(row => row.original.saved_list_id)
+    const selectedIds = table.getSelectedRowModel().rows.map(row => (row.original as any).saved_list_id)
     if (selectedIds.length === 0) return
     try {
       await Promise.all(selectedIds.map(listId => updateUserList({ userId, listId, action })))
@@ -169,15 +186,12 @@ export const SavedListPage = () => {
   }
 
   const tabCounts = useMemo(() => {
-    const lists = userListsArray
+    const lists = userListsArray as any[]
     return {
       All: lists.filter(l => l.list_status !== 'archived').length,
-      Companies: lists.filter(l => l.list_type === 'company_list' && l.list_status !== 'archived')
-        .length,
-      Investors: lists.filter(l => l.list_type === 'investor_list' && l.list_status !== 'archived')
-        .length,
-      People: lists.filter(l => l.list_type === 'people_list' && l.list_status !== 'archived')
-        .length,
+      Companies: lists.filter(l => normalizeListType(l.list_type) === 'company' && l.list_status !== 'archived').length,
+      Investors: lists.filter(l => normalizeListType(l.list_type) === 'investor' && l.list_status !== 'archived').length,
+      People: lists.filter(l => normalizeListType(l.list_type) === 'people' && l.list_status !== 'archived').length,
       Archive: lists.filter(l => l.list_status === 'archived').length,
     }
   }, [userListsArray])
@@ -193,6 +207,8 @@ export const SavedListPage = () => {
   return (
     <div className="p-6 w-full mx-auto">
       <h1 className="text-2xl font-semibold pb-2 border-b-2">Saved Lists</h1>
+
+      {/* Tabs + Search */}
       <div className="flex justify-between py-4 items-center">
         <Tabs value={activeTab} onValueChange={value => setActiveTab(value as any)}>
           <TabsList className="bg-transparent gap-6 p-0">
@@ -200,7 +216,7 @@ export const SavedListPage = () => {
               <TabsTrigger
                 key={name}
                 value={name}
-                className="  data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-b-black rounded-none"
+                className="cursor-pointer data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-b-black rounded-none"
               >
                 {name}
                 <span className="ml-2 bg-gray-200 text-gray-700 text-xs font-medium px-2 py-0.5 rounded-full">
@@ -210,6 +226,7 @@ export const SavedListPage = () => {
             ))}
           </TabsList>
         </Tabs>
+
         <div className="w-64">
           <Input
             placeholder="Search..."
@@ -218,6 +235,8 @@ export const SavedListPage = () => {
           />
         </div>
       </div>
+
+      {/* Bulk Actions */}
       <div className="flex justify-between items-center py-4">
         <div className="flex gap-2">
           <Button
@@ -230,15 +249,22 @@ export const SavedListPage = () => {
           <Button
             variant="outline"
             onClick={() => handleBulkAction('archive')}
-            disabled={
-              !table.getSelectedRowModel().rows.length || activeTab === 'Archive' || isUpdating
-            }
+            disabled={!table.getSelectedRowModel().rows.length || activeTab === 'Archive' || isUpdating}
           >
             {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Archive
           </Button>
         </div>
-        <Button variant="outline">Download</Button>
+
+        <Button
+          variant="outline"
+          onClick={handleDownload}
+          disabled={!table.getSelectedRowModel().rows.length}
+        >
+          Download
+        </Button>
       </div>
+
+      {/* Table */}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -252,6 +278,7 @@ export const SavedListPage = () => {
               </TableRow>
             ))}
           </TableHeader>
+
           <TableBody>
             {isLoading ? (
               <TableRow>
@@ -268,11 +295,9 @@ export const SavedListPage = () => {
             ) : table.getRowModel().rows.length ? (
               table.getRowModel().rows.map(row => (
                 <TableRow
-                  key={row.original.saved_list_id}
+                  key={(row.original as any).saved_list_id}
                   data-state={row.getIsSelected() && 'selected'}
-                  onClick={() => {
-                    setSelectedListId(row.original.saved_list_id)
-                  }}
+                  onClick={() => router.push(`/saved-lists/${(row.original as any).saved_list_id}`)}
                   className="cursor-pointer"
                 >
                   {row.getVisibleCells().map(cell => (
@@ -292,10 +317,6 @@ export const SavedListPage = () => {
           </TableBody>
         </Table>
       </div>
-      {/* Optionally render something when items for a selected list are loading */}
-      {isItemsLoading && selectedListId && (
-        <div className="mt-4 text-gray-500">Loading items for selected list...</div>
-      )}
     </div>
   )
 }

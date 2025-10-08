@@ -16,7 +16,7 @@ export const createUserList = async (userId: string, data: UserListPayload) => {
 
 // Add items to an existing list
 export const addItemsToUserList = async (userId: string, listId: string, data: string[]) => {
-  const res = await api.post(`/user_lists/${listId}/items`, data, {
+  const res = await api.post(`/user-lists/${listId}/items`, data, {
     headers: { 'user-id': userId },
   })
   return res.data
@@ -24,7 +24,7 @@ export const addItemsToUserList = async (userId: string, listId: string, data: s
 
 // Remove specific items from a list
 export const removeItemsFromUserList = async (userId: string, listId: string, data: any) => {
-  const res = await api.delete(`/user_lists/${listId}/items`, {
+  const res = await api.delete(`/user-lists/${listId}/items`, {
     headers: { 'user-id': userId },
     data,
   })
@@ -42,7 +42,7 @@ export const getUserLists = async (userId: string, limit?: number) => {
 
 // Retrieve all items in a specific user list
 export const getUserListItems = async (userId: string, listId: string) => {
-  const res = await api.get(`/user_lists/${listId}/items`, {
+  const res = await api.get(`/user-lists/${listId}`, {
     headers: { 'user-id': userId },
   })
   return res.data
@@ -57,7 +57,7 @@ export const updateUserList = async (
   action: UpdateUserListAction
 ) => {
   const res = await api.patch(
-    `/user_lists/${listId}`,
+    `/user-lists/${listId}`,
     { action },
     {
       headers: { 'user-id': userId },
