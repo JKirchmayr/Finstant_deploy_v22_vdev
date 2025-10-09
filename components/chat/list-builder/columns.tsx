@@ -92,6 +92,7 @@ export const generateColumns = (
   const allColumnDefs: Record<string, ColumnDef<any>> = {
     NAME: {
       accessorKey: 'NAME',
+      size: 200,
       header: () => (
         <HeaderWithIcon
           icon={<BuildingOffice2Icon className="h-4 w-4" />}
@@ -106,14 +107,10 @@ export const generateColumns = (
         return (
           <div className="inline-flex items-center cursor-pointer min-w-0">
             <Image
-              src={
-                logo ||
-                `https://www.google.com/s2/favicons?domain=${new URL(website).hostname}` ||
-                'https://placehold.co/50x50.png'
-              }
+              src={logo || 'https://placehold.co/50x50.png'}
               alt={`${name} logo`}
-              width={20}
-              height={20}
+              width={25}
+              height={25}
               className="mr-2 rounded-sm flex-shrink-0"
               onError={e => {
                 ;(
@@ -135,7 +132,7 @@ export const generateColumns = (
     },
     DESCRIPTION: {
       accessorKey: 'DESCRIPTION',
-      size: 200,
+      size: 400,
       header: () => <HeaderWithIcon icon={<Bars3Icon className="h-4 w-4" />} label="Description" />,
       cell: ({ row }) => (
         <ExpandableCell

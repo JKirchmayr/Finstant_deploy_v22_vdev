@@ -4,17 +4,27 @@ import React, { useEffect, useRef, useState, useCallback } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useChatStore } from '@/store/chatStore'
 import { v4 } from 'uuid'
-import { InlineCardData, InlineListCardData, Source } from './chat.types'
+import { InlineCardData, InlineListCardData, Message, Source } from './chat.types'
 import MainChat from './MainChat'
 import { TabKey } from './Suggestions'
 import { usePathname, useRouter } from 'next/navigation'
-import { useSessionMessages } from '@/queries/sessions'
+import { Loader } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
 
 const backendURL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
 
-const Chat = ({ id }: { id?: string }) => {
+const Chat = ({
+  id,
+  isNewSession = true,
+  initialMessages = [],
+}: {
+  id?: string
+  isNewSession?: boolean
+  initialMessages?: Message[]
+}) => {
   const { user, loading } = useAuth()
   const userId = user?.user_id ?? ''
+  // console.log({ initialMessages })
   const {
     messages,
     input,
@@ -37,7 +47,6 @@ const Chat = ({ id }: { id?: string }) => {
   } = useChatStore()
 
   const [sessionId, setSessionId] = useState<string | null>(id || null)
-  const [isNewSession, setIsNewSession] = useState<boolean>(false)
   const [streamingMessage, setStreamingMessage] = useState<string>('')
   const [activeTab, setActiveTab] = useState<TabKey>('research')
   const endRef = useRef<HTMLDivElement>(null)
@@ -47,37 +56,25 @@ const Chat = ({ id }: { id?: string }) => {
   const controllerRef = useRef<AbortController | null>(null)
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const router = useRouter()
-
-  const { data: sessionMessages, isLoading: isLoadingMessages } = useSessionMessages(
-    sessionId ?? '',
-    userId,
-    { enabled: !!id && !isNewSession }
-  )
-
-  // console.log(isNewSession)
-  console.log(sessionMessages?.messages)
+  const queryClient = useQueryClient()
 
   useEffect(() => {
-    if (
-      id &&
-      !isNewSession &&
-      Array.isArray(sessionMessages?.messages) &&
-      sessionMessages.messages.length > 0 &&
-      messages.length === 0
-    ) {
-      setMessages(sessionMessages.messages)
+    if (!isNewSession && initialMessages.length > 0) {
+      setMessages(initialMessages)
     }
-  }, [id, sessionMessages, isNewSession])
+  }, [isNewSession && initialMessages])
 
   const pathname = usePathname()
-  const isCopilot = pathname.includes('/copilot')
+  const isCopilot = pathname === '/copilot'
 
   useEffect(() => {
-    if (isCopilot) {
-      setSessionId(id || null)
+    if (isCopilot && isNewSession) {
+      setSessionId(null)
       setMessages([])
     }
-  }, [id, isCopilot])
+  }, [isCopilot, isNewSession])
+
+  // console.log(!id, isNewSession, isCopilot)
 
   const handleStopStreaming = () => {
     if (controllerRef.current) {
@@ -166,11 +163,6 @@ const Chat = ({ id }: { id?: string }) => {
         const events = leftoverChunk.split('\n\n')
         leftoverChunk = events.pop() || ''
 
-        if (!id && sessionId && isCopilot) {
-          window.history.replaceState({}, '', `/sessions/${sessionId}`)
-          // router.push(`/sessions/${sessionId}`, { scroll: false })
-        }
-
         for (const event of events) {
           if (!event.trim() || !event.startsWith('data:')) continue
           const cleaned = event.replace(/^data:/, '').trim()
@@ -181,7 +173,9 @@ const Chat = ({ id }: { id?: string }) => {
           scrollToBottom()
           if (parsed?.data?.session_id && !sessionId) {
             setSessionId(parsed.data.session_id)
-            setIsNewSession(true)
+          }
+          if (!id && isNewSession && isCopilot) {
+            window.history.replaceState({}, '', `/sessions/${parsed.data.session_id}`)
           }
 
           if (eventType === 'loading') {
@@ -196,6 +190,10 @@ const Chat = ({ id }: { id?: string }) => {
           if (data?.meta?.stage === 'final') {
             setIsSearching('idle')
             setIsReading(false)
+            if (!id && sessionId && isCopilot) {
+              window.history.replaceState({}, '', `/sessions/${sessionId}`)
+              // router.push(`/sessions/${sessionId}`, { scroll: false })
+            }
             if (processingBuffer.trim()) {
               append({ role: 'assistant', content: processingBuffer })
               processingBuffer = ''
@@ -423,6 +421,10 @@ const Chat = ({ id }: { id?: string }) => {
         scrollTimeoutRef.current = null
       }
     } finally {
+      if (!id && sessionId && isCopilot) {
+        window.history.replaceState({}, '', `/sessions/${sessionId}`)
+      }
+      queryClient.invalidateQueries({ queryKey: ['sessions'] })
       setIsStreaming(false)
       setIsSearching('idle')
       setStreamingMessage('')
@@ -452,8 +454,12 @@ const Chat = ({ id }: { id?: string }) => {
     }
   }, [streamingCanvasContent, isStreaming, streamId, updateMessage, sources])
 
-  if (id && isLoadingMessages && messages.length === 0) {
-    return null
+  if (!!id && initialMessages?.length === 0) {
+    return (
+      <div className="flex flex-1 min-h-0 h-full justify-center items-center">
+        <Loader className="animate-spin" />
+      </div>
+    )
   }
 
   return (

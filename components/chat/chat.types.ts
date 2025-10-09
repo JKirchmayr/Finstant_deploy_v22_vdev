@@ -38,6 +38,7 @@ export type Message = {
   data?: any
   sources?: Source[]
   createdAt?: Date
+  loading?: boolean
 }
 
 export type EntityData = {

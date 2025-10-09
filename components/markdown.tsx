@@ -1,9 +1,9 @@
-import { cn } from "@/lib/utils"
-import { Copy, Download } from "lucide-react"
-import Link from "next/link"
-import React, { memo, ReactNode } from "react"
-import ReactMarkdown from "react-markdown"
-import remarkGfm from "remark-gfm"
+import { cn } from '@/lib/utils'
+import { Copy, Download } from 'lucide-react'
+import Link from 'next/link'
+import React, { memo, ReactNode } from 'react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 interface NonMemoizedMarkdownProps {
   children: ReactNode
@@ -15,9 +15,9 @@ const NonMemoizedMarkdown = ({ children }: NonMemoizedMarkdownProps) => {
       ;<code
         className={cn(
           className,
-          "whitespace-pre-wrap break-words text-[13px] font-normal",
-          "bg-zinc-100 dark:bg-zinc-800",
-          "py-0.5 px-1 mx-1 rounded"
+          'whitespace-pre-wrap break-words text-[13px] font-normal',
+          'bg-zinc-100 dark:bg-zinc-800',
+          'py-0.5 px-1 mx-1 rounded'
         )}
         {...props}
       >
@@ -123,14 +123,14 @@ const NonMemoizedMarkdown = ({ children }: NonMemoizedMarkdownProps) => {
     },
     h3({ node, children, ...props }: any) {
       return (
-        <h3 className="text-lg font-semibold mb-2" {...props}>
+        <h3 className="text-[16px] font-semibold mb-2" {...props}>
           {children}
         </h3>
       )
     },
     h4({ node, children, ...props }: any) {
       return (
-        <h4 className="text-base font-semibold mb-2" {...props}>
+        <h4 className="text-sm font-semibold mb-2" {...props}>
           {children}
         </h4>
       )

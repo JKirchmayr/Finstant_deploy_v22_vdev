@@ -13,7 +13,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/store/authStore'
 import { useFileStore } from '@/store/useCompanyProfile'
@@ -24,6 +24,7 @@ import { Source } from './chat/chat.types'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { useMessageInteractions } from '@/hooks/useMessageInteractions'
 
 // Files dropdown component
 const FilesDropdown = () => {
@@ -40,6 +41,15 @@ const FilesDropdown = () => {
     setIsCopilotOpen,
   } = useChatStore()
   const isMobile = useIsMobile()
+  const params = useParams()
+  const sessionIdFromUrl = params.id?.toString() ?? ''
+  const { user } = useAuth()
+
+  const { handleListCardClick, handleProfileClick, loadingMessageId } = useMessageInteractions({
+    messages,
+    sessionId: sessionIdFromUrl,
+    userId: user?.user_id ?? '',
+  })
   const inlineCards =
     messages.filter(m => m.role === 'inline_card' || m.role === 'inline_list_card').reverse() || []
   // console.log(inlineCards)
@@ -84,42 +94,47 @@ const FilesDropdown = () => {
             {/* 5. Dynamic Content Area */}
             <div className="flex-1 p-2 overflow-y-auto space-y-2" onClick={() => setIsOpen(false)}>
               {inlineCards.length > 0 ? (
-                inlineCards.map((card, index) =>
-                  card.role === 'inline_card' ? (
+                inlineCards.map((m, index) =>
+                  m.role === 'inline_card' ? (
                     <InlineCard
-                      key={card.id || index}
-                      name={card.data?.name}
-                      city={card.data?.city}
-                      country={card.data?.country}
-                      website={card.data?.website}
-                      logo={card.data?.logo || ''}
-                      type={card.data?.type}
-                      content={card.content}
-                      isStreaming={isStreaming}
+                      key={index}
+                      name={m.data.name}
+                      city={m.data.city}
+                      country={m.data.country}
+                      content={m.content}
+                      website={m.data.website}
+                      logo={m.data.logo}
+                      type={m.data.type}
+                      isLoading={m.loading || (m as any).message_id === loadingMessageId}
                       onClick={() => {
-                        setMarkdownSources((card?.sources || []) as unknown as Source[])
-                        closeListPanel()
-                        closeCompanyPopup()
-                        setIsCanvasOpen(true)
-                        setIsCopilotOpen(true)
+                        handleProfileClick(
+                          m.id || '',
+                          (m as any)?.profile_id || '',
+                          m.sources,
+                          (m as any)?.message_id
+                        )
                       }}
+                      isStreaming={isStreaming}
                     />
                   ) : (
                     <InlineListCard
-                      key={card.id || index}
-                      title={card.data?.profile?.title}
-                      itemCount={card.data?.profile?.estimated_list_item_count}
-                      isStreaming={isStreaming}
+                      key={index}
+                      title={m.data?.profile?.title || m?.data?.title}
+                      itemCount={
+                        m.data?.profile?.estimated_list_item_count || m?.data?.estimated_list_count
+                      }
+                      isLoading={m.loading || (m as any).message_id === loadingMessageId}
                       onClick={() => {
-                        openListPanel(
-                          card.id,
-                          card.data?.profile?.title,
-                          card.data?.list || [],
-                          card.data?.profile?.estimated_list_item_count,
-                          card.data?.profile?.type
+                        handleListCardClick(
+                          m.id,
+                          m.data,
+                          m.data?.profile?.type || m?.data?.type,
+                          (m as any).list_id ?? '',
+                          (m as any)?.message_id || ''
                         )
                         setSourcesOpen(false)
                       }}
+                      isStreaming={isStreaming}
                     />
                   )
                 )

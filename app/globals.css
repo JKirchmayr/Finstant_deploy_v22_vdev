@@ -325,27 +325,27 @@ body {
   scrollbar-width: none; /* Firefox */
 }
 /* Custom thin scrollbar styles */
-.thin-scroll {
+* {
   scrollbar-width: thin;
   scrollbar-color: #888 transparent;
 }
 
-.thin-scroll::-webkit-scrollbar {
+*::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
-.thin-scroll::-webkit-scrollbar-track {
+*::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.thin-scroll::-webkit-scrollbar-thumb {
+*::-webkit-scrollbar-thumb {
   background: var(--accent-foreground);
   border-radius: 3px;
   opacity: 0.5;
 }
 
-.thin-scroll::-webkit-scrollbar-thumb:hover {
+*::-webkit-scrollbar-thumb:hover {
   background: var(--accent-foreground);
   opacity: 0.6;
 }

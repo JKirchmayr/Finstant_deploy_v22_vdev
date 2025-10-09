@@ -14,7 +14,16 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { ArrowLeft, ChevronLeft, ChevronRight, Download, Trash, X } from 'lucide-react'
+import {
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  ListChecks,
+  Plus,
+  Trash,
+  X,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 import {
@@ -32,6 +41,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../../ui/tooltip'
 import { useChatStore } from '@/store/chatStore'
 import { ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from '@heroicons/react/24/outline'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { AddToListDialog, CreateNewListDialog, Item } from './ListDialogs'
 
 interface IChatDataTableProps<T extends any> {
   data: T[]
@@ -104,10 +114,10 @@ const ChatDataTable = <T extends any>({
     onStateChange: state => {
       setRowSelection([])
       // Reset scroll position when column state changes
-      if (tableRef.current) {
-        tableRef.current.scrollLeft = 0
-        setIsScrolledX(false)
-      }
+      // if (tableRef.current) {
+      //   tableRef.current.scrollLeft = 0
+      //   setIsScrolledX(false)
+      // }
     },
   })
 
@@ -209,6 +219,8 @@ const ChatDataTable = <T extends any>({
     toast.success('Data Deleted Successfully')
   }
 
+  const rowDisabled = selectedRows?.length <= 0 || isStreaming
+
   return (
     <div className="w-full flex h-full flex-col gap-3">
       {!noHeader && (
@@ -255,22 +267,50 @@ const ChatDataTable = <T extends any>({
               </Tooltip>
             </div>
           </div>
-          <div className="pt-1 pb-0 pr-2 pl-2">
+          <div className="pt-2 pb-0 pr-2 pl-2">
             <div className="flex justify-between items-center">
-              <div className="flex gap-2 shrink-0 min-h-[28px] items-center">
-                {selectedRows?.length > 0 && (
+              <div className="flex gap-4 shrink-0 min-h-[28px] items-center">
+                <Button
+                  variant="secondary"
+                  size="xs"
+                  disabled={rowDisabled}
+                  className="h-7 hover:bg-gray-300 gap-0.5"
+                  onClick={handleDeleteSelected}
+                >
+                  Delete <Trash className="size-4 ml-1" />
+                </Button>
+                <AddToListDialog
+                  initialSelected={(selectedRows as Item[]) ?? []}
+                  onConfirm={() => setRowSelection([])}
+                >
                   <Button
                     variant="secondary"
                     size="xs"
-                    disabled={isStreaming}
+                    disabled={rowDisabled}
                     className="h-7 hover:bg-gray-300"
-                    onClick={handleDeleteSelected}
+
+                    // onClick={handleDeleteSelected}
                   >
-                    Delete <Trash className="size-4 ml-1" />
+                    Add to list <ListChecks />
                   </Button>
-                )}
+                </AddToListDialog>
               </div>
               <div className="flex gap-2 items-center pr-0">
+                <CreateNewListDialog
+                  initialSelected={(selectedRows as Item[]) ?? []}
+                  onConfirm={() => setRowSelection([])}
+                >
+                  <Button
+                    variant="secondary"
+                    size="xs"
+                    disabled={rowDisabled}
+                    className="h-7 hover:bg-gray-300 gap-1"
+
+                    // onClick={handleDeleteSelected}
+                  >
+                    Create List <Plus />
+                  </Button>
+                </CreateNewListDialog>
                 <Button
                   variant="secondary"
                   size="xs"
@@ -291,7 +331,7 @@ const ChatDataTable = <T extends any>({
       >
         <Table
           className="!w-full bg-background [&_td]:border-border table-fixed border-separate border-spacing-0 [&_tfoot_td]:border-t [&_tr]:border-none [&_tr:not(:last-child)_td]:border-b [&_thead]:border-b-0"
-          style={{ width: table.getTotalSize() }}
+          // style={{ width: table.getTotalSize() }}
         >
           <TableHeader className="bg-white text-[13px] h-8 sticky top-0 z-10">
             {table.getHeaderGroups().map(headerGroup => (

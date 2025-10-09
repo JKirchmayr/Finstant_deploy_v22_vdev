@@ -12,6 +12,7 @@ import {
 import Link from 'next/link'
 import { useGetUserSessionsQuery } from '@/queries/sessions'
 import { SessionRow } from '@/types/common.types'
+import { useParams } from 'next/navigation'
 
 type SessionTypes = SessionRow & {
   date_group: string
@@ -19,19 +20,24 @@ type SessionTypes = SessionRow & {
 
 export function NavSessions({}) {
   const { data, isLoading } = useGetUserSessionsQuery()
-
+  const { id } = useParams()
+  const isActive = (sessionId: string) => sessionId === id
   if (isLoading || !data) return null
 
   return (
-    <SidebarGroup className="group-data-[collapsible=icon]:hidden sm:hidden group-data-[state=expanded]:flex ">
-      <SidebarGroupLabel className="text-sm">History</SidebarGroupLabel>
-      <SidebarMenu className="">
+    <SidebarGroup className="group-data-[collapsible=icon]:hidden sm:hidden group-data-[state=expanded]:flex pt-0">
+      <SidebarGroupLabel className="text-sm sticky top-0 z-30 bg-white dark:bg-black">
+        History
+      </SidebarGroupLabel>
+      <SidebarMenu>
         {Object.entries(data?.data).map(([group, sessions]) => (
           <SidebarGroup key={group} className="p-0">
-            <SidebarGroupLabel className="truncate">{group}</SidebarGroupLabel>
+            <SidebarGroupLabel className="truncate sticky top-[2rem] z-20 bg-white dark:bg-black">
+              {group}
+            </SidebarGroupLabel>
             {(sessions as SessionTypes[]).map(session => (
               <SidebarMenuItem key={session.id}>
-                <SidebarMenuButton asChild>
+                <SidebarMenuButton asChild isActive={isActive(session.id)}>
                   <Link href={`/sessions/${session.id}`}>
                     <span>{session.session_title}</span>
                   </Link>

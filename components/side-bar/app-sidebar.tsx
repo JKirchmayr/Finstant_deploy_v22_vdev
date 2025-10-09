@@ -21,7 +21,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarHead />
       </SidebarHeader>
-      <SidebarContent className="p-1 overflow-y-auto thin-scroll">
+      <SidebarContent className="p-1 overflow-y-auto thin-scroll pt-0">
         <NavSessions />
       </SidebarContent>
     </Sidebar>
