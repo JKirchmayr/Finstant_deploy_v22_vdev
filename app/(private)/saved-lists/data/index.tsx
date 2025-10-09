@@ -30,11 +30,7 @@ import { Loader2 } from 'lucide-react'
 import { UpdateUserListAction } from '@/services/saved-lists'
 import { UserList } from '@/types/saved-list'
 import { toast } from 'sonner'
-
-// Heroicons (icons requested)
 import { BuildingOffice2Icon, BanknotesIcon, UserGroupIcon } from '@heroicons/react/24/outline'
-
-/** ------ Utils ------ */
 
 type NormalizedType = 'company' | 'investor' | 'people' | 'unknown'
 const normalizeListType = (value?: string): NormalizedType => {
@@ -47,15 +43,15 @@ const normalizeListType = (value?: string): NormalizedType => {
 
 const ListTypeIcon: React.FC<{ type: NormalizedType }> = ({ type }) => {
   if (type === 'company') {
-    return <BuildingOffice2Icon className="h-4 w-4 text-gray-800" aria-hidden />
+    return <BuildingOffice2Icon className="h-6 w-6 text-gray-800" aria-hidden />
   }
   if (type === 'investor') {
-    return <BanknotesIcon className="h-4 w-4 text-gray-800" aria-hidden />
+    return <BanknotesIcon className="h-6 w-6 text-gray-800" aria-hidden />
   }
   if (type === 'people') {
-    return <UserGroupIcon className="h-4 w-4 text-gray-800" aria-hidden />
+    return <UserGroupIcon className="h-6 w-6 text-gray-800" aria-hidden />
   }
-  return <span className="inline-block h-4 w-4 rounded bg-gray-300" aria-hidden />
+  return <span className="inline-block h-6 w-6 rounded bg-gray-300" aria-hidden />
 }
 
 export const SavedListPage = () => {
@@ -128,7 +124,7 @@ export const SavedListPage = () => {
         header: 'List Name',
         cell: ({ row }) => {
           const name = (row.original as any).list_name || 'Untitled'
-          return <span className="font-medium">{name}</span>
+          return <span className="text-base font-sm">{name}</span>
         },
       },
       {
@@ -137,7 +133,7 @@ export const SavedListPage = () => {
         cell: ({ row }) => {
           const nType = normalizeListType((row.original as any).list_type)
           return (
-            <div className="inline-flex items-center gap-2">
+            <div className="inline-flex items-center text-base font-sm gap-2">
               <ListTypeIcon type={nType} />
               <span className="text-gray-700 capitalize">
                 {nType !== 'unknown' ? nType : (row.original as any).list_type}
@@ -163,7 +159,7 @@ export const SavedListPage = () => {
         },
       },
     ],
-    []
+    [userListsArray]
   )
 
   const table = useReactTable({
@@ -177,10 +173,9 @@ export const SavedListPage = () => {
   })
 
   useEffect(() => {
-    // Reset selection and (if present) pagination page when changing tabs
     table.resetRowSelection()
     ;(table as any).setPageIndex?.(0)
-  }, [activeTab]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeTab]) 
 
   const handleBulkAction = async (action: UpdateUserListAction) => {
     const selectedIds = table
@@ -221,20 +216,21 @@ export const SavedListPage = () => {
   }
 
   return (
-    <div className="p-4 w-full mx-auto">
+    <div className="p-6 w-full mx-auto">
       <h1 className="text-2xl font-semibold pb-2 border-b-2">Saved Lists</h1>
 
-      <div className="flex justify-between py-4 items-center">
+      {/* Tabs + Search */}
+      <div className="flex justify-between py-4 items-center border-b-2">
         <Tabs value={activeTab} onValueChange={value => setActiveTab(value as any)}>
-          <TabsList className="bg-transparent gap-6 p-0">
+          <TabsList className="bg-transparent gap-6 rounded-none">
             {Object.entries(tabCounts).map(([name, count]) => (
               <TabsTrigger
                 key={name}
                 value={name}
-                className="cursor-pointer data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-b-black rounded-none"
+                className="cursor-pointer text-base py-8.5 data-[state=active]:mb-[-1px] data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-b-black  rounded-none"
               >
                 {name}
-                <span className="ml-2 bg-gray-200 text-gray-700 text-xs font-medium px-2 py-0.5 rounded-full">
+                <span className="ml-2 bg-gray-200 text-gray-700 text-xs font-medium px-2 rounded-md">
                   {count}
                 </span>
               </TabsTrigger>
@@ -242,16 +238,15 @@ export const SavedListPage = () => {
           </TabsList>
         </Tabs>
 
-        <div className="w-64">
+        <div className="w-[40%] text-md font-semibold">
           <Input
-            placeholder="Search..."
+            placeholder="Search Any keyword....."
             value={globalFilter ?? ''}
             onChange={e => setGlobalFilter(e.target.value)}
           />
         </div>
       </div>
 
-      {/* Bulk Actions */}
       <div className="flex justify-between items-center py-4">
         <div className="flex gap-2">
           <Button
@@ -261,15 +256,25 @@ export const SavedListPage = () => {
           >
             {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Delete
           </Button>
-          <Button
-            variant="outline"
-            onClick={() => handleBulkAction('archive')}
-            disabled={
-              !table.getSelectedRowModel().rows.length || activeTab === 'Archive' || isUpdating
-            }
-          >
-            {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Archive
-          </Button>
+          {activeTab !== 'Archive' && (
+            <Button
+              variant="outline"
+              onClick={() => handleBulkAction('archive')}
+              disabled={!table.getSelectedRowModel().rows.length || isUpdating}
+            >
+              {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Archive
+            </Button>
+          )}
+
+          {activeTab === 'Archive' && (
+            <Button
+              variant="outline"
+              onClick={() => handleBulkAction('reactivate')}
+              disabled={!table.getSelectedRowModel().rows.length || isUpdating}
+            >
+              {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Reactivate
+            </Button>
+          )}
         </div>
 
         <Button
@@ -282,13 +287,13 @@ export const SavedListPage = () => {
       </div>
 
       {/* Table */}
-      <div className="rounded-md border">
+      <div className="rounded-md border mt-2 shadow-xl">
         <Table>
-          <TableHeader>
+          <TableHeader className="text-sm bg-gray-50">
             {table.getHeaderGroups().map(headerGroup => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map(header => (
-                  <TableHead key={header.id}>
+                  <TableHead key={header.id} className="py-2">
                     {flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
                 ))}
@@ -315,10 +320,10 @@ export const SavedListPage = () => {
                   key={(row.original as any).saved_list_id}
                   data-state={row.getIsSelected() && 'selected'}
                   onClick={() => router.push(`/saved-lists/${(row.original as any).saved_list_id}`)}
-                  className="cursor-pointer"
+                  className="cursor-pointer text-base font-sm"
                 >
                   {row.getVisibleCells().map(cell => (
-                    <TableCell key={cell.id}>
+                    <TableCell key={cell.id} className="py-4">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}

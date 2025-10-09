@@ -1,430 +1,129 @@
 'use client'
 
-import React from 'react'
-import { ColumnDef } from '@tanstack/react-table'
-import { useChatStore } from '@/store/chatStore'
-import Image from 'next/image'
-import Link from 'next/link'
+import { type ColumnDef } from '@tanstack/react-table'
+import { ArrowUpDown, Globe, GripVertical, Building2, Users, MapPin } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { ExpandableCell } from '@/components/table/expandable-cell'
+import { AnyListItem, ListType, isCompany, isInvestor, isPeople } from '@/types/saved-list'
 
-import {
-  BuildingOffice2Icon,
-  Bars3Icon,
-  BanknotesIcon,
-  MapPinIcon,
-  Bars3BottomLeftIcon,
-  GlobeAltIcon,
-  UsersIcon,
-  BriefcaseIcon,
-  LinkIcon,
-  CalendarDaysIcon,
-} from '@heroicons/react/24/outline'
-import { GripVertical } from 'lucide-react'
+const getFaviconUrl = (websiteUrl: string | null) => {
+    if (!websiteUrl) return 'https://www.google.com/s2/favicons?domain=google.com';
+    try {
+        return `https://www.google.com/s2/favicons?domain=${new URL(websiteUrl).hostname}`;
+    } catch {
+        return 'https://www.google.com/s2/favicons?domain=google.com';
+    }
+};
 
-const PulseLoading = () => {
-  return (
-    <p className="flex gap-1 items-center animate-pulse">
-      <span className="animate-ping size-1 bg-green-600 rounded-full mx-1" />
-      Reading
-    </p>
-  )
-}
 
-const HeaderWithIcon = ({ icon, label }: { icon: React.ReactNode; label: string }) => (
-  <div className="inline-flex items-center justify-center gap-2">
-    {icon}
-    <span className="truncate">{label}</span>
-  </div>
-)
-
-const toTitle = (key: string) => {
-  if (!key) return ''
-  return key
-    .replace(/_/g, ' ')
-    .replace(/([a-z])([A-Z])/g, '$1 $2')
-    .toLowerCase()
-    .replace(/\b\w/g, s => s.toUpperCase())
-}
-
-const ensureProtocol = (url?: string) => {
-  if (!url) return undefined
-  const u = url.trim()
-  return u.startsWith('http') ? u : `https://${u}`
-}
-
-export const generateColumns = (
-  data: any[],
-  type: 'company' | 'investor' | 'transaction' | 'people'
-): ColumnDef<any>[] => {
-  const defaultColumnsConfig = {
-    company: [
-      'NAME',
-      'DESCRIPTION',
-      'WEBSITE',
-      'INDUSTRY',
-      'EMPLOYEES',
-      'LOCATION',
-      'REVENUE_ESTIMATE',
-    ],
-    investor: [
-      'NAME',
-      'DESCRIPTION',
-      'WEBSITE',
-      'INDUSTRY',
-      'EMPLOYEES',
-      'LOCATION',
-      'FOCUS_INDUSTRY',
-    ],
-    transaction: ['DEAL_DATE', 'TARGET_NAME', 'DESCRIPTION', 'BUYER_NAME', 'DEAL_SOURCE_URL'],
-    people: [
-      'NAME',
-      'DESCRIPTION',
-      'POSITION',
-      'COMPANY_NAME',
-      // 'EMPLOYEES',
-      'LOCATION',
-      'PROFILE_URL',
-    ],
-  }
-  const defaultKeys = defaultColumnsConfig[type] || []
-  const primaryColumnHeader = toTitle(type === 'people' ? 'Person Name' : type)
-
-  const allColumnDefs: Record<string, ColumnDef<any>> = {
-    drag: {
+export const generateColumns = (listType: ListType): ColumnDef<AnyListItem>[] => {
+  const commonStartColumns: ColumnDef<AnyListItem>[] = [
+    {
       id: 'drag',
       header: '',
-      cell: ({ row }) => (
-        <div className="flex gap-1">
-          <GripVertical className="h-4 w-4 flex-shrink-0 cursor-grab active:cursor-grabbing" />
-        </div>
-      ),
-      size: 50,
-      maxSize: 50,
+      cell: () => <GripVertical className="h-5 w-5 cursor-grab active:cursor-grabbing" />,
+      size: 10,
       enableSorting: false,
       enableHiding: false,
     },
-    NAME: {
-      accessorKey: 'NAME',
-      header: () => (
-        <HeaderWithIcon
-          icon={<BuildingOffice2Icon className="h-4 w-4" />}
-          label={primaryColumnHeader}
-        />
-      ),
-      cell: ({ row }) => {
-        const { openListItemPopup } = useChatStore.getState()
-        const name = row.original.NAME || 'Details'
-        const logo = row.original.LOGO || row.original.PROFILE_PIC_URL
-        const website = row.original.WEBSITE
-        return (
-          <div className="inline-flex items-center cursor-pointer min-w-0">
-            <Image
-              src={
-                logo ||
-                `https://www.google.com/s2/favicons?domain=${new URL(website).hostname}` ||
-                'https://placehold.co/50x50.png'
-              }
-              alt={`${name} logo`}
-              width={20}
-              height={20}
-              className="mr-2 rounded-sm flex-shrink-0"
-              onError={e => {
-                ;(
-                  e.currentTarget as HTMLImageElement
-                ).src = `https://www.google.com/s2/favicons?domain=${new URL(website).hostname}`
-              }}
-              unoptimized
-            />
-            <button
-              onClick={() => openListItemPopup(row.original)}
-              className="truncate text-left cursor-pointer font-medium text-gray-900 hover:underline"
-              title={name}
-            >
-              {name}
-            </button>
-          </div>
-        )
-      },
-    },
-    DESCRIPTION: {
-      accessorKey: 'DESCRIPTION',
-      size: 200,
-      header: () => <HeaderWithIcon icon={<Bars3Icon className="h-4 w-4" />} label="Description" />,
-      cell: ({ row }) => (
-        <ExpandableCell
-          TriggerCell={
-            <p className="line-clamp-2 cursor-pointer">
-              {row.original.DESCRIPTION || <span className="text-muted-foreground">n/a</span>}
-            </p>
-          }
-        >
-          <p className=" ">
-            {row.original.DESCRIPTION || (
-              <span className="text-muted-foreground">No description available.</span>
-            )}
-          </p>
-        </ExpandableCell>
-      ),
-    },
-    WEBSITE: {
-      accessorKey: 'WEBSITE',
-      header: () => <HeaderWithIcon icon={<GlobeAltIcon className="h-4 w-4" />} label="Website" />,
-      cell: ({ row }) => {
-        const url = ensureProtocol(row.original.WEBSITE)
-        return url ? (
-          <Link href={url} target="_blank" className="text-blue-600 hover:underline truncate">
-            {row.original.WEBSITE}
-          </Link>
-        ) : (
-          <span className="text-muted-foreground">-</span>
-        )
-      },
-    },
-    INDUSTRY: {
-      accessorKey: 'INDUSTRY',
-      header: () => (
-        <HeaderWithIcon icon={<Bars3BottomLeftIcon className="h-4 w-4" />} label="Industry" />
-      ),
-      cell: ({ row }) => (
-        <span>{row.original.INDUSTRY || <span className="text-muted-foreground">n/a</span>}</span>
-      ),
-    },
-    EMPLOYEES: {
-      accessorKey: 'EMPLOYEES',
-      header: () => <HeaderWithIcon icon={<UsersIcon className="h-4 w-4" />} label="Employees" />,
-      cell: ({ row }) => {
-        const val = row.original.EMPLOYEES
-        return (
-          <span>
-            {typeof val === 'number'
-              ? new Intl.NumberFormat().format(val)
-              : val || <span className="text-muted-foreground">n/a</span>}
-          </span>
-        )
-      },
-    },
-    LOCATION: {
-      accessorKey: 'LOCATION',
-      header: () => <HeaderWithIcon icon={<MapPinIcon className="h-4 w-4" />} label="Location" />,
-      cell: ({ row }) => (
-        <span>{row.original.LOCATION || <span className="text-muted-foreground">n/a</span>}</span>
-      ),
-    },
-    REVENUE_ESTIMATE: {
-      accessorKey: 'REVENUE_ESTIMATE',
-      header: () => (
-        <HeaderWithIcon icon={<BanknotesIcon className="h-4 w-4" />} label="Revenue (Est)" />
-      ),
-      cell: ({ row }) => (
-        <span>
-          {row.original.REVENUE_ESTIMATE || <span className="text-muted-foreground">n/a</span>}
-        </span>
-      ),
-    },
-    FOCUS_INDUSTRY: {
-      accessorKey: 'FOCUS_INDUSTRY',
-      header: () => (
-        <HeaderWithIcon icon={<Bars3BottomLeftIcon className="h-4 w-4" />} label="Focus Industry" />
-      ),
-      cell: ({ row }) => {
-        const { isReading } = useChatStore.getState()
-        return isReading ? (
-          row.original.TARGET_INDUSTRY ? (
-            <span>{row.original.TARGET_INDUSTRY}</span>
-          ) : (
-            <PulseLoading />
-          )
-        ) : (
-          <span>
-            {row.original.TARGET_INDUSTRY || <span className="text-muted-foreground">n/a</span>}
-          </span>
-        )
-      },
-    },
-    DEAL_DATE: {
-      accessorKey: 'DEAL_DATE',
-      size: 100,
-      maxSize: 100,
-      header: () => <HeaderWithIcon icon={<CalendarDaysIcon className="h-4 w-4" />} label="Date" />,
-      cell: ({ row }) => (
-        <span>
-          {row.original.DEAL_DATE ? (
-            new Date(row.original.DEAL_DATE).toLocaleDateString()
-          ) : (
-            <span className="text-muted-foreground">n/a</span>
-          )}
-        </span>
-      ),
-    },
-    TARGET_NAME: {
-      accessorKey: 'TARGET_NAME',
-      header: () => (
-        <HeaderWithIcon icon={<BuildingOffice2Icon className="h-4 w-4" />} label="Target Name" />
-      ),
-      cell: ({ row }) => {
-        const { isReading, openListItemPopup } = useChatStore.getState()
-        return isReading ? (
-          row.original.TARGET_NAME ? (
-            <span className="line-clamp-2 break-all">{row.original.TARGET_NAME}</span>
-          ) : (
-            <PulseLoading />
-          )
-        ) : (
-          <span className="line-clamp-2 break-all">
-            {row.original.TARGET_NAME ? (
-              <button
-                className="cursor-pointer hover:underline line-clamp-2 break-all text-start"
-                onClick={() => openListItemPopup(row.original)}
-              >
-                {row.original.TARGET_NAME}
-              </button>
-            ) : (
-              <span className="text-muted-foreground">n/a</span>
-            )}
-          </span>
-        )
-      },
-    },
-    BUYER_NAME: {
-      accessorKey: 'BUYER_NAME',
-      header: () => (
-        <HeaderWithIcon icon={<BuildingOffice2Icon className="h-4 w-4" />} label="Buyer Name" />
-      ),
-      cell: ({ row }) => {
-        const { isReading } = useChatStore.getState()
-        return isReading ? (
-          row.original.BUYER_NAME ? (
-            <span>{row.original.BUYER_NAME}</span>
-          ) : (
-            <PulseLoading />
-          )
-        ) : (
-          <span>
-            {row.original.BUYER_NAME || <span className="text-muted-foreground">n/a</span>}
-          </span>
-        )
-      },
-    },
-    DEAL_SOURCE_URL: {
-      accessorKey: 'DEAL_SOURCE_URL',
-      size: 80,
-      maxSize: 80,
-      header: () => <HeaderWithIcon icon={<LinkIcon className="h-4 w-4" />} label="Source" />,
-      cell: ({ row }) => {
-        const url = ensureProtocol(row.original.DEAL_SOURCE_URL)
-        return url ? (
-          <Link href={url} target="_blank" className="text-blue-600 hover:underline ">
-            <p className=" w-full">Link</p>
-          </Link>
-        ) : (
-          <span className="text-muted-foreground">-</span>
-        )
-      },
-    },
-    POSITION: {
-      accessorKey: 'POSITION',
-      header: () => (
-        <HeaderWithIcon icon={<BriefcaseIcon className="h-4 w-4" />} label="Position" />
-      ),
-      cell: ({ row }) => (
-        <span>{row.original.POSITION || <span className="text-muted-foreground">n/a</span>}</span>
-      ),
-    },
-    COMPANY_NAME: {
-      accessorKey: 'COMPANY_NAME',
-      header: () => (
-        <HeaderWithIcon icon={<BuildingOffice2Icon className="h-4 w-4" />} label="Company Name" />
-      ),
-      cell: ({ row }) => (
-        <span>
-          {row.original.COMPANY_NAME || <span className="text-muted-foreground">n/a</span>}
-        </span>
-      ),
-    },
-    PROFILE_URL: {
-      accessorKey: 'PROFILE_URL',
-      header: () => (
-        <HeaderWithIcon icon={<LinkIcon className="h-4 w-4" />} label="LinkedIn Link" />
-      ),
-      cell: ({ row }) => {
-        const url = ensureProtocol(row.original.PROFILE_URL)
-        return url ? (
-          <Link href={url} target="_blank" className="text-blue-600 hover:underline">
-            View Profile
-          </Link>
-        ) : (
-          <span className="text-muted-foreground">-</span>
-        )
-      },
-    },
-  }
-
-  let columns: ColumnDef<any>[] = [
     {
       id: 'select',
-      size: 50,
-      maxSize: 50,
       header: ({ table }) => (
-        <div className="flex justify-center items-center">
-          <Checkbox
-            checked={table.getIsAllPageRowsSelected()}
-            onCheckedChange={value => table.toggleAllPageRowsSelected(!!value)}
-            aria-label="Select all"
-          />
-        </div>
-      ),
-      cell: ({ row }) => (
         <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={value => row.toggleSelected(!!value)}
-          aria-label="Select row"
+          checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
         />
       ),
+      cell: ({ row }) => <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label="Select row" />,
+      enableSorting: false,
+      enableHiding: false,
+      size: 40,
     },
-    {
-      id: 'rowNumber',
-      size: 50,
-      maxSize: 50,
-      header: () => <p className="w-full text-center">#</p>,
-      cell: ({ row }) => (
-        <div className="text-center font-medium tabular-nums">{row.index + 1}</div>
-      ),
-    },
-  ]
+  ];
 
-  defaultKeys.forEach(key => {
-    if (allColumnDefs[key]) {
-      columns.push(allColumnDefs[key])
-    }
-  })
+ 
 
-  const defaultKeysSet = new Set(defaultKeys)
-  const excludedKeys = new Set([
-    'LOGO',
-    'PROFILE_PIC_URL',
-    'EVALUATIONS',
-    'ITEM_ID',
-    'meta',
-    'session_id',
-    'text',
-    'STAGE',
-    'LIST_TYPE',
-    'ENTITY_TYPE',
-    'SESSION_ID',
-    'LINKEDIN_URL',
-  ])
-  const extraKeys = new Set<string>()
+  // --- These columns are specific to each list type ---
+  let specificColumns: ColumnDef<AnyListItem>[] = [];
 
-  for (const item of data || []) {
-    if (item && typeof item === 'object') {
-      Object.keys(item).forEach(key => {
-        if (!defaultKeysSet.has(key) && !excludedKeys.has(key)) {
-          extraKeys.add(key)
-        }
-      })
-    }
+  switch (listType) {
+    case 'company':
+      specificColumns = [
+        {
+          accessorKey: 'company_name',
+          header: ({ column }) => <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>Company <ArrowUpDown className="ml-2 h-4 w-4" /></Button>,
+          cell: ({ row }) => {
+              if (!isCompany(row.original)) return null;
+              const { company_name, company_logo, company_website } = row.original;
+              return (
+                  <div className="flex items-center gap-3 font-medium min-w-[150px]">
+                      <img src={company_logo || getFaviconUrl(company_website)} alt={`${company_name || 'Company'} logo`} className="h-15 w-15 rounded-md object-contain" />
+                      <div>
+                          <p className="font-semibold">{company_name || 'Untitled Company'}</p>
+                          {company_website && <a href={company_website} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline flex items-center gap-1" onClick={(e) => e.stopPropagation()}><Globe className="h-3 w-3" />Website</a>}
+                      </div>
+                  </div>
+              )
+          }
+        },
+        { accessorKey: 'company_description', header: 'Description', cell: ({ row }) => <p className="text-sm text-muted-foreground max-w-sm truncate">{isCompany(row.original) ? (row.original.company_description ?? 'N/A') : 'N/A'}</p> },
+        { accessorKey: 'company_industry', header: 'Industry', cell: ({ row }) => isCompany(row.original) ? <div className="flex items-center gap-1.5"><Building2 className="h-5 w-5 flex-shrink-0" />{row.original.company_industry ?? 'N/A'}</div> : 'N/A'},
+        { accessorKey: 'company_employees', header: 'Employees', cell: ({ row }) => isCompany(row.original) ? <div className="flex items-center gap-1.5"><Users className="h-5 w-5 flex-shrink-0" />{row.original.company_employees?.toLocaleString() ?? 'N/A'}</div> : 'N/A'},
+        { accessorKey: 'company_location', header: 'Location', cell: ({ row }) => isCompany(row.original) ? <div className="flex items-center gap-1.5"><MapPin className="h-5 w-5 flex-shrink-0" />{row.original.company_location ?? 'N/A'}</div> : 'N/A'},
+      ];
+      break;
+
+    case 'investor':
+      specificColumns = [
+        {
+          accessorKey: 'investor_name',
+          header: ({ column }) => <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>Investor <ArrowUpDown className="ml-2 h-4 w-4" /></Button>,
+          cell: ({ row }) => {
+              if (!isInvestor(row.original)) return null;
+              const { investor_name, investor_logo, investor_website } = row.original;
+              return (
+                  <div className="flex items-center gap-3 font-medium min-w-[250px]">
+                      <img src={investor_logo || getFaviconUrl(investor_website)} alt={`${investor_name || 'Investor'} logo`} className="h-15 w-15 rounded-md object-contain" />
+                      <div>
+                          <p className="font-semibold">{investor_name || 'Untitled Investor'}</p>
+                          {investor_website && <a href={investor_website} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline flex items-center gap-1" onClick={(e) => e.stopPropagation()}><Globe className="h-3 w-3" />Website</a>}
+                      </div>
+                  </div>
+              )
+          }
+        },
+        { accessorKey: 'investor_description', header: 'Description', cell: ({ row }) => <p className="text-sm text-muted-foreground max-w-xs truncate">{isInvestor(row.original) ? (row.original.investor_description ?? 'N/A') : 'N/A'}</p> },
+        { accessorKey: 'investor_industry', header: 'Industry', cell: ({ row }) => isInvestor(row.original) ? <div className="flex items-center gap-1.5"><Building2 className="h-4 w-4 flex-shrink-0" />{row.original.investor_industry ?? 'N/A'}</div> : 'N/A'},
+        { accessorKey: 'investor_employees', header: 'Employees', cell: ({ row }) => isInvestor(row.original) ? <div className="flex items-center gap-1.5"><Users className="h-4 w-4 flex-shrink-0" />{row.original.investor_employees?.toLocaleString() ?? 'N/A'}</div> : 'N/A'},
+        { accessorKey: 'investor_location', header: 'Location', cell: ({ row }) => isInvestor(row.original) ? <div className="flex items-center gap-1.5"><MapPin className="h-4 w-4 flex-shrink-0" />{row.original.investor_location ?? 'N/A'}</div> : 'N/A'},
+      ];
+      break;
+
+    case 'people':
+      specificColumns = [
+        {
+          accessorKey: 'person_name',
+          header: ({ column }) => <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>Name <ArrowUpDown className="ml-2 h-4 w-4" /></Button>,
+          cell: ({ row }) => {
+            if (!isPeople(row.original)) return null;
+            const { person_name, person_avatar } = row.original;
+            return (
+                <div className="flex items-center gap-3 font-medium">
+                    <img src={person_avatar || getFaviconUrl(null)} alt={`${person_name} avatar`} className="h-10 w-10 rounded-full object-cover border" />
+                    <p className="font-semibold">{person_name}</p>
+                </div>
+            )
+          }
+        },
+        { accessorKey: 'person_title', header: 'Title', cell: ({ row }) => isPeople(row.original) ? row.original.person_title : 'N/A' },
+        { accessorKey: 'person_company', header: 'Company', cell: ({ row }) => isPeople(row.original) ? row.original.person_company : 'N/A'},
+      ];
+      break;
+
+    default:
+        specificColumns = [{ accessorKey: 'id', header: 'ID' }, { id: 'data', header: 'Data', cell: ({row}) => <pre className="text-xs">{JSON.stringify(row.original, null, 2)}</pre>}];
   }
 
-  return columns
-}
+  return [...commonStartColumns, ...specificColumns];
+};

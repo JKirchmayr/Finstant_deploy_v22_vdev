@@ -11,21 +11,10 @@ import {
   getSortedRowModel,
   type SortingState,
   useReactTable,
-  type VisibilityState,
 } from '@tanstack/react-table'
-import { ArrowUpDown, ChevronDown, GripVertical, MoreHorizontal } from 'lucide-react'
+import * as XLSX from 'xlsx'
 
 import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import {
   Table,
@@ -40,158 +29,38 @@ import {
   SortableContent,
   SortableItem,
   SortableItemHandle,
-} from '@/components/ui/sortable'
+} from '@/components/ui/sortable' // Assuming you have this component
+import { AnyListItem, ListType } from '@/types/saved-list'
+import { toast } from 'sonner'
+import { useRemoveItemsFromList } from '@/queries/saved-lists'
 
-const data: Payment[] = [
-  {
-    id: 'm5gr84i9',
-    amount: 316,
-    status: 'success',
-    email: 'ken99@example.com',
-  },
-  {
-    id: '3u1reuv4',
-    amount: 242,
-    status: 'success',
-    email: 'Abe45@example.com',
-  },
-  {
-    id: 'derv1ws0',
-    amount: 837,
-    status: 'processing',
-    email: 'Monserrat44@example.com',
-  },
-  {
-    id: '5kma53ae',
-    amount: 874,
-    status: 'success',
-    email: 'Silas22@example.com',
-  },
-  {
-    id: 'bhqecj4p',
-    amount: 721,
-    status: 'failed',
-    email: 'carmella@example.com',
-  },
-]
-
-export type Payment = {
-  id: string
-  amount: number
-  status: 'pending' | 'processing' | 'success' | 'failed'
-  email: string
+interface DataTableProps {
+  columns: ColumnDef<AnyListItem>[]
+  data: AnyListItem[]
+  listType: ListType
+  userId: string
+  listId: string
 }
 
-export const columns: ColumnDef<Payment>[] = [
-  {
-    id: 'drag',
-    header: '',
-    cell: ({ row }) => (
-      <div className="flex gap-1">
-        <GripVertical className="h-4 w-4 flex-shrink-0 cursor-grab active:cursor-grabbing" />
-      </div>
-    ),
-    size: 50,
-    maxSize: 50,
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    id: 'select',
-    header: ({ table }) => (
-      <div className="flex gap-1 ">
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && 'indeterminate')
-          }
-          onCheckedChange={value => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      </div>
-    ),
-    cell: ({ row }) => (
-      <div className="flex gap-1">
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={value => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      </div>
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: 'status',
-    header: 'Status',
-    cell: ({ row }) => <div className="capitalize">{row.getValue('status')}</div>,
-  },
-  {
-    accessorKey: 'email',
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          Email
-          <ArrowUpDown />
-        </Button>
-      )
-    },
-    cell: ({ row }) => <div className="lowercase">{row.getValue('email')}</div>,
-  },
-  {
-    accessorKey: 'amount',
-    header: () => <div className="text-right">Amount</div>,
-    cell: ({ row }) => {
-      const amount = Number.parseFloat(row.getValue('amount'))
-
-      // Format the amount as a dollar amount
-      const formatted = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-      }).format(amount)
-
-      return <div className="text-right font-medium">{formatted}</div>
-    },
-  },
-  {
-    id: 'actions',
-    enableHiding: false,
-    cell: ({ row }) => {
-      const payment = row.original
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => navigator.clipboard.writeText(payment.id)}>
-              Copy payment ID
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>View customer</DropdownMenuItem>
-            <DropdownMenuItem>View payment details</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )
-    },
-  },
-]
-
-export function ListDetails() {
+export function ListDetailsDataTable({ columns, data, listType,userId, listId }: DataTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
   const [items, setItems] = React.useState(data)
+
+  const { mutate: removeItems, isPending: isDeleting } = useRemoveItemsFromList(true);
+
+  React.useEffect(() => {
+    setItems(data)
+  }, [data])
+
+  // Determine which column to filter based on listType
+  const filterColumnId = React.useMemo(() => {
+    if (listType === 'investor') return 'investor_name'
+    if (listType === 'company') return 'company_name'
+    if (listType === 'people') return 'person_name'
+    return 'id' // Fallback
+  }, [listType])
 
   const table = useReactTable({
     data: items,
@@ -202,77 +71,114 @@ export function ListDetails() {
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
+    getRowId: row => row.saved_list_item_id,
+     initialState: { 
+      pagination: {
+        pageSize: 5
+      },
     },
+    state: { sorting, columnFilters, rowSelection },
   })
 
+  const handleDelete = () => {
+    const selectedRows = table.getFilteredSelectedRowModel().rows
+    if (selectedRows.length === 0) {
+      toast.warning('Please select items to delete.')
+      return
+    }
+
+    // This correctly gets the unique item IDs for the list
+    const selectedItemIds = selectedRows.map(row => row.original.saved_list_item_id)
+
+    const payload = {
+      saved_list_item_ids: selectedItemIds,
+    }
+
+    removeItems(
+      { userId, listId, data: payload },
+      {
+        onSuccess: () => {
+          toast.success(`${selectedItemIds.length} item(s) deleted successfully.`)
+          table.resetRowSelection()
+        },
+        onError: error => {
+          toast.error('Failed to delete items. Please try again.')
+          console.error('Deletion failed:', error)
+        },
+      }
+    )
+  }
+  const handleDownload = () => {
+    const selectedRows = table.getFilteredSelectedRowModel().rows
+    if (selectedRows.length === 0) {
+      console.log('No rows selected for download.')
+      return
+    }
+
+    const selectedData = selectedRows.map(row => row.original)
+    const worksheet = XLSX.utils.json_to_sheet(selectedData)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Saved List Items')
+    XLSX.writeFile(workbook, 'list_items.xlsx')
+  }
+
   return (
-    <div className="w-full">
-      <div className="flex items-center py-4">
+    <div>
+      <div className="flex items-center py-4 gap-2">
         <Input
-          placeholder="Filter emails..."
-          value={(table.getColumn('email')?.getFilterValue() as string) ?? ''}
-          onChange={event => table.getColumn('email')?.setFilterValue(event.target.value)}
+          placeholder={`Filter by ${listType} name...`}
+          value={(table.getColumn(filterColumnId)?.getFilterValue() as string) ?? ''}
+          onChange={event => table.getColumn(filterColumnId)?.setFilterValue(event.target.value)}
           className="max-w-sm"
         />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto bg-transparent">
-              Columns <ChevronDown />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter(column => column.getCanHide())
-              .map(column => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={value => column.toggleVisibility(!!value)}
-                  >
-                    {column.id}
-                  </DropdownMenuCheckboxItem>
-                )
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Button
+          variant="outline"
+          onClick={handleDelete}
+          disabled={Object.keys(rowSelection).length === 0}
+          className="ml-auto"
+        >
+          Delete
+        </Button>
+        <Button
+          variant="outline"
+          onClick={handleDownload}
+          disabled={Object.keys(rowSelection).length === 0}
+        >
+          Download
+        </Button>
       </div>
-      <div className="overflow-hidden rounded-md border">
-        <Sortable value={items} onValueChange={setItems} getItemValue={item => item.id}>
+
+    
+      <div className="rounded-md border-2 overflow-auto mt-4">
+        <Sortable
+          value={items}
+          onValueChange={setItems}
+          getItemValue={item => item.saved_list_item_id}
+        >
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map(headerGroup => (
                 <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map(header => {
-                    return (
-                      <TableHead key={header.id}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(header.column.columnDef.header, header.getContext())}
-                      </TableHead>
-                    )
-                  })}
+                  {headerGroup.headers.map(header => (
+                    <TableHead key={header.id} style={{ width: header.getSize() }} className='py-1 text-sm'>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableHead>
+                  ))}
                 </TableRow>
               ))}
             </TableHeader>
-            <SortableContent asChild items={items.map(i => i.id)}>
+            <SortableContent asChild items={items.map(item => item.saved_list_item_id)} >
               <TableBody>
                 {table.getRowModel().rows?.length ? (
                   table.getRowModel().rows.map(row => (
-                    <SortableItem key={row.original.id} value={row.original.id} asChild>
-                      <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                    <SortableItem key={row.id} value={row.id} asChild>
+                      <TableRow data-state={row.getIsSelected() && 'selected'} >
                         {row.getVisibleCells().map(cell => {
                           const content = (
-                            <TableCell key={cell.id}>
+                            <TableCell key={cell.id} className='py-4 text-base'>
                               {flexRender(cell.column.columnDef.cell, cell.getContext())}
                             </TableCell>
                           )
@@ -299,8 +205,10 @@ export function ListDetails() {
           </Table>
         </Sortable>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="text-muted-foreground flex-1 text-sm">
+
+      {/* Pagination */}
+      <div className="flex items-center justify-between space-x-2 py-4">
+        <div className="flex-1 text-sm text-muted-foreground">
           {table.getFilteredSelectedRowModel().rows.length} of{' '}
           {table.getFilteredRowModel().rows.length} row(s) selected.
         </div>
