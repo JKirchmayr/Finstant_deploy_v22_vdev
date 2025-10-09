@@ -17,7 +17,7 @@ export const useUserLists = (userId: string, limit?: number, enabled?: boolean) 
     queryKey: ['userLists', userId],
     queryFn: () => getUserLists(userId, limit),
     enabled: !!userId && (enabled ?? true),
-    staleTime: Infinity,
+    staleTime: 1000 * 60 * 60, // 60 minutes
   })
 }
 

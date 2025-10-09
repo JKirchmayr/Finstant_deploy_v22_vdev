@@ -33,6 +33,7 @@ import {
 import { AnyListItem, ListType } from '@/types/saved-list'
 import { toast } from 'sonner'
 import { useRemoveItemsFromList } from '@/queries/saved-lists'
+import { Download, Trash } from 'lucide-react'
 
 interface DataTableProps {
   columns: ColumnDef<AnyListItem>[]
@@ -42,13 +43,13 @@ interface DataTableProps {
   listId: string
 }
 
-export function ListDetailsDataTable({ columns, data, listType,userId, listId }: DataTableProps) {
+export function ListDetailsDataTable({ columns, data, listType, userId, listId }: DataTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [rowSelection, setRowSelection] = React.useState({})
   const [items, setItems] = React.useState(data)
 
-  const { mutate: removeItems, isPending: isDeleting } = useRemoveItemsFromList(true);
+  const { mutate: removeItems, isPending: isDeleting } = useRemoveItemsFromList(true)
 
   React.useEffect(() => {
     setItems(data)
@@ -73,9 +74,9 @@ export function ListDetailsDataTable({ columns, data, listType,userId, listId }:
     getFilteredRowModel: getFilteredRowModel(),
     onRowSelectionChange: setRowSelection,
     getRowId: row => row.saved_list_item_id,
-     initialState: { 
+    initialState: {
       pagination: {
-        pageSize: 5
+        pageSize: 10,
       },
     },
     state: { sorting, columnFilters, rowSelection },
@@ -124,32 +125,33 @@ export function ListDetailsDataTable({ columns, data, listType,userId, listId }:
   }
 
   return (
-    <div>
-      <div className="flex items-center py-4 gap-2">
+    <div className="py-4">
+      <div className="flex items-center gap-2">
         <Input
           placeholder={`Filter by ${listType} name...`}
           value={(table.getColumn(filterColumnId)?.getFilterValue() as string) ?? ''}
           onChange={event => table.getColumn(filterColumnId)?.setFilterValue(event.target.value)}
-          className="max-w-sm"
+          className="max-w-sm ml-0.5"
         />
         <Button
-          variant="outline"
+          variant="danger"
+          size="xs"
           onClick={handleDelete}
           disabled={Object.keys(rowSelection).length === 0}
           className="ml-auto"
         >
-          Delete
+          <Trash /> Delete
         </Button>
         <Button
-          variant="outline"
+          size="xs"
+          variant="blue"
           onClick={handleDownload}
           disabled={Object.keys(rowSelection).length === 0}
         >
-          Download
+          <Download /> Download
         </Button>
       </div>
 
-    
       <div className="rounded-md border-2 overflow-auto mt-4">
         <Sortable
           value={items}
@@ -161,7 +163,11 @@ export function ListDetailsDataTable({ columns, data, listType,userId, listId }:
               {table.getHeaderGroups().map(headerGroup => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map(header => (
-                    <TableHead key={header.id} style={{ width: header.getSize() }} className='py-1 text-sm'>
+                    <TableHead
+                      key={header.id}
+                      style={{ width: header.getSize() }}
+                      className="py-1 text-sm"
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(header.column.columnDef.header, header.getContext())}
@@ -170,15 +176,15 @@ export function ListDetailsDataTable({ columns, data, listType,userId, listId }:
                 </TableRow>
               ))}
             </TableHeader>
-            <SortableContent asChild items={items.map(item => item.saved_list_item_id)} >
+            <SortableContent asChild items={items.map(item => item.saved_list_item_id)}>
               <TableBody>
                 {table.getRowModel().rows?.length ? (
                   table.getRowModel().rows.map(row => (
                     <SortableItem key={row.id} value={row.id} asChild>
-                      <TableRow data-state={row.getIsSelected() && 'selected'} >
+                      <TableRow data-state={row.getIsSelected() && 'selected'}>
                         {row.getVisibleCells().map(cell => {
                           const content = (
-                            <TableCell key={cell.id} className='py-4 text-base'>
+                            <TableCell key={cell.id} className="py-4 text-base">
                               {flexRender(cell.column.columnDef.cell, cell.getContext())}
                             </TableCell>
                           )

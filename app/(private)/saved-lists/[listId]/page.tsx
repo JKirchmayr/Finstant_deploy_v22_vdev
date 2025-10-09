@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 
 import { generateColumns } from './data/columns'
 import { ListDetailsDataTable } from './data'
+import { Skeleton } from '@/components/ui/skeleton'
 
 const normalizeListType = (typeString: string = ''): ListType => {
   const lowerType = typeString.toLowerCase()
@@ -38,68 +39,50 @@ export default function SavedListDetailsPage() {
     isError?: boolean
   }
 
-  if (isAuthLoading || isItemsLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen gap-3 text-gray-600">
-        <Loader2 className="h-8 w-8 animate-spin" />
-        <span>Loading list details...</span>
-      </div>
-    )
-  }
+  const isLoading = isAuthLoading || isItemsLoading
 
-  if (isError || !listData) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen text-gray-500">
-        <p>Failed to load list details. Please try again later.</p>
-        <Link href="/saved-lists">
-          <Button variant="outline" className="mt-4">
-            Back to Lists
-          </Button>
-        </Link>
-      </div>
-    )
-  }
-
-  const { items, list_details, pagination } = listData
+  const { items, list_details, pagination } = listData || {}
   const listType = normalizeListType(list_details?.list_type)
   const columns = generateColumns(listType)
 
   return (
-    <div className="py-6">
-      <div className="flex items-center border-b-2 pb-6">
-        {/* <Link href="/saved-lists">
-          <Button variant="ghost" className="flex items-center gap-2">
+    <div className="p-4 space-y-4">
+      <div className="flex gap-2 items-center">
+        <Link href="/saved-lists" className="flex-shrink-0 ">
+          <Button variant="secondary" size="sm">
             <ArrowLeft className="h-5 w-5" />
           </Button>
-        </Link> */}
+        </Link>
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-x-2 ">
-            <span className="flex">
-              <Link href="/saved-lists">
-                <Button variant="ghost" className="flex items-center gap-2">
-                  <ArrowLeft className="h-5 w-5" />
-                </Button>
-              </Link>
+          {!isLoading ? (
+            <h1 className="text-[16px] font-semibold flex items-center gap-x-2 ">
               {list_details?.list_name}
-            </span>
-          </h1>
-          <p className="pl-10 text-base font-sm capitalize">
-            Type: {list_details?.list_type} ({pagination?.total_count})
-          </p>
+            </h1>
+          ) : (
+            <Skeleton className="w-[250px] h-4 rounded-sm" />
+          )}
+          {isLoading ? (
+            <Skeleton className="w-36 h-3 mt-1 rounded-sm" />
+          ) : (
+            <p className="text-xs ">
+              Type:
+              <span className="capitalize">
+                {' '}
+                {list_details?.list_type?.replace('_', ' ')} ({pagination?.total_count})
+              </span>
+            </p>
+          )}
         </div>
       </div>
-      <div className="px-6 overflow-auto">
-        {items && items.length > 0 ? (
-          <ListDetailsDataTable
-            columns={columns}
-            data={items}
-            listType={listType}
-            userId={userId}
-            listId={listId}
-          />
-        ) : (
-          <p className="text-center text-gray-500 p-6">No items found in this list.</p>
-        )}
+      <div className="overflow-auto">
+        <ListDetailsDataTable
+          columns={columns}
+          data={items ?? []}
+          listType={listType}
+          userId={userId}
+          listId={listId}
+          // isLoading={isLoading}
+        />
       </div>
     </div>
   )
