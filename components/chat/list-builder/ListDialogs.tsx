@@ -25,6 +25,7 @@ import { useChatStore } from '@/store/chatStore'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 import { useParams } from 'next/navigation'
+import { normalizeListType } from '@/utils/normalizeListData'
 
 export interface Item {
   LOGO: string
@@ -53,11 +54,14 @@ export function AddToListDialog({
   onConfirm?: () => void
 }) {
   const [open, setOpen] = useState(false)
+  const { activeList } = useChatStore()
   //   const [selected, setSelected] = useState<Item[]>(initialSelected)
   const [selectedList, setSelectedList] = useState<string>('')
   const { user } = useAuth()
   const { data, isLoading } = useUserLists(user?.user_id || '', undefined, open)
-  const lists = (data?.lists || []) as SavedList[]
+  const lists = ((data?.lists as SavedList[]) || []).filter(
+    list => normalizeListType(list.list_type) === activeList?.type
+  ) as SavedList[]
   const { mutate: addItemsToList, isPending } = useAddItemsToList()
 
   const handleSubmit = () => {
@@ -97,8 +101,8 @@ export function AddToListDialog({
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader className="gap-0">
             <DialogTitle className="text-base">Add To List</DialogTitle>
-            <DialogDescription className="">
-              Add initialSelected items to this list.
+            <DialogDescription className="text-xs">
+              Add selected items to this list.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4">
@@ -173,7 +177,7 @@ export function CreateNewListDialog({
   const [open, setOpen] = useState(false)
   const { activeList } = useChatStore()
   //   const [selected, setSelected] = useState<Item[]>(initialSelected)
-  const [listType, setListType] = useState('company')
+  const [listType, setListType] = useState(activeList.type || 'company')
   const [name, setName] = useState(activeList?.title || '')
   const { user } = useAuth()
   const { mutate: createUserList, isPending } = useCreateUserList()
@@ -216,7 +220,9 @@ export function CreateNewListDialog({
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader className="gap-0">
             <DialogTitle className="text-base">Create New List</DialogTitle>
-            <DialogDescription>Create a new list to add initialSelected items.</DialogDescription>
+            <DialogDescription className="text-xs">
+              Create a new list to add selected items.
+            </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4">
             <div className="grid gap-3">
@@ -229,9 +235,9 @@ export function CreateNewListDialog({
                 placeholder="Enter list name"
               />
             </div>
-            <div className="grid gap-3">
+            {/* <div className="grid gap-3">
               <Label htmlFor="name-1">List Type</Label>
-              <Select value={listType} onValueChange={setListType}>
+              <Select value={listType} onValueChange={v => setListType(normalizeListType(v))}>
                 <SelectTrigger className="w-full border-foreground/70">
                   <SelectValue placeholder="Select list type" />
                 </SelectTrigger>
@@ -242,7 +248,7 @@ export function CreateNewListDialog({
                   <SelectItem value="transaction">Transaction List</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
+            </div> */}
             <div className="grid gap-3 ">
               <Label>Selected Items</Label>
               <div className="grid gap-2 max-h-40 overflow-y-auto thin-scroll">
