@@ -20,6 +20,7 @@ export const useMessageInteractions = ({
     setMarkdown,
     setMarkdownSources,
     setIsCanvasOpen,
+    setActiveListItemCount,
   } = useChatStore()
 
   const [selectedListId, setSelectedListId] = useState('')
@@ -53,7 +54,7 @@ export const useMessageInteractions = ({
           estimated_list_item_count: formatted?.length || 3,
           type: normalizeListType(profile?.list_type),
         }
-        console.log({ type }, { formatted })
+        // console.log({ type }, { formatted })
 
         msg.data.list = formatted
         msg.id = loadingMessageId
@@ -82,9 +83,12 @@ export const useMessageInteractions = ({
     list_id?: string,
     message_id?: string
   ) => {
-    const title = cardData?.profile?.title || 'List'
+    const title = cardData?.profile?.title || cardData?.title || 'List'
     const list = cardData?.list || []
-    const itemCount = cardData?.profile?.estimated_list_item_count || list.length
+    const itemCount =
+      cardData?.profile?.estimated_list_item_count || cardData?.estimated_list_count || list.length
+
+    // console.log({ itemCount })
 
     setType(normalizeListType(type))
     setTitle(title)
@@ -93,6 +97,7 @@ export const useMessageInteractions = ({
     if (!id && list_id) {
       setSelectedListId(list_id)
       setLoadingMessageId(message_id || '')
+      openListPanel(id, title, [], itemCount, normalizeListType(type), true)
       return
     }
 

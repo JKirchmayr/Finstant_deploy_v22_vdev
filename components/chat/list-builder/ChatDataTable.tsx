@@ -220,7 +220,7 @@ const ChatDataTable = <T extends any>({
   }
 
   const rowDisabled = selectedRows?.length <= 0 || isStreaming
-
+  console.log({ activeListItemCount })
   return (
     <div className="w-full flex h-full flex-col gap-3">
       {!noHeader && (
@@ -379,7 +379,7 @@ const ChatDataTable = <T extends any>({
             ))}
           </TableHeader>
           <TableBody className="max-h-[400px] overflow-auto">
-            {isLoading && !data.length ? (
+            {isLoading ? (
               [...Array(activeListItemCount || 5)].map((_, i) => (
                 <TableRow key={i} className="border-b border-gray-300">
                   {[...Array(columns.length)].map((_, j) => (

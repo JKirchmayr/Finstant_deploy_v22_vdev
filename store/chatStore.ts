@@ -20,6 +20,7 @@ type ChatStore = {
   setIsListPanelOpen: (isListOpen: boolean) => void
   sourcesOpen: boolean
   setSourcesOpen: (sourcesOpen: boolean) => void
+  setActiveListItemCount: (count: number) => void
   activeProfile: {
     name: string | null
     type: 'company' | 'investor' | 'list' | null | 'transaction' | 'people'
@@ -46,8 +47,13 @@ type ChatStore = {
   activeList: {
     title: string
     type: 'company' | 'investor' | 'transaction' | 'people'
+    isLoading?: boolean
   }
-  setActiveList: (title: string, type: 'company' | 'investor' | 'transaction' | 'people') => void
+  setActiveList: (
+    title: string,
+    type: 'company' | 'investor' | 'transaction' | 'people',
+    isLoading?: boolean
+  ) => void
   activeListData: string[]
   setActiveListData: (data: string[]) => void
   activeListItemCount: number
@@ -56,7 +62,8 @@ type ChatStore = {
     title: string,
     data: string[],
     itemCount: number,
-    type: 'company' | 'investor' | 'transaction' | 'people'
+    type: 'company' | 'investor' | 'transaction' | 'people',
+    isLoading?: boolean
   ) => void
   closeListPanel: () => void
   streamListData: (data: string[]) => void
@@ -106,12 +113,14 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   activeList: {
     title: '',
     type: 'company',
+    isLoading: false,
   },
   activeListData: [],
   activeListItemCount: 0,
   isCopilotOpen: true,
   isReading: false,
   setMessages: messages => set({ messages }),
+  setActiveListItemCount: count => set({ activeListItemCount: count }),
   setIsReading: isReading => set({ isReading }),
   setIsCopilotOpen: isCopilotOpen => set({ isCopilotOpen }),
   openListItemPopup: company =>
@@ -125,7 +134,8 @@ export const useChatStore = create<ChatStore>((set, get) => ({
       popupCompany: null,
     }),
   setListProfileData: data => set({ listProfileData: data }),
-  setActiveList: (title, type) => set({ activeList: { title, type } }),
+  setActiveList: (title, type, isLoading = false) =>
+    set({ activeList: { title, type, isLoading } }),
   isListProfileOpen: false,
   setIsListProfileOpen: isListProfileOpen => set({ isListProfileOpen }),
   setActiveListData: data => set({ activeListData: data }),
@@ -174,12 +184,13 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     return get().messages.filter(message => message.role === 'inline_card')
   },
   activeListMessageId: null,
-  openListPanel: (id, title, data, itemCount, type) =>
+  openListPanel: (id, title, data, itemCount, type, isLoading = false) =>
     set({
       activeListMessageId: id,
       activeList: {
         title,
         type,
+        isLoading,
       },
       activeListData: data,
       activeListItemCount: itemCount,
@@ -197,6 +208,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
       activeList: {
         title: '',
         type: 'company',
+        isLoading: false,
       },
       activeListItemCount: 0,
       activeListMessageId: null,

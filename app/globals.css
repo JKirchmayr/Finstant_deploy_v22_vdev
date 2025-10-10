@@ -229,11 +229,6 @@ body {
   } */
 }
 
-.noscroll::-webkit-scrollbar {
-  width: 0; /* Remove scrollbar space */
-  background: transparent; /* Optional: just make scrollbar invisible */
-  height: 0;
-}
 /* *::-webkit-scrollbar {
   width: 1; 
   background: transparent; 
@@ -315,15 +310,28 @@ body {
   background: black !important;
 }
 
-.custom-scrollbar-hide::-webkit-scrollbar {
-  display: none;
+.noscroll {
+  /* Firefox + old Edge */
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE/Edge Legacy */
 }
 
-/* Hide scrollbar for IE, Edge and Firefox */
-.custom-scrollbar-hide {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+/* Target the scroller itself and any descendant scrollers */
+.noscroll::-webkit-scrollbar,
+.noscroll *::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important; /* Chrome/Safari */
 }
+
+.noscroll::-webkit-scrollbar-thumb,
+.noscroll *::-webkit-scrollbar-thumb,
+.noscroll::-webkit-scrollbar-track,
+.noscroll *::-webkit-scrollbar-track {
+  background: transparent !important;
+  border: none !important;
+}
+
 /* Custom thin scrollbar styles */
 * {
   scrollbar-width: thin;

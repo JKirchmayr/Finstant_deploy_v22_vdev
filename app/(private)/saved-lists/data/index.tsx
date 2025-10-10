@@ -35,6 +35,7 @@ import {
   RefreshCcw,
   Trash,
   Users,
+  WalletCards,
 } from 'lucide-react'
 import { UpdateUserListAction } from '@/services/saved-lists'
 import { SavedList, UserList } from '@/types/saved-list'
@@ -49,6 +50,7 @@ const tabsList = [
   { value: 'company', label: 'Companies', count: 0, icon: Building2Icon },
   { value: 'investor', label: 'Investors', count: 0, icon: Banknote },
   { value: 'people', label: 'People', count: 0, icon: Users },
+  { value: 'transaction', label: 'Transactions', count: 0, icon: WalletCards },
   { value: 'archive', label: 'Archive', count: 0, icon: Archive },
 ]
 
@@ -88,6 +90,7 @@ export const SavedListPage = () => {
       if (activeTab === 'company') return nType === 'company' && !isArchived
       if (activeTab === 'investor') return nType === 'investor' && !isArchived
       if (activeTab === 'people') return nType === 'people' && !isArchived
+      if (activeTab === 'transaction') return nType === 'transaction' && !isArchived
       return true
     })
   }, [userListsArray, activeTab])
@@ -114,6 +117,9 @@ export const SavedListPage = () => {
       ).length,
       people: lists.filter(
         l => normalizeListType(l.list_type) === 'people' && l.list_status !== 'archived'
+      ).length,
+      transaction: lists.filter(
+        l => normalizeListType(l.list_type) === 'transaction' && l.list_status !== 'archived'
       ).length,
       archive: lists.filter(l => l.list_status === 'archived').length,
     }

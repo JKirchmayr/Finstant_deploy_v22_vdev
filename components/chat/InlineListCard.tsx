@@ -32,9 +32,9 @@ export const InlineListCard = ({
       onClick={onClick}
     >
       {/* ✅ Subtle overlay for loading */}
-      {isLoading && (
+      {/* {isLoading && (
         <Skeleton className="absolute inset-0 z-10 bg-gray-200/40 backdrop-blur-sm pointer-events-none" />
-      )}
+      )} */}
 
       <div className="flex items-center gap-3 min-w-0 w-full">
         <div className="w-8 h-8 bg-green-100 rounded flex items-center justify-center flex-shrink-0">
