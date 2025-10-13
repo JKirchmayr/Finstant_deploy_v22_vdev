@@ -71,7 +71,7 @@ export const columns: ColumnDef<SavedList>[] = [
   },
 ]
 
-export type NormalizedType = 'company' | 'investor' | 'people' | 'unknown'
+export type NormalizedType = 'company' | 'investor' | 'people' | 'transaction' | 'unknown'
 
 const ListTypeIcon: React.FC<{ type: NormalizedType }> = ({ type }) => {
   if (type === 'company') {
@@ -91,5 +91,6 @@ export const normalizeListType = (value?: string): NormalizedType => {
   if (v.includes('company')) return 'company'
   if (v.includes('investor')) return 'investor'
   if (v.includes('people') || v.includes('person')) return 'people'
+  if (v.includes('transaction') || v.includes('person')) return 'transaction'
   return 'unknown'
 }

@@ -17,9 +17,9 @@ interface ListBuilderProps {
 
 export default function ListBuilder({ listData, title, type }: ListBuilderProps) {
   const isMobile = useIsMobile()
-  const { isStreaming, isCopilotOpen } = useChatStore()
+  const { isStreaming, isCopilotOpen, activeList } = useChatStore()
   //console.log(listData)
-
+  console.log(activeList.isLoading)
   const columns = () => generateColumns(listData, type)
 
   return (
@@ -38,7 +38,7 @@ export default function ListBuilder({ listData, title, type }: ListBuilderProps)
           <ChatDataTable
             data={listData}
             columns={columns()}
-            isLoading={isStreaming && listData.length === 0}
+            isLoading={(isStreaming && listData.length === 0) || (activeList?.isLoading ?? false)}
             titleName={title}
             defaultPinnedColumns={['select', 'rowNumber', 'NAME']}
           />

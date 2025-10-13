@@ -44,6 +44,7 @@ const Chat = ({
     setIsSearching,
     setMarkdownSources,
     setMessages,
+    closeListPanel,
   } = useChatStore()
 
   const [sessionId, setSessionId] = useState<string | null>(id || null)
@@ -61,6 +62,8 @@ const Chat = ({
   useEffect(() => {
     if (!isNewSession && initialMessages.length > 0) {
       setMessages(initialMessages)
+      closeListPanel()
+      setIsCanvasOpen(false)
     }
   }, [isNewSession && initialMessages])
 

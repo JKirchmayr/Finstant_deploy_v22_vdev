@@ -34,6 +34,7 @@ import {
   RefreshCcw,
   Trash,
   Users,
+  WalletCards,
 } from 'lucide-react'
 import { UpdateUserListAction } from '@/services/saved-lists'
 import { SavedList } from '@/types/saved-list'
