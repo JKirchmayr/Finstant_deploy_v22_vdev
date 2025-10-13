@@ -29,7 +29,7 @@ import {
   SortableContent,
   SortableItem,
   SortableItemHandle,
-} from '@/components/ui/sortable' // Assuming you have this component
+} from '@/components/ui/sortable' 
 import { AnyListItem, ListType } from '@/types/saved-list'
 import { toast } from 'sonner'
 import { useRemoveItemsFromList } from '@/queries/saved-lists'
@@ -55,13 +55,20 @@ export function ListDetailsDataTable({ columns, data, listType, userId, listId }
     setItems(data)
   }, [data])
 
-  // Determine which column to filter based on listType
-  const filterColumnId = React.useMemo(() => {
-    if (listType === 'investor') return 'investor_name'
-    if (listType === 'company') return 'company_name'
-    if (listType === 'people') return 'person_name'
-    return 'id' // Fallback
-  }, [listType])
+  const getFilterColumnId = (type: string) => {
+  switch (type) {
+    case 'investor':
+      return 'investor_name';
+    case 'company':
+      return 'company_name';
+    case 'people':
+      return 'person_name';
+    default:
+      return 'id';
+  }
+};
+
+const filterColumnId = getFilterColumnId(listType);
 
   const table = useReactTable({
     data: items,
@@ -74,11 +81,6 @@ export function ListDetailsDataTable({ columns, data, listType, userId, listId }
     getFilteredRowModel: getFilteredRowModel(),
     onRowSelectionChange: setRowSelection,
     getRowId: row => row.saved_list_item_id,
-    initialState: {
-      pagination: {
-        pageSize: 10,
-      },
-    },
     state: { sorting, columnFilters, rowSelection },
   })
 
@@ -125,7 +127,7 @@ export function ListDetailsDataTable({ columns, data, listType, userId, listId }
   }
 
   return (
-    <div className="py-4">
+    <div className="p-4">
       <div className="flex items-center gap-2">
         <Input
           placeholder={`Filter by ${listType} name...`}
@@ -152,7 +154,7 @@ export function ListDetailsDataTable({ columns, data, listType, userId, listId }
         </Button>
       </div>
 
-      <div className="rounded-md border-2 overflow-auto mt-4">
+      <div className="rounded-md border-2 overflow-auto mt-6 shadow-xl">
         <Sortable
           value={items}
           onValueChange={setItems}
@@ -184,7 +186,7 @@ export function ListDetailsDataTable({ columns, data, listType, userId, listId }
                       <TableRow data-state={row.getIsSelected() && 'selected'}>
                         {row.getVisibleCells().map(cell => {
                           const content = (
-                            <TableCell key={cell.id} className="py-4 text-base">
+                            <TableCell key={cell.id} className="py-4">
                               {flexRender(cell.column.columnDef.cell, cell.getContext())}
                             </TableCell>
                           )

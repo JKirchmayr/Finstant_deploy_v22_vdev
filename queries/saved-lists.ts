@@ -12,10 +12,10 @@ import {
 } from '@/services/saved-lists'
 
 // --- Get all user lists ---
-export const useUserLists = (userId: string, limit?: number, enabled?: boolean) => {
+export const useUserLists = (userId: string,type?:string, limit?: number, enabled?: boolean) => {
   return useQuery({
-    queryKey: ['userLists', userId],
-    queryFn: () => getUserLists(userId, limit),
+    queryKey: ['userLists', userId,type,limit],
+    queryFn: () => getUserLists(userId, type,limit),
     enabled: !!userId && (enabled ?? true),
     staleTime: 1000 * 60 * 60, // 60 minutes
   })

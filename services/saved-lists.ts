@@ -61,11 +61,18 @@ export const removeItemsFromUserList = async (userId: string, listId: string, da
 
 // Retrieve all lists for a user
 
-export const getUserLists = async (userId: string, limit?: number) => {
+export const getUserLists = async (userId: string,type?:string, limit?: number,) => {
   try {
+    const params:{type?:string; limit?:number}={};
+    if(type && type!=='all'){
+      params.type =type;
+    }
+    if(limit){
+      params.limit=limit;
+    }
     const res = await api.get(`/user-lists`, {
       headers: { 'user-id': userId },
-      params: { limit },
+      params,
     })
     return res.data
   } catch (error) {

@@ -82,6 +82,8 @@ export interface PeopleListItem extends BaseListItem {
   person_company: string | null
   person_avatar: string | null
   person_location: string | null
+  person_description: string | null 
+  person_linkedin_url: string | null
 }
 
 // A Union Type that can be any of the above
@@ -99,7 +101,7 @@ export const isPeople = (item: AnyListItem): item is PeopleListItem => {
 }
 
 // Type for the list type itself
-export type ListType = 'investor' | 'company' | 'people' | 'unknown'
+export type ListType = 'investor' | 'company' | 'people' | 'unknown' 
 
 // The full API response for a list's details
 export type ListItemsResponse = {

@@ -1,29 +1,208 @@
 'use client'
 
 import { type ColumnDef } from '@tanstack/react-table'
-import { ArrowUpDown, Globe, GripVertical, Building2, Users, MapPin } from 'lucide-react'
+import {
+  AlignLeft,
+  ArrowUpDown,
+  Briefcase,
+  Building2,
+  Factory,
+  Globe,
+  GripVertical,
+  Landmark,
+  Linkedin,
+  MapPin,
+  User,
+  Users,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { AnyListItem, ListType, isCompany, isInvestor, isPeople } from '@/types/saved-list'
+import { AnyListItem, isCompany, isInvestor, isPeople, ListType } from '@/types/saved-list'
+import Image from 'next/image'
+import { ExpandableCell } from '@/components/table/expandable-cell'
+import { Badge } from '@/components/ui/badge'
+import Link from 'next/link'
 
 const getFaviconUrl = (websiteUrl: string | null) => {
-  if (!websiteUrl) return 'https://www.google.com/s2/favicons?domain=google.com'
+  if (!websiteUrl) return '/default-favicon.png'
   try {
     return `https://www.google.com/s2/favicons?domain=${new URL(websiteUrl).hostname}`
   } catch {
-    return 'https://www.google.com/s2/favicons?domain=google.com'
+    return '/default-favicon.png'
   }
 }
 
+const HeaderWithIcon = ({ icon, label }: { icon: React.ReactNode; label: string }) => (
+  <div className="inline-flex items-center justify-center gap-2">
+    {icon}
+    <span className="truncate">{label}</span>
+  </div>
+)
+
+const EmptyCell = () => <span className="text-muted-foreground">—</span>
+
+const createEntityColumns = (entityType: 'company' | 'investor'): ColumnDef<AnyListItem>[] => {
+  const Icon = entityType === 'company' ? Building2 : Landmark
+
+  return [
+    {
+      accessorKey: `${entityType}_name`,
+      size: 250,
+      header: ({ column }) => (
+        <div className="flex items-center gap-1">
+          <Icon className="h-4 w-4" />
+          <span className="capitalize">{entityType}</span>
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className="p-0 hover:bg-transparent"
+          >
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
+      ),
+      cell: ({ row }) => {
+        const item = row.original
+        if (entityType === 'company' && isCompany(item)) {
+          return (
+            <div className="flex items-center gap-3 font-medium min-w-[150px]">
+              <Image
+                src={item.company_logo || getFaviconUrl(item.company_website)}
+                alt={`${item.company_name || 'company'} logo`}
+                width={25}
+                height={25}
+                className="rounded-sm object-contain"
+                unoptimized
+              />
+              <p className="font-semibold">{item.company_name || 'Untitled Company'}</p>
+            </div>
+          )
+        }
+        if (entityType === 'investor' && isInvestor(item)) {
+          return (
+            <div className="flex items-center gap-3 font-medium min-w-[150px]">
+              <Image
+                src={item.investor_logo || getFaviconUrl(item.investor_website)}
+                alt={`${item.investor_name || 'investor'} logo`}
+                width={25}
+                height={25}
+                className="rounded-sm object-contain"
+                unoptimized
+              />
+              <p className="font-semibold">{item.investor_name || 'Untitled Investor'}</p>
+            </div>
+          )
+        }
+        return <EmptyCell />
+      },
+    },
+    {
+      accessorKey: `${entityType}_description`,
+      size: 400,
+      header: () => <HeaderWithIcon icon={<AlignLeft className="h-4 w-4" />} label="Description" />,
+      cell: ({ row }) => {
+        const item = row.original
+        let description: string | null | undefined
+        if (entityType === 'company' && isCompany(item)) description = item.company_description
+        else if (entityType === 'investor' && isInvestor(item))
+          description = item.investor_description
+
+        if (!description) return <EmptyCell />
+        return (
+          <ExpandableCell
+            TriggerCell={<p className="line-clamp-2 cursor-pointer">{description}</p>}
+          >
+            <p>{description}</p>
+          </ExpandableCell>
+        )
+      },
+    },
+    {
+      accessorKey: `${entityType}_website`,
+      header: () => <HeaderWithIcon icon={<Globe className="h-4 w-4" />} label="Website" />,
+      cell: ({ row }) => {
+        const item = row.original
+        let websiteUrl: string | null | undefined
+        if (entityType === 'company' && isCompany(item)) websiteUrl = item.company_website
+        else if (entityType === 'investor' && isInvestor(item)) websiteUrl = item.investor_website
+
+        if (!websiteUrl) return <EmptyCell />
+        let displayUrl = ''
+        try {
+          displayUrl = new URL(websiteUrl).hostname.replace(/^www\./, '')
+        } catch {
+          return <span className="text-xs text-red-500">Invalid URL</span>
+        }
+        return (
+          <Link
+            href={websiteUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={websiteUrl}
+            className="text-blue-500 hover:underline flex items-center gap-1.5"
+            onClick={e => e.stopPropagation()}
+          >
+            <span className="text-xs font-medium">{displayUrl}</span>
+          </Link>
+        )
+      },
+    },
+    {
+      accessorKey: `${entityType}_industry`,
+      header: () => <HeaderWithIcon icon={<Factory className="h-4 w-4" />} label="Industry" />,
+      cell: ({ row }) => {
+        const item = row.original
+        let industry: string | null | undefined
+        if (entityType === 'company' && isCompany(item)) industry = item.company_industry
+        else if (entityType === 'investor' && isInvestor(item)) industry = item.investor_industry
+
+        return industry ? (
+          <div className="text-xs text-muted-foreground">{industry}</div>
+        ) : (
+          <EmptyCell />
+        )
+      },
+    },
+    {
+      accessorKey: `${entityType}_employees`,
+      header: () => <HeaderWithIcon icon={<Users className="h-4 w-4" />} label="Employees" />,
+      cell: ({ row }) => {
+        const item = row.original
+        let employees: number | null | undefined
+        if (entityType === 'company' && isCompany(item)) employees = item.company_employees
+        else if (entityType === 'investor' && isInvestor(item)) employees = item.investor_employees
+
+        return employees ? (
+          <Badge variant="secondary">{employees.toLocaleString()}</Badge>
+        ) : (
+          <EmptyCell />
+        )
+      },
+    },
+    {
+      accessorKey: `${entityType}_location`,
+      header: () => <HeaderWithIcon icon={<MapPin className="h-4 w-4" />} label="Location" />,
+      cell: ({ row }) => {
+        const item = row.original
+        let location: string | null | undefined
+        if (entityType === 'company' && isCompany(item)) location = item.company_location
+        else if (entityType === 'investor' && isInvestor(item)) location = item.investor_location
+
+        return location ? (
+          <div className="text-xs text-muted-foreground">{location}</div>
+        ) : (
+          <EmptyCell />
+        )
+      },
+    },
+  ]
+}
 export const generateColumns = (listType: ListType): ColumnDef<AnyListItem>[] => {
   const commonStartColumns: ColumnDef<AnyListItem>[] = [
     {
       id: 'drag',
-      header: '',
       cell: () => <GripVertical className="h-5 w-5 cursor-grab active:cursor-grabbing" />,
       size: 10,
-      enableSorting: false,
-      enableHiding: false,
     },
     {
       id: 'select',
@@ -44,198 +223,19 @@ export const generateColumns = (listType: ListType): ColumnDef<AnyListItem>[] =>
           aria-label="Select row"
         />
       ),
-      enableSorting: false,
-      enableHiding: false,
       size: 40,
     },
   ]
 
-  // --- These columns are specific to each list type ---
   let specificColumns: ColumnDef<AnyListItem>[] = []
 
   switch (listType) {
     case 'company':
-      specificColumns = [
-        {
-          accessorKey: 'company_name',
-          header: ({ column }) => (
-            <Button
-              variant="ghost"
-              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            >
-              Company <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-          ),
-          cell: ({ row }) => {
-            if (!isCompany(row.original)) return null
-            const { company_name, company_logo, company_website } = row.original
-            return (
-              <div className="flex items-center gap-3 font-medium min-w-[150px]">
-                <img
-                  src={company_logo || getFaviconUrl(company_website)}
-                  alt={`${company_name || 'Company'} logo`}
-                  className="h-15 w-15 rounded-md object-contain"
-                />
-                <div>
-                  <p className="font-semibold">{company_name || 'Untitled Company'}</p>
-                  {company_website && (
-                    <a
-                      href={company_website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-blue-600 hover:underline flex items-center gap-1"
-                      onClick={e => e.stopPropagation()}
-                    >
-                      <Globe className="h-3 w-3" />
-                      Website
-                    </a>
-                  )}
-                </div>
-              </div>
-            )
-          },
-        },
-        {
-          accessorKey: 'company_description',
-          header: 'Description',
-          cell: ({ row }) => (
-            <p className="text-sm text-muted-foreground max-w-sm truncate">
-              {isCompany(row.original) ? row.original.company_description ?? 'N/A' : 'N/A'}
-            </p>
-          ),
-        },
-        {
-          accessorKey: 'company_industry',
-          header: 'Industry',
-          cell: ({ row }) =>
-            isCompany(row.original) ? (
-              <div className="flex items-center gap-1.5">
-                <Building2 className="h-5 w-5 flex-shrink-0" />
-                {row.original.company_industry ?? 'N/A'}
-              </div>
-            ) : (
-              'N/A'
-            ),
-        },
-        {
-          accessorKey: 'company_employees',
-          header: 'Employees',
-          cell: ({ row }) =>
-            isCompany(row.original) ? (
-              <div className="flex items-center gap-1.5">
-                <Users className="h-5 w-5 flex-shrink-0" />
-                {row.original.company_employees?.toLocaleString() ?? 'N/A'}
-              </div>
-            ) : (
-              'N/A'
-            ),
-        },
-        {
-          accessorKey: 'company_location',
-          header: 'Location',
-          cell: ({ row }) =>
-            isCompany(row.original) ? (
-              <div className="flex items-center gap-1.5">
-                <MapPin className="h-5 w-5 flex-shrink-0" />
-                {row.original.company_location ?? 'N/A'}
-              </div>
-            ) : (
-              'N/A'
-            ),
-        },
-      ]
+      specificColumns = createEntityColumns('company')
       break
 
     case 'investor':
-      specificColumns = [
-        {
-          accessorKey: 'investor_name',
-          header: ({ column }) => (
-            <Button
-              variant="ghost"
-              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            >
-              Investor <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-          ),
-          cell: ({ row }) => {
-            if (!isInvestor(row.original)) return null
-            const { investor_name, investor_logo, investor_website } = row.original
-            return (
-              <div className="flex items-center gap-3 font-medium min-w-[250px]">
-                <img
-                  src={investor_logo || getFaviconUrl(investor_website)}
-                  alt={`${investor_name || 'Investor'} logo`}
-                  className="h-15 w-15 rounded-md object-contain"
-                />
-                <div>
-                  <p className="font-semibold">{investor_name || 'Untitled Investor'}</p>
-                  {investor_website && (
-                    <a
-                      href={investor_website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-blue-600 hover:underline flex items-center gap-1"
-                      onClick={e => e.stopPropagation()}
-                    >
-                      <Globe className="h-3 w-3" />
-                      Website
-                    </a>
-                  )}
-                </div>
-              </div>
-            )
-          },
-        },
-        {
-          accessorKey: 'investor_description',
-          header: 'Description',
-          cell: ({ row }) => (
-            <p className="text-sm text-muted-foreground max-w-xs truncate">
-              {isInvestor(row.original) ? row.original.investor_description ?? 'N/A' : 'N/A'}
-            </p>
-          ),
-        },
-        {
-          accessorKey: 'investor_industry',
-          header: 'Industry',
-          cell: ({ row }) =>
-            isInvestor(row.original) ? (
-              <div className="flex items-center gap-1.5">
-                <Building2 className="h-4 w-4 flex-shrink-0" />
-                {row.original.investor_industry ?? 'N/A'}
-              </div>
-            ) : (
-              'N/A'
-            ),
-        },
-        {
-          accessorKey: 'investor_employees',
-          header: 'Employees',
-          cell: ({ row }) =>
-            isInvestor(row.original) ? (
-              <div className="flex items-center gap-1.5">
-                <Users className="h-4 w-4 flex-shrink-0" />
-                {row.original.investor_employees?.toLocaleString() ?? 'N/A'}
-              </div>
-            ) : (
-              'N/A'
-            ),
-        },
-        {
-          accessorKey: 'investor_location',
-          header: 'Location',
-          cell: ({ row }) =>
-            isInvestor(row.original) ? (
-              <div className="flex items-center gap-1.5">
-                <MapPin className="h-4 w-4 flex-shrink-0" />
-                {row.original.investor_location ?? 'N/A'}
-              </div>
-            ) : (
-              'N/A'
-            ),
-        },
-      ]
+      specificColumns = createEntityColumns('investor')
       break
 
     case 'people':
@@ -243,22 +243,32 @@ export const generateColumns = (listType: ListType): ColumnDef<AnyListItem>[] =>
         {
           accessorKey: 'person_name',
           header: ({ column }) => (
-            <Button
-              variant="ghost"
-              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            >
-              Name <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-1">
+              <User className="h-4 w-4" />
+              <span>Name</span>
+              <Button
+                variant="ghost"
+                onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+                className="p-0 hover:bg-transparent"
+              >
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
           ),
           cell: ({ row }) => {
             if (!isPeople(row.original)) return null
             const { person_name, person_avatar } = row.original
             return (
               <div className="flex items-center gap-3 font-medium">
-                <img
-                  src={person_avatar || getFaviconUrl(null)}
+                <Image
+                  src={
+                    person_avatar ||
+                    `https://ui-avatars.com/api/?name=${person_name}&background=random`
+                  }
                   alt={`${person_name} avatar`}
-                  className="h-10 w-10 rounded-full object-cover border"
+                  width={32}
+                  height={32}
+                  className="h-8 w-8 rounded-full object-cover border"
                 />
                 <p className="font-semibold">{person_name}</p>
               </div>
@@ -266,27 +276,75 @@ export const generateColumns = (listType: ListType): ColumnDef<AnyListItem>[] =>
           },
         },
         {
+          accessorKey: 'person_description',
+          header: () => (
+            <HeaderWithIcon icon={<AlignLeft className="h-4 w-4" />} label="Description" />
+          ),
+          cell: ({ row }) => {
+            if (!isPeople(row.original) || !row.original.person_description) return <EmptyCell />
+            return (
+              <ExpandableCell
+                TriggerCell={
+                  <p className="line-clamp-2 cursor-pointer">{row.original.person_description}</p>
+                }
+              >
+                <p>{row.original.person_description}</p>
+              </ExpandableCell>
+            )
+          },
+        },
+        {
           accessorKey: 'person_title',
-          header: 'Title',
-          cell: ({ row }) => (isPeople(row.original) ? row.original.person_title : 'N/A'),
+          header: () => (
+            <HeaderWithIcon icon={<Briefcase className="h-4 w-4" />} label="Position" />
+          ),
+          cell: ({ row }) => {
+            if (!isPeople(row.original) || !row.original.person_title) return <EmptyCell />
+            return <div className="text-sm">{row.original.person_title}</div>
+          },
         },
         {
           accessorKey: 'person_company',
-          header: 'Company',
-          cell: ({ row }) => (isPeople(row.original) ? row.original.person_company : 'N/A'),
+          header: () => <HeaderWithIcon icon={<Building2 className="h-4 w-4" />} label="Company" />,
+          cell: ({ row }) => {
+            if (!isPeople(row.original) || !row.original.person_company) return <EmptyCell />
+            return <div className="text-sm">{row.original.person_company}</div>
+          },
+        },
+        {
+          accessorKey: 'person_location',
+          header: () => <HeaderWithIcon icon={<MapPin className="h-4 w-4" />} label="Location" />,
+          cell: ({ row }) => {
+            if (!isPeople(row.original) || !row.original.person_location) return <EmptyCell />
+            return (
+              <div className="text-xs text-muted-foreground">{row.original.person_location}</div>
+            )
+          },
+        },
+        {
+          accessorKey: 'person_linkedin_url',
+          header: () => <HeaderWithIcon icon={<Linkedin className="h-4 w-4" />} label="LinkedIn" />,
+          cell: ({ row }) => {
+            if (!isPeople(row.original) || !row.original.person_linkedin_url) return <EmptyCell />
+            return (
+              <Link
+                href={row.original.person_linkedin_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="View LinkedIn Profile"
+                className="text-blue-500 hover:opacity-80"
+                onClick={e => e.stopPropagation()}
+              >
+                <Linkedin className="h-5 w-5" />
+              </Link>
+            )
+          },
         },
       ]
       break
 
     default:
-      specificColumns = [
-        { accessorKey: 'id', header: 'ID' },
-        {
-          id: 'data',
-          header: 'Data',
-          cell: ({ row }) => <pre className="text-xs">{JSON.stringify(row.original, null, 2)}</pre>,
-        },
-      ]
+      specificColumns = [{ accessorKey: 'id', header: 'ID' }]
   }
 
   return [...commonStartColumns, ...specificColumns]
