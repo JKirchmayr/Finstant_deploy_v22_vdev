@@ -29,7 +29,7 @@ import {
   SortableContent,
   SortableItem,
   SortableItemHandle,
-} from '@/components/ui/sortable' 
+} from '@/components/ui/sortable'
 import { AnyListItem, ListType } from '@/types/saved-list'
 import { toast } from 'sonner'
 import { useRemoveItemsFromList } from '@/queries/saved-lists'
@@ -41,9 +41,17 @@ interface DataTableProps {
   listType: ListType
   userId: string
   listId: string
+  isLoading: boolean
 }
 
-export function ListDetailsDataTable({ columns, data, listType, userId, listId }: DataTableProps) {
+export function ListDetailsDataTable({
+  columns,
+  data,
+  listType,
+  userId,
+  listId,
+  isLoading,
+}: DataTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [rowSelection, setRowSelection] = React.useState({})
@@ -56,19 +64,20 @@ export function ListDetailsDataTable({ columns, data, listType, userId, listId }
   }, [data])
 
   const getFilterColumnId = (type: string) => {
-  switch (type) {
-    case 'investor':
-      return 'investor_name';
-    case 'company':
-      return 'company_name';
-    case 'people':
-      return 'person_name';
-    default:
-      return 'id';
+    switch (type) {
+      case 'investor':
+        return 'investor_name'
+      case 'company':
+        return 'company_name'
+      case 'people':
+        return 'person_name'
+      default:
+        return 'id'
+    }
   }
-};
 
-const filterColumnId = getFilterColumnId(listType);
+  const filterColumnId = getFilterColumnId(listType)
+  console.log('data', items)
 
   const table = useReactTable({
     data: items,
@@ -82,6 +91,7 @@ const filterColumnId = getFilterColumnId(listType);
     onRowSelectionChange: setRowSelection,
     getRowId: row => row.saved_list_item_id,
     state: { sorting, columnFilters, rowSelection },
+    autoResetPageIndex: false,
   })
 
   const handleDelete = () => {
@@ -180,7 +190,13 @@ const filterColumnId = getFilterColumnId(listType);
             </TableHeader>
             <SortableContent asChild items={items.map(item => item.saved_list_item_id)}>
               <TableBody>
-                {table.getRowModel().rows?.length ? (
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={columns.length} className="h-24 text-center">
+                      Loading items...
+                    </TableCell>
+                  </TableRow>
+                ) : table.getRowModel().rows?.length ? (
                   table.getRowModel().rows.map(row => (
                     <SortableItem key={row.id} value={row.id} asChild>
                       <TableRow data-state={row.getIsSelected() && 'selected'}>

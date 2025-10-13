@@ -1,13 +1,15 @@
 'use client'
 
-import React from 'react'
+import React, { useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { Loader2, ArrowLeft, List } from 'lucide-react'
 
 import { useAuth } from '@/hooks/useAuth'
 import { useUserListItems } from '@/queries/saved-lists'
-import { ListItemsResponse, ListType } from '@/types/saved-list'
+import { useQueryClient } from '@tanstack/react-query'
+import { ListItemsResponse, ListType, SavedList } from '@/types/saved-list'
+//import { ListItemsResponse, ListType } from '@/types/saved-list'
 import { Button } from '@/components/ui/button'
 
 import { generateColumns } from './data/columns'
@@ -28,22 +30,51 @@ export default function SavedListDetailsPage() {
 
   const { user, loading: isAuthLoading } = useAuth()
   const userId = user?.user_id ?? ''
+  const queryClient = useQueryClient()
 
-  const {
-    data: listData,
-    isLoading: isItemsLoading,
-    isError,
-  } = useUserListItems(userId, listId, !!listId) as {
+  // ✅ Synchronously find the initial data from the cache of the previous page
+  const initialData = useMemo(() => {
+    // Find all the cached queries that start with ['userLists', userId]
+    const queries = queryClient.getQueryCache().findAll({
+      queryKey: ['userLists', userId],
+    })
+
+    // Search through all cached pages to find our list
+    for (const query of queries) {
+      const data = query.state.data as { lists?: SavedList[] }
+      if (data?.lists) {
+        const foundList = data.lists.find(list => list.saved_list_id === listId)
+        if (foundList) {
+          // ✅ DEBUG: Confirm that we found the data in the cache
+          console.log(
+            '%cFound initial data in cache:',
+            'color: purple; font-weight: bold;',
+            foundList
+          )
+          return foundList
+        }
+      }
+    }
+    return undefined // Return undefined if not found
+  }, [queryClient, userId, listId])
+
+  const { data: listData, isLoading: isItemsLoading } = useUserListItems(
+    userId,
+    listId,
+    !!listId
+  ) as {
     data: ListItemsResponse | undefined
     isLoading: boolean
-    isError?: boolean
   }
 
   const isLoading = isAuthLoading || isItemsLoading
+  const listDetails = listData?.list_details ?? initialData
+  const items = listData?.items ?? []
 
-  const { items, list_details, pagination } = listData || {}
-  const listType = normalizeListType(list_details?.list_type)
-  const columns = generateColumns(listType)
+  const totalCount = listData?.pagination?.total_count ?? initialData?.item_count ?? 0
+
+  const listType = normalizeListType(listDetails?.list_type)
+  const columns = useMemo(() => generateColumns(listType), [listType])
 
   return (
     <div className="p-4 space-y-4">
@@ -54,23 +85,24 @@ export default function SavedListDetailsPage() {
           </Button>
         </Link>
         <div>
-          {!isLoading ? (
-            <h1 className="text-[16px] font-semibold flex items-center gap-x-2 ">
-              {list_details?.list_name}
-            </h1>
+          {listDetails ? (
+            <>
+              <h1 className="text-[16px] font-semibold flex items-center gap-x-2 ">
+                {listDetails.list_name}
+              </h1>
+              <p className="text-xs ">
+                Type:
+                <span className="capitalize">
+                  {' '}
+                  {listDetails.list_type?.replace('_', ' ')} ({totalCount})
+                </span>
+              </p>
+            </>
           ) : (
-            <Skeleton className="w-[250px] h-4 rounded-sm" />
-          )}
-          {isLoading ? (
-            <Skeleton className="w-36 h-3 mt-1 rounded-sm" />
-          ) : (
-            <p className="text-xs ">
-              Type:
-              <span className="capitalize">
-                {' '}
-                {list_details?.list_type?.replace('_', ' ')} ({pagination?.total_count})
-              </span>
-            </p>
+            <>
+              <Skeleton className="w-[250px] h-4 rounded-sm" />
+              <Skeleton className="w-36 h-3 mt-1 rounded-sm" />
+            </>
           )}
         </div>
       </div>
@@ -81,7 +113,7 @@ export default function SavedListDetailsPage() {
           listType={listType}
           userId={userId}
           listId={listId}
-          // isLoading={isLoading}
+          isLoading={isLoading}
         />
       </div>
     </div>

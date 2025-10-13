@@ -142,7 +142,7 @@ const createEntityColumns = (entityType: 'company' | 'investor'): ColumnDef<AnyL
             className="text-blue-500 hover:underline flex items-center gap-1.5"
             onClick={e => e.stopPropagation()}
           >
-            <span className="text-xs font-medium">{displayUrl}</span>
+            <span className="text-xs truncate font-medium">{displayUrl}</span>
           </Link>
         )
       },
