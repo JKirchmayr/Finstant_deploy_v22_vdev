@@ -32,7 +32,7 @@ import {
 } from '@/components/ui/sortable'
 import { AnyListItem, ListType } from '@/types/saved-list'
 import { toast } from 'sonner'
-import { useRemoveItemsFromList } from '@/queries/saved-lists'
+import { useRemoveItemsFromList, useUpdateItemPosition } from '@/queries/saved-lists'
 import { Download, Trash } from 'lucide-react'
 
 interface DataTableProps {
@@ -58,6 +58,9 @@ export function ListDetailsDataTable({
   const [items, setItems] = React.useState(data)
 
   const { mutate: removeItems, isPending: isDeleting } = useRemoveItemsFromList(true)
+  const { mutate: updatePosition } = useUpdateItemPosition(listId)
+
+  const preDragItemsRef = React.useRef<AnyListItem[]>(items)
 
   React.useEffect(() => {
     setItems(data)
@@ -78,6 +81,44 @@ export function ListDetailsDataTable({
 
   const filterColumnId = getFilterColumnId(listType)
   console.log('data', items)
+
+  const handlePositionChange = (nextItems: AnyListItem[]) => {
+    const prevItems = items
+    setItems(nextItems)
+    const oldIds = prevItems.map(i => i.saved_list_item_id)
+    const newIds = nextItems.map(i => i.saved_list_item_id)
+    if (oldIds.length === newIds.length && oldIds.every((id, idx) => id === newIds[idx])) {
+      return
+    }
+    let k = 0
+    while (k < oldIds.length && oldIds[k] === newIds[k]) k++
+    if (k === oldIds.length) return
+    const equal = (a: string[], b: string[]) =>
+      a.length === b.length && a.every((x, i) => x === b[i])
+    const strip = (arr: string[], id: string) => arr.filter(x => x !== id)
+    const candidateFromNew = newIds[k]
+    const movedId = equal(strip(oldIds, candidateFromNew), strip(newIds, candidateFromNew))
+      ? candidateFromNew
+      : oldIds[k]
+    const newAbsoluteIndex = newIds.indexOf(movedId)
+    const newPosition = newAbsoluteIndex + 1
+    updatePosition(
+      {
+        userId,
+        payload: {
+          saved_list_item_id: movedId,
+          new_position: newPosition,
+        },
+      },
+      {
+        onError: err => {
+          console.error('Failed to save new order:', err)
+          toast.error('Failed to save new order. Reverting changes.')
+          setItems(prevItems)
+        },
+      }
+    )
+  }
 
   const table = useReactTable({
     data: items,
@@ -167,7 +208,7 @@ export function ListDetailsDataTable({
       <div className="rounded-md border-2 overflow-auto mt-6 shadow-xl">
         <Sortable
           value={items}
-          onValueChange={setItems}
+          onValueChange={handlePositionChange}
           getItemValue={item => item.saved_list_item_id}
         >
           <Table>

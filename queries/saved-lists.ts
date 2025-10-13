@@ -9,13 +9,15 @@ import {
   updateUserList,
   UpdateUserListAction,
   UserListPayload,
+  updateItemPosition,
 } from '@/services/saved-lists'
+import { toast } from 'sonner'
 
 // --- Get all user lists ---
-export const useUserLists = (userId: string,type?:string, limit?: number, enabled?: boolean) => {
+export const useUserLists = (userId: string, type?: string, limit?: number, enabled?: boolean) => {
   return useQuery({
-    queryKey: ['userLists', userId,type,limit],
-    queryFn: () => getUserLists(userId, type,limit),
+    queryKey: ['userLists', userId, type, limit],
+    queryFn: () => getUserLists(userId, type, limit),
     enabled: !!userId && (enabled ?? true),
     staleTime: 1000 * 60 * 60, // 60 minutes
   })
@@ -87,6 +89,25 @@ export const useUpdateUserList = () => {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['userLists'] })
       queryClient.invalidateQueries({ queryKey: ['userListItems', variables.listId] })
+    },
+  })
+}
+
+export const useUpdateItemPosition = (listId: string) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      userId,
+      payload,
+    }: {
+      userId: string
+      payload: { saved_list_item_id: string; new_position: number }
+    }) => updateItemPosition(userId, listId, payload),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['userListItems', listId] })
+    },
+    onError: () => {
+      toast.error('could not save the new order.Reverting changes.')
     },
   })
 }

@@ -61,14 +61,14 @@ export const removeItemsFromUserList = async (userId: string, listId: string, da
 
 // Retrieve all lists for a user
 
-export const getUserLists = async (userId: string,type?:string, limit?: number,) => {
+export const getUserLists = async (userId: string, type?: string, limit?: number) => {
   try {
-    const params:{type?:string; limit?:number}={};
-    if(type && type!=='all'){
-      params.type =type;
+    const params: { type?: string; limit?: number } = {}
+    if (type && type !== 'all') {
+      params.type = type
     }
-    if(limit){
-      params.limit=limit;
+    if (limit) {
+      params.limit = limit
     }
     const res = await api.get(`/user-lists`, {
       headers: { 'user-id': userId },
@@ -114,5 +114,21 @@ export const updateUserList = async (
   } catch (error) {
     console.log(getApiErrorMessage(error))
     throw new Error('Failed to update user list')
+  }
+}
+
+export const updateItemPosition = async (
+  userId: string,
+  listId: string,
+  payload: { saved_list_item_id: string; new_position: number }
+) => {
+  try {
+    const res = await api.patch(`/user-lists/${listId}/items/position`, payload, {
+      headers: { 'user-id': userId },
+    })
+    return res.data
+  } catch (error) {
+    console.error('Failed to update item position:', getApiErrorMessage(error))
+    throw new Error('Failed to update item position')
   }
 }
