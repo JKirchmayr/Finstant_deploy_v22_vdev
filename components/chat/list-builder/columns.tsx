@@ -73,9 +73,16 @@ export const generateColumns = (
       'INDUSTRY',
       'EMPLOYEES',
       'LOCATION',
-      'FOCUS_INDUSTRY',
+      'INVESTOR_TYPE',
     ],
-    transaction: ['DEAL_DATE', 'TARGET_NAME', 'DESCRIPTION', 'BUYER_NAME', 'DEAL_SOURCE_URL'],
+    transaction: [
+      'DEAL_DATE_ENRICHED',
+      'TARGET_NAME',
+      'DESCRIPTION',
+      'BUYER_NAME',
+      'TRANSACTION_VALUE_MUSD',
+      'DEAL_SOURCE_URL',
+    ],
     people: [
       'NAME',
       'DESCRIPTION',
@@ -106,19 +113,22 @@ export const generateColumns = (
         const website = row.original.WEBSITE
         return (
           <div className="inline-flex items-center cursor-pointer min-w-0">
-            <Image
-              src={logo || 'https://placehold.co/50x50.png'}
-              alt={`${name} logo`}
-              width={25}
-              height={25}
-              className="mr-2 rounded-sm flex-shrink-0"
-              onError={e => {
-                ;(
-                  e.currentTarget as HTMLImageElement
-                ).src = `https://www.google.com/s2/favicons?domain=${new URL(website).hostname}`
-              }}
-              unoptimized
-            />
+            {!website ||
+              (!logo && (
+                <Image
+                  src={logo || 'https://placehold.co/50x50.png'}
+                  alt={`${name} logo`}
+                  width={25}
+                  height={25}
+                  className="mr-2 rounded-sm flex-shrink-0"
+                  onError={e => {
+                    ;(
+                      e.currentTarget as HTMLImageElement
+                    ).src = `https://www.google.com/s2/favicons?domain=${new URL(website).hostname}`
+                  }}
+                  unoptimized
+                />
+              ))}
             <button
               onClick={() => openListItemPopup(row.original)}
               className="truncate text-left cursor-pointer font-medium text-gray-900 hover:underline"
@@ -205,40 +215,45 @@ export const generateColumns = (
         </span>
       ),
     },
-    FOCUS_INDUSTRY: {
-      accessorKey: 'FOCUS_INDUSTRY',
+    INVESTOR_TYPE: {
+      accessorKey: 'INVESTOR_TYPE',
       header: () => (
-        <HeaderWithIcon icon={<Bars3BottomLeftIcon className="h-4 w-4" />} label="Focus Industry" />
+        <HeaderWithIcon icon={<Bars3BottomLeftIcon className="h-4 w-4" />} label="Investor Type" />
       ),
       cell: ({ row }) => {
         const { isReading } = useChatStore.getState()
         return isReading ? (
-          row.original.TARGET_INDUSTRY ? (
-            <span>{row.original.TARGET_INDUSTRY}</span>
+          row.original.INVESTOR_TYPE ? (
+            <span>{row.original.INVESTOR_TYPE}</span>
           ) : (
             <PulseLoading />
           )
         ) : (
           <span>
-            {row.original.TARGET_INDUSTRY || <span className="text-muted-foreground">n/a</span>}
+            {row.original.INVESTOR_TYPE || <span className="text-muted-foreground">n/a</span>}
           </span>
         )
       },
     },
-    DEAL_DATE: {
-      accessorKey: 'DEAL_DATE',
+    DEAL_DATE_ENRICHED: {
+      accessorKey: 'DEAL_DATE_ENRICHED',
       size: 100,
       maxSize: 100,
       header: () => <HeaderWithIcon icon={<CalendarDaysIcon className="h-4 w-4" />} label="Date" />,
-      cell: ({ row }) => (
-        <span>
-          {row.original.DEAL_DATE ? (
-            new Date(row.original.DEAL_DATE).toLocaleDateString()
+      cell: ({ row }) => {
+        const { isReading } = useChatStore.getState()
+        return isReading ? (
+          row.original.DEAL_DATE_ENRICHED ? (
+            <span>{row.original.DEAL_DATE_ENRICHED}</span>
           ) : (
-            <span className="text-muted-foreground">n/a</span>
-          )}
-        </span>
-      ),
+            <PulseLoading />
+          )
+        ) : (
+          <span>
+            {row.original.DEAL_DATE_ENRICHED || <span className="text-muted-foreground">n/a</span>}
+          </span>
+        )
+      },
     },
     TARGET_NAME: {
       accessorKey: 'TARGET_NAME',
@@ -289,10 +304,36 @@ export const generateColumns = (
         )
       },
     },
+    TRANSACTION_VALUE_MUSD: {
+      accessorKey: 'TRANSACTION_VALUE_MUSD',
+      size: 160,
+      header: () => (
+        <HeaderWithIcon
+          icon={<BuildingOffice2Icon className="h-4 w-4" />}
+          label="Transaction Value"
+        />
+      ),
+      cell: ({ row }) => {
+        const { isReading } = useChatStore.getState()
+        return isReading ? (
+          row.original.TRANSACTION_VALUE_MUSD ? (
+            <span>{row.original.TRANSACTION_VALUE_MUSD}</span>
+          ) : (
+            <PulseLoading />
+          )
+        ) : (
+          <span>
+            {row.original.TRANSACTION_VALUE_MUSD || (
+              <span className="text-muted-foreground">n/a</span>
+            )}
+          </span>
+        )
+      },
+    },
     DEAL_SOURCE_URL: {
       accessorKey: 'DEAL_SOURCE_URL',
-      size: 80,
-      maxSize: 80,
+      size: 100,
+      maxSize: 100,
       header: () => <HeaderWithIcon icon={<LinkIcon className="h-4 w-4" />} label="Source" />,
       cell: ({ row }) => {
         const url = ensureProtocol(row.original.DEAL_SOURCE_URL)

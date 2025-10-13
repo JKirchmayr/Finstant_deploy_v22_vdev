@@ -39,7 +39,7 @@ export const Messages = ({
     userId,
   })
 
-  console.log({ messages })
+  // console.log({ messages })
 
   return (
     <div className={cn('overflow-y-auto px-2 pt-4 space-y-2 noscroll flex-1 min-h-0')}>

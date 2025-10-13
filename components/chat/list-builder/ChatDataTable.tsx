@@ -42,6 +42,7 @@ import { useChatStore } from '@/store/chatStore'
 import { ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from '@heroicons/react/24/outline'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { AddToListDialog, CreateNewListDialog, Item } from './ListDialogs'
+import { useDeleteSessionListItems } from '@/queries/sessions'
 
 interface IChatDataTableProps<T extends any> {
   data: T[]
@@ -153,6 +154,7 @@ const ChatDataTable = <T extends any>({
     isCopilotOpen,
     closeCompanyPopup,
     closeListPanel,
+    activeListMessageId,
   } = useChatStore()
 
   const toggleChatPanel = () => {
@@ -209,18 +211,20 @@ const ChatDataTable = <T extends any>({
     format === 'csv' ? exportToCSV(exportData, filename) : exportToExcel(exportData, filename)
   }
 
+  const { mutate: deleteRowItems, isPending } = useDeleteSessionListItems()
+
   const handleDeleteSelected = () => {
     if (selectedRows.length === 0) {
       toast.warning('No data selected, Please select data to Delete')
       return
     }
-
+    // console.log({ activeListMessageId })
     deleteRows(selectedRows)
     toast.success('Data Deleted Successfully')
   }
 
   const rowDisabled = selectedRows?.length <= 0 || isStreaming
-  console.log({ activeListItemCount })
+  // console.log({ activeListItemCount })
   return (
     <div className="w-full flex h-full flex-col gap-3">
       {!noHeader && (
@@ -280,7 +284,11 @@ const ChatDataTable = <T extends any>({
                   Delete <Trash className="size-4 ml-1" />
                 </Button>
                 <AddToListDialog
-                  initialSelected={(selectedRows as Item[]) ?? []}
+                  initialSelected={selectedRows.map(item => ({
+                    NAME: (item as any)?.NAME || (item as any)?.TARGET_NAME,
+                    ITEM_ID: (item as any)?.ITEM_ID,
+                    LOGO: (item as any).LOGO || (item as any)?.PROFILE_PIC_URL || '',
+                  }))}
                   onConfirm={() => setRowSelection([])}
                 >
                   <Button
@@ -297,7 +305,11 @@ const ChatDataTable = <T extends any>({
               </div>
               <div className="flex gap-2 items-center pr-0">
                 <CreateNewListDialog
-                  initialSelected={(selectedRows as Item[]) ?? []}
+                  initialSelected={selectedRows.map(item => ({
+                    NAME: (item as any)?.NAME || (item as any)?.TARGET_NAME,
+                    ITEM_ID: (item as any)?.ITEM_ID,
+                    LOGO: (item as any).LOGO || (item as any)?.PROFILE_PIC_URL || '',
+                  }))}
                   onConfirm={() => setRowSelection([])}
                 >
                   <Button

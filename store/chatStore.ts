@@ -1,7 +1,6 @@
 import { create } from 'zustand'
 import { v4 as uuidv4 } from 'uuid'
-import { EntityData, Message, Role, Source } from '@/components/chat/chat.types'
-import { type } from 'os'
+import { EntityData, Message, Source } from '@/components/chat/chat.types'
 
 type ChatStore = {
   messages: Message[]
@@ -12,6 +11,7 @@ type ChatStore = {
   setInput: (input: string) => void
   markdown: string
   setMarkdown: (markdown: string) => void
+  clearMarkdown: () => void
   markdownSources: Source[]
   setMarkdownSources: (sources: Source[]) => void
   isCanvasOpen: boolean
@@ -23,7 +23,7 @@ type ChatStore = {
   setActiveListItemCount: (count: number) => void
   activeProfile: {
     name: string | null
-    type: 'company' | 'investor' | 'list' | null | 'transaction' | 'people'
+    type: 'company' | 'investor' | 'list' | 'transaction' | 'people' | null
     website: string | null
     logo: string | null
     city: string | null
@@ -32,13 +32,14 @@ type ChatStore = {
   }
   setActiveProfile: (
     name: string | null,
-    type: 'company' | 'investor' | 'transaction' | 'people',
+    type: 'company' | 'investor' | 'transaction' | 'people' | null,
     website: string | null,
     logo: string | null,
     city: string | null,
     country: string | null,
     isLoading?: (isLoading: boolean) => void
   ) => void
+  clearActiveProfile: () => void
   isSearching: 'idle' | 'web' | 'searching' | 'streaming'
   setIsSearching: (isWebSearching: 'idle' | 'web' | 'searching' | 'streaming') => void
 
@@ -54,6 +55,7 @@ type ChatStore = {
     type: 'company' | 'investor' | 'transaction' | 'people',
     isLoading?: boolean
   ) => void
+  clearActiveList: () => void
   activeListData: string[]
   setActiveListData: (data: string[]) => void
   activeListItemCount: number
@@ -67,11 +69,10 @@ type ChatStore = {
   ) => void
   closeListPanel: () => void
   streamListData: (data: string[]) => void
-  listProfileData: null
+  listProfileData: any | null
   setListProfileData: (data: any) => void
   isListProfileOpen: boolean
   setIsListProfileOpen: (isListProfileOpen: boolean) => void
-  //new for
   isCompanyPopupOpen: boolean
   popupCompany: EntityData | null
   openListItemPopup: (company: EntityData) => void
@@ -79,11 +80,7 @@ type ChatStore = {
   isCopilotOpen: boolean
   setIsCopilotOpen: (isCopilotOpen: boolean) => void
 
-  append: ({
-    id,
-    role,
-    content,
-  }: {
+  append: (args: {
     id?: string
     role: Message['role']
     content: string
@@ -119,6 +116,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   activeListItemCount: 0,
   isCopilotOpen: true,
   isReading: false,
+
   setMessages: messages => set({ messages }),
   setActiveListItemCount: count => set({ activeListItemCount: count }),
   setIsReading: isReading => set({ isReading }),
@@ -136,12 +134,21 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   setListProfileData: data => set({ listProfileData: data }),
   setActiveList: (title, type, isLoading = false) =>
     set({ activeList: { title, type, isLoading } }),
+  clearActiveList: () =>
+    set({
+      activeList: { title: '', type: 'company', isLoading: false },
+      activeListData: [],
+      activeListItemCount: 0,
+      activeListMessageId: null,
+    }),
   isListProfileOpen: false,
   setIsListProfileOpen: isListProfileOpen => set({ isListProfileOpen }),
   setActiveListData: data => set({ activeListData: data }),
   setIsStreaming: isStreaming => set({ isStreaming }),
   setMarkdownSources: sources => set({ markdownSources: sources }),
   setMarkdown: markdown => set({ markdown }),
+  clearMarkdown: () => set({ markdown: '', markdownSources: [] }),
+
   activeProfile: {
     name: null,
     type: null,
@@ -152,10 +159,22 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   },
   setActiveProfile: (name, type, website, logo, city, country) =>
     set({ activeProfile: { name, type, website, logo, city, country } }),
+  clearActiveProfile: () =>
+    set({
+      activeProfile: {
+        name: null,
+        type: null,
+        website: null,
+        logo: null,
+        city: null,
+        country: null,
+      },
+    }),
+
   setIsSearching: isSearching => set({ isSearching }),
   setIsCanvasOpen: isCanvasOpen =>
     set(state => ({
-      isCanvasOpen: isCanvasOpen,
+      isCanvasOpen,
       isListPanelOpen: isCanvasOpen ? false : state.isListPanelOpen,
     })),
   setIsListPanelOpen: open => set({ isListPanelOpen: open }),
@@ -163,17 +182,18 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   setSourcesOpen: sourcesOpen => set({ sourcesOpen }),
   input: '',
   setInput: input => set({ input }),
+
   append: ({ id = uuidv4(), role, content, data, createdAt = new Date() }) =>
     set(state => ({
       messages: [...state.messages, { id, role, content, createdAt, data }],
     })),
-  updateMessage: (id: string, content: string, sources: Source[]) =>
+  updateMessage: (id, content, sources) =>
     set(state => ({
       messages: state.messages.map(message =>
         message.id === id ? { ...message, content, sources } : message
       ),
     })),
-  updateListData: (id: string, list: any) =>
+  updateListData: (id, list) =>
     set(state => ({
       messages: state.messages.map(message =>
         message.id === id ? { ...message, data: { ...message.data, list } } : message
@@ -187,11 +207,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   openListPanel: (id, title, data, itemCount, type, isLoading = false) =>
     set({
       activeListMessageId: id,
-      activeList: {
-        title,
-        type,
-        isLoading,
-      },
+      activeList: { title, type, isLoading },
       activeListData: data,
       activeListItemCount: itemCount,
       isListPanelOpen: true,
@@ -199,17 +215,12 @@ export const useChatStore = create<ChatStore>((set, get) => ({
       isCompanyPopupOpen: false,
     }),
   streamListData: data => set({ activeListData: data }),
-
   closeListPanel: () =>
     set({
       isListPanelOpen: false,
       isCompanyPopupOpen: false,
       activeListData: [],
-      activeList: {
-        title: '',
-        type: 'company',
-        isLoading: false,
-      },
+      activeList: { title: '', type: 'company', isLoading: false },
       activeListItemCount: 0,
       activeListMessageId: null,
     }),
@@ -224,7 +235,6 @@ export const useChatStore = create<ChatStore>((set, get) => ({
           const updatedInternalList = message.data.list.filter(
             (item: any) => !namesToDelete.has(item.item_id)
           )
-
           return { ...message, data: { ...message.data, list: updatedInternalList } }
         }
         return message

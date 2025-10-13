@@ -23,6 +23,7 @@ interface MainChatProps {
   sources: Source[] // Consider creating a proper type for sources
   setStreamingCanvasContent: (content: string) => void
   userId: string
+  isPending: boolean
 }
 
 export default function MainChat({
@@ -36,6 +37,7 @@ export default function MainChat({
   setStreamingCanvasContent,
   sources,
   userId,
+  isPending,
 }: MainChatProps) {
   const {
     messages,
@@ -82,7 +84,7 @@ export default function MainChat({
                     handleInputChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                       setInput(e.target.value)
                     }
-                    isLoading={isStreaming}
+                    isLoading={isStreaming || isPending}
                     messages={messages}
                     onStop={handleStopStreaming}
                   />

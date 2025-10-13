@@ -13,8 +13,8 @@ export const normalizeListData = (
         LOGO: item.investor_logo || '',
         LOCATION: item.investor_location || '',
         EMPLOYEES: item.investor_employees || null,
-        INDUSTRY: item.investor_industry || 'Venture Capital / Private Equity',
-        TARGET_INDUSTRY: item.investor_target_industry || 'AI',
+        INDUSTRY: item.investor_industry || '',
+        INVESTOR_TYPE: item.investor_type || '',
         ITEM_ID: item.webset_item_id,
         LIST_ID: item.list_id,
         SESSION_ID: item.session_id,
@@ -34,6 +34,18 @@ export const normalizeListData = (
         ITEM_ID: item.webset_item_id,
         EVALUATIONS: item.evaluation_data || [],
       }))
+    case 'people':
+      return data.map((item: any) => ({
+        NAME: item.name || 'N/A',
+        DESCRIPTION: item.description || '',
+        POSITION: item.position || '',
+        COMPANY_NAME: item.company_name || '',
+        LOCATION: item.location || '',
+        PROFILE_URL: item.profile_url || '',
+        ITEM_ID: item.webset_item_id,
+        EVALUATIONS: item.evaluation_data || [],
+      }))
+    case 'transaction':
     default:
       return data
   }
