@@ -212,7 +212,11 @@ export const SavedListPage = () => {
                 <TableRow
                   key={row.original.saved_list_id}
                   data-state={row.getIsSelected() ? 'selected' : undefined}
-                  onClick={() => router.push(`/saved-lists/${row.original.saved_list_id}`)}
+                  onClick={() =>
+                    router.push(
+                      `/saved-lists/${row.original.saved_list_id}?title=${row.original.list_name}&type=${row.original.list_type}`
+                    )
+                  }
                   className="cursor-pointer text-base font-sm"
                 >
                   {row.getVisibleCells().map(cell => (

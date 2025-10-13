@@ -36,37 +36,11 @@ const getFaviconUrl = (websiteUrl: string | null) => {
 const HeaderWithIcon = ({ icon, label }: { icon: React.ReactNode; label: string }) => (
   <div className="inline-flex items-center justify-center gap-2">
     {icon}
-    <span className="truncate">{label}</span>
+    <span className="truncate text-[13px]">{label}</span>
   </div>
 )
 
-const EmptyCell = () => <span className="text-muted-foreground">—</span>
-interface HoverableCellProps {
-  row: Row<AnyListItem>
-  table: Table<AnyListItem>
-}
-
-const HoverableCell: React.FC<HoverableCellProps> = ({ row, table }) => {
-  const [isHovered, setIsHovered] = useState(false)
-
-  // Calculate the serial number based on the current page and row index
-  const { pageIndex, pageSize } = table.getState().pagination
-  const serialNumber = pageIndex * pageSize + row.index + 1
-
-  return (
-    <div
-      className="flex items-center justify-center h-full"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      {isHovered ? (
-        <GripVertical className="h-5 w-5 cursor-grab active:cursor-grabbing text-muted-foreground" />
-      ) : (
-        <span className="text-sm font-medium text-muted-foreground">{serialNumber}</span>
-      )}
-    </div>
-  )
-}
+const EmptyCell = () => <span className="text-muted-foreground">n/a</span>
 
 const createEntityColumns = (entityType: 'company' | 'investor'): ColumnDef<AnyListItem>[] => {
   const Icon = entityType === 'company' ? Building2 : Landmark
@@ -200,7 +174,9 @@ const createEntityColumns = (entityType: 'company' | 'investor'): ColumnDef<AnyL
         else if (entityType === 'investor' && isInvestor(item)) employees = item.investor_employees
 
         return employees ? (
-          <Badge variant="secondary">{employees.toLocaleString()}</Badge>
+          <Badge variant="secondary" className="font-medium">
+            {employees.toLocaleString()}
+          </Badge>
         ) : (
           <EmptyCell />
         )
@@ -228,9 +204,16 @@ export const generateColumns = (listType: ListType): ColumnDef<AnyListItem>[] =>
   const commonStartColumns: ColumnDef<AnyListItem>[] = [
     {
       id: 'drag',
-      header: () => <div className="text-center ">Sl No.</div>,
-      cell: ({ row, table }) => <HoverableCell row={row} table={table} />,
-      size: 70,
+      header: '',
+      cell: ({ row, table }) => (
+        <span className="px-0 group ">
+          <p className="group-hover:hidden text-sm font-semibold w-5 text-center">
+            {row.index + 1}.
+          </p>
+          <GripVertical className="h-5 w-5 cursor-grab active:cursor-grabbing text-muted-foreground hidden group-hover:block" />
+        </span>
+      ),
+      size: 40,
     },
 
     {
@@ -252,7 +235,7 @@ export const generateColumns = (listType: ListType): ColumnDef<AnyListItem>[] =>
           aria-label="Select row"
         />
       ),
-      size: 10,
+      size: 40,
     },
   ]
 
@@ -269,7 +252,9 @@ export const generateColumns = (listType: ListType): ColumnDef<AnyListItem>[] =>
         ...createEntityColumns('investor'),
         {
           accessorKey: 'investor_type',
-          header: () => <HeaderWithIcon icon={<Briefcase className="h-4 w-4" />} label="Types" />,
+          header: () => (
+            <HeaderWithIcon icon={<Briefcase className="h-4 w-4" />} label="Investor Type" />
+          ),
           cell: ({ row }) => {
             if (!isInvestor(row.original) || !row.original.investor_type) return <EmptyCell />
 

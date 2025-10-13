@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useMemo } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Loader2, ArrowLeft, List } from 'lucide-react'
 
@@ -30,33 +30,7 @@ export default function SavedListDetailsPage() {
 
   const { user, loading: isAuthLoading } = useAuth()
   const userId = user?.user_id ?? ''
-  const queryClient = useQueryClient()
-
-  // ✅ Synchronously find the initial data from the cache of the previous page
-  const initialData = useMemo(() => {
-    // Find all the cached queries that start with ['userLists', userId]
-    const queries = queryClient.getQueryCache().findAll({
-      queryKey: ['userLists', userId],
-    })
-
-    // Search through all cached pages to find our list
-    for (const query of queries) {
-      const data = query.state.data as { lists?: SavedList[] }
-      if (data?.lists) {
-        const foundList = data.lists.find(list => list.saved_list_id === listId)
-        if (foundList) {
-          // ✅ DEBUG: Confirm that we found the data in the cache
-          console.log(
-            '%cFound initial data in cache:',
-            'color: purple; font-weight: bold;',
-            foundList
-          )
-          return foundList
-        }
-      }
-    }
-    return undefined // Return undefined if not found
-  }, [queryClient, userId, listId])
+  const searchParams = useSearchParams()
 
   const { data: listData, isLoading: isItemsLoading } = useUserListItems(
     userId,
@@ -68,12 +42,12 @@ export default function SavedListDetailsPage() {
   }
 
   const isLoading = isAuthLoading || isItemsLoading
-  const listDetails = listData?.list_details ?? initialData
+  const listDetails = (listData?.list_details ?? []) as SavedList
   const items = listData?.items ?? []
-
-  const totalCount = listData?.pagination?.total_count ?? initialData?.item_count ?? 0
-
-  const listType = normalizeListType(listDetails?.list_type)
+  const title = listDetails?.list_name || searchParams.get('title') || ''
+  const type = listDetails?.list_type || searchParams.get('type') || ''
+  const totalCount = listData?.pagination?.total_count ?? 0
+  const listType = normalizeListType(type)
   const columns = useMemo(() => generateColumns(listType), [listType])
 
   return (
@@ -87,14 +61,12 @@ export default function SavedListDetailsPage() {
         <div>
           {listDetails ? (
             <>
-              <h1 className="text-[16px] font-semibold flex items-center gap-x-2 ">
-                {listDetails.list_name}
-              </h1>
+              <h1 className="text-[16px] font-semibold flex items-center gap-x-2 ">{title}</h1>
               <p className="text-xs ">
                 Type:
                 <span className="capitalize">
                   {' '}
-                  {listDetails.list_type?.replace('_', ' ')} ({totalCount})
+                  {listType?.replace('_', ' ')} {totalCount && <span>({totalCount})</span>}
                 </span>
               </p>
             </>

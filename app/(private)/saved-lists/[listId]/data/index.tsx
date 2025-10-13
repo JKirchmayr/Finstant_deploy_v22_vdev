@@ -63,7 +63,9 @@ export function ListDetailsDataTable({
   const preDragItemsRef = React.useRef<AnyListItem[]>(items)
 
   React.useEffect(() => {
-    setItems(data)
+    if (!!data.length) {
+      setItems(data)
+    }
   }, [data])
 
   const getFilterColumnId = (type: string) => {
@@ -80,7 +82,7 @@ export function ListDetailsDataTable({
   }
 
   const filterColumnId = getFilterColumnId(listType)
-  console.log('data', items)
+  // console.log('data', items)
 
   const handlePositionChange = (nextItems: AnyListItem[]) => {
     const prevItems = items
