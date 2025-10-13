@@ -205,7 +205,7 @@ export function ListDetailsDataTable({
         </Button>
       </div>
 
-      <div className="rounded-md border-2 overflow-auto mt-6 shadow-xl">
+      <div className="rounded-md border-2 overflow-auto mt-6">
         <Sortable
           value={items}
           onValueChange={handlePositionChange}

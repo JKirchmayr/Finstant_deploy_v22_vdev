@@ -261,10 +261,24 @@ export const generateColumns = (listType: ListType): ColumnDef<AnyListItem>[] =>
   switch (listType) {
     case 'company':
       specificColumns = createEntityColumns('company')
+
       break
 
     case 'investor':
-      specificColumns = createEntityColumns('investor')
+      specificColumns = [
+        ...createEntityColumns('investor'),
+        {
+          accessorKey: 'investor_type',
+          header: () => <HeaderWithIcon icon={<Briefcase className="h-4 w-4" />} label="Types" />,
+          cell: ({ row }) => {
+            if (!isInvestor(row.original) || !row.original.investor_type) return <EmptyCell />
+
+            return <div className="text-xs ">{row.original.investor_type}</div>
+          },
+          size: 150,
+        },
+      ]
+
       break
 
     case 'people':

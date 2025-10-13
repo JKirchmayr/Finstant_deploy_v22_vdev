@@ -40,12 +40,13 @@ import { SavedList } from '@/types/saved-list'
 import { toast } from 'sonner'
 import { columns } from './columns'
 
-type TabTypes = 'all' | 'company' | 'investor' | 'people' | 'archive'
+type TabTypes = 'all' | 'company' | 'investor' | 'people' | 'archive' | 'transaction'
 
 const tabsList = [
   { value: 'all', label: 'All', icon: List },
   { value: 'company', label: 'Companies', icon: Building2Icon },
   { value: 'investor', label: 'Investors', icon: Banknote },
+  { value: 'transaction', label: 'Transaction', icon: Building2Icon },
   { value: 'people', label: 'People', icon: Users },
   { value: 'archive', label: 'Archive', icon: Archive },
 ]
