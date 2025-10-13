@@ -1,6 +1,6 @@
 'use client'
 
-import { type ColumnDef } from '@tanstack/react-table'
+import { Row, Table, type ColumnDef } from '@tanstack/react-table'
 import {
   AlignLeft,
   ArrowUpDown,
@@ -22,6 +22,7 @@ import Image from 'next/image'
 import { ExpandableCell } from '@/components/table/expandable-cell'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
+import { useState } from 'react'
 
 const getFaviconUrl = (websiteUrl: string | null) => {
   if (!websiteUrl) return '/default-favicon.png'
@@ -40,6 +41,32 @@ const HeaderWithIcon = ({ icon, label }: { icon: React.ReactNode; label: string 
 )
 
 const EmptyCell = () => <span className="text-muted-foreground">—</span>
+interface HoverableCellProps {
+  row: Row<AnyListItem>
+  table: Table<AnyListItem>
+}
+
+const HoverableCell: React.FC<HoverableCellProps> = ({ row, table }) => {
+  const [isHovered, setIsHovered] = useState(false)
+
+  // Calculate the serial number based on the current page and row index
+  const { pageIndex, pageSize } = table.getState().pagination
+  const serialNumber = pageIndex * pageSize + row.index + 1
+
+  return (
+    <div
+      className="flex items-center justify-center h-full"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {isHovered ? (
+        <GripVertical className="h-5 w-5 cursor-grab active:cursor-grabbing text-muted-foreground" />
+      ) : (
+        <span className="text-sm font-medium text-muted-foreground">{serialNumber}</span>
+      )}
+    </div>
+  )
+}
 
 const createEntityColumns = (entityType: 'company' | 'investor'): ColumnDef<AnyListItem>[] => {
   const Icon = entityType === 'company' ? Building2 : Landmark
@@ -201,9 +228,11 @@ export const generateColumns = (listType: ListType): ColumnDef<AnyListItem>[] =>
   const commonStartColumns: ColumnDef<AnyListItem>[] = [
     {
       id: 'drag',
-      cell: () => <GripVertical className="h-5 w-5 cursor-grab active:cursor-grabbing" />,
-      size: 10,
+      header: () => <div className="text-center ">Sl No.</div>,
+      cell: ({ row, table }) => <HoverableCell row={row} table={table} />,
+      size: 70,
     },
+
     {
       id: 'select',
       header: ({ table }) => (
@@ -223,7 +252,7 @@ export const generateColumns = (listType: ListType): ColumnDef<AnyListItem>[] =>
           aria-label="Select row"
         />
       ),
-      size: 40,
+      size: 10,
     },
   ]
 
