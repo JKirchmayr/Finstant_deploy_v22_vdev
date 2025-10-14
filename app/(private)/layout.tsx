@@ -10,7 +10,7 @@ export default function layout({ children }: { children: ReactNode }) {
       <SidebarInset>
         <div className="h-dvh flex flex-col overflow-hidden">
           <TopNavbar />
-          <main className="flex-1">{children}</main>
+          <main className="flex-1 overflow-auto">{children}</main>
         </div>
       </SidebarInset>
     </SidebarProvider>

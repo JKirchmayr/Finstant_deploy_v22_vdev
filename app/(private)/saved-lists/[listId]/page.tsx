@@ -51,7 +51,7 @@ export default function SavedListDetailsPage() {
   console.log('items', items)
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 oveflow-hidden ">
+    <div className="p-4 sm:p-6 space-y-6 oveflow-hidden ">
       <div className="flex gap-2 items-center">
         <Link href="/saved-lists" className="flex-shrink-0 ">
           <Button variant="secondary" size="sm">
