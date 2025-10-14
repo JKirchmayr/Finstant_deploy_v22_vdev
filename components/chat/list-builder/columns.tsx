@@ -20,6 +20,7 @@ import {
   LinkIcon,
   CalendarDaysIcon,
 } from '@heroicons/react/24/outline'
+import { cn } from '@/lib/utils'
 
 const PulseLoading = () => {
   return (
@@ -54,7 +55,8 @@ const ensureProtocol = (url?: string) => {
 
 export const generateColumns = (
   data: any[],
-  type: 'company' | 'investor' | 'transaction' | 'people'
+  type: 'company' | 'investor' | 'transaction' | 'people',
+  expand: boolean
 ): ColumnDef<any>[] => {
   const defaultColumnsConfig = {
     company: [
@@ -113,22 +115,21 @@ export const generateColumns = (
         const website = row.original.WEBSITE
         return (
           <div className="inline-flex items-center cursor-pointer min-w-0">
-            {!website ||
-              (!logo && (
-                <Image
-                  src={logo || 'https://placehold.co/50x50.png'}
-                  alt={`${name} logo`}
-                  width={25}
-                  height={25}
-                  className="mr-2 rounded-sm flex-shrink-0"
-                  onError={e => {
-                    ;(
-                      e.currentTarget as HTMLImageElement
-                    ).src = `https://www.google.com/s2/favicons?domain=${new URL(website).hostname}`
-                  }}
-                  unoptimized
-                />
-              ))}
+            {(website || logo) && (
+              <Image
+                src={logo || 'https://placehold.co/50x50.png'}
+                alt={`${name} logo`}
+                width={25}
+                height={25}
+                className="mr-2 rounded-sm flex-shrink-0"
+                onError={e => {
+                  ;(
+                    e.currentTarget as HTMLImageElement
+                  ).src = `https://www.google.com/s2/favicons?domain=${new URL(website).hostname}`
+                }}
+                unoptimized
+              />
+            )}
             <button
               onClick={() => openListItemPopup(row.original)}
               className="truncate text-left cursor-pointer font-medium text-gray-900 hover:underline"
@@ -147,16 +148,18 @@ export const generateColumns = (
       cell: ({ row }) => (
         <ExpandableCell
           TriggerCell={
-            <p className="line-clamp-2 cursor-pointer">
+            <p className={cn('cursor-pointer', { 'line-clamp-2': !expand })}>
               {row.original.DESCRIPTION || <span className="text-muted-foreground">n/a</span>}
             </p>
           }
         >
-          <p className=" ">
-            {row.original.DESCRIPTION || (
-              <span className="text-muted-foreground">No description available.</span>
-            )}
-          </p>
+          {!expand && (
+            <p className=" ">
+              {row.original.DESCRIPTION || (
+                <span className="text-muted-foreground">No description available.</span>
+              )}
+            </p>
+          )}
         </ExpandableCell>
       ),
     },

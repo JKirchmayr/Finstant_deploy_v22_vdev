@@ -1,5 +1,6 @@
 import { getUserProfile } from '@/actions/auth'
 import Chat from '@/components/chat'
+import { MainLayout } from '@/components/layout/MainLayout'
 import Page from '@/components/layout/Page'
 import { getSessionMessages } from '@/services/sessions'
 import { redirect } from 'next/navigation'
@@ -14,8 +15,10 @@ export default async function page({ params }: { params: Promise<{ id: string }>
     return redirect('/copilot')
   }
   return (
-    <Page title="Copilot">
-      <Chat id={id} isNewSession={false} initialMessages={chat?.messages || []} />
-    </Page>
+    <MainLayout>
+      <Page title="Copilot">
+        <Chat id={id} isNewSession={false} initialMessages={chat?.messages || []} />
+      </Page>
+    </MainLayout>
   )
 }

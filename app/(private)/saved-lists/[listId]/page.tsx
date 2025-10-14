@@ -13,6 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 import { generateColumns } from './data/columns'
 import { ListDetailsDataTable } from './data'
+import { MainLayout } from '@/components/layout/MainLayout'
 
 const normalizeListType = (typeString: string = ''): ListType => {
   const lowerType = typeString.toLowerCase()
@@ -51,34 +52,40 @@ export default function SavedListDetailsPage() {
   console.log('items', items)
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 oveflow-hidden ">
-      <div className="flex gap-2 items-center">
-        <Link href="/saved-lists" className="flex-shrink-0 ">
-          <Button variant="secondary" size="sm">
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-        </Link>
-        <div>
-          <>
-            <h1 className="text-[16px] font-semibold flex items-center gap-x-2 ">{title}</h1>
-            <p className="text-xs ">
+    <MainLayout
+      headerChildren={
+        <div className="flex gap-2 items-center w-full">
+          <Link href="/saved-lists" className="flex-shrink-0 hidden sm:block">
+            <Button variant="secondary" size="sm">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <div className="max-w-[180px] sm:max-w-full">
+            <h1 className="text-xs sm:text-[14px] font-semibold flex items-center gap-x-2 truncate">
+              {title}
+            </h1>
+            <p className="text-[10px] sm:text-xs ">
               Type:
               <span className="capitalize">
                 {' '}
                 {listType?.replace('_', ' ')} {totalCount > 0 && <span>({totalCount})</span>}
               </span>
             </p>
-          </>
+          </div>
         </div>
+      }
+    >
+      <div className="p-4 space-y-6 oveflow-hidden ">
+        <ListDetailsDataTable
+          columns={columns}
+          data={items}
+          listType={listType}
+          userId={userId}
+          listId={listId}
+          isLoading={isLoading}
+          title={title}
+        />
       </div>
-      <ListDetailsDataTable
-        columns={columns}
-        data={items}
-        listType={listType}
-        userId={userId}
-        listId={listId}
-        isLoading={isLoading}
-      />
-    </div>
+    </MainLayout>
   )
 }

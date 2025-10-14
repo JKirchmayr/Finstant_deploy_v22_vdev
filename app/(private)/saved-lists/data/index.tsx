@@ -101,23 +101,21 @@ export const SavedListPage = () => {
   }
 
   const handleDownload = () => {
-    const selectedRows = table.getSelectedRowModel().rows
-    if (selectedRows.length === 0) {
+    const data = table.getSelectedRowModel().rows.map(row => row.original) as any[]
+    if (data?.length === 0) {
       toast('Please select rows to download.')
       return
     }
-    const dataToExport = selectedRows.map(row => row.original)
-    const worksheet = XLSX.utils.json_to_sheet(dataToExport)
+    const worksheet = XLSX.utils.json_to_sheet(data)
     const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Saved Lists')
-    XLSX.writeFile(workbook, 'selected_lists.xlsx')
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1')
+
+    XLSX.writeFile(workbook, activeTab + '.xlsx')
   }
 
   return (
-    <div className="p-6 w-full mx-auto">
-      <h1 className="text-xl font-semibold pb-2 border-b-2">Saved Lists</h1>
-
-      <div className="flex justify-between py-4 items-center border-b-2">
+    <div className="p-4 w-full mx-auto">
+      <div className="flex justify-between items-center border-b-2">
         <Tabs
           value={activeTab}
           onValueChange={value => {

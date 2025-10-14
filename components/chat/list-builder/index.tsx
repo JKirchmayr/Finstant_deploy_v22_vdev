@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useChatStore } from '@/store/chatStore'
 import { motion } from 'framer-motion'
 import { ColumnDef } from '@tanstack/react-table'
@@ -17,10 +17,19 @@ interface ListBuilderProps {
 
 export default function ListBuilder({ listData, title, type }: ListBuilderProps) {
   const isMobile = useIsMobile()
+  const [expand, setExpand] = useState<boolean>(false)
   const { isStreaming, isCopilotOpen, activeList } = useChatStore()
   // console.log(listData)
   // console.log(activeList.isLoading)
-  const columns = () => generateColumns(listData, type)
+  const columns = () => generateColumns(listData, type, expand)
+
+  const toggleExpand = () => {
+    if (expand) {
+      setExpand(false)
+      return
+    }
+    setExpand(true)
+  }
 
   return (
     <motion.div
@@ -41,6 +50,8 @@ export default function ListBuilder({ listData, title, type }: ListBuilderProps)
             isLoading={(isStreaming && listData.length === 0) || (activeList?.isLoading ?? false)}
             titleName={title}
             defaultPinnedColumns={['select', 'rowNumber', 'NAME']}
+            expand={expand}
+            toggleExpand={toggleExpand}
           />
         </AddColumnProvider>
       </div>

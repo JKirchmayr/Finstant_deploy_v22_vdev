@@ -73,6 +73,7 @@ const Chat = ({
       setMessages(initialMessages)
       closeListPanel()
       setIsCanvasOpen(false)
+      scrollToBottom()
     }
   }, [isNewSession && initialMessages])
 

@@ -233,11 +233,12 @@ const UserAvatar = () => {
 }
 
 // Main navbar component
-export const TopNavbar = () => {
+export const TopNavbar = ({ children }: { children?: React.ReactNode }) => {
   return (
     <div className="h-12 border-b border-gray-200 bg-white flex items-center  px-4">
-      <div className="md:hidden">
-        <SidebarTrigger />
+      <div className="flex gap-2">
+        <SidebarTrigger className="md:hidden" />
+        {children}
       </div>
 
       <div className="flex items-center gap-4 ml-auto">

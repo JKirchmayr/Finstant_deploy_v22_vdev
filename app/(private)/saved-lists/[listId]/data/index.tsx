@@ -14,7 +14,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 import * as XLSX from 'xlsx'
-import { Download, Trash } from 'lucide-react'
+import { Download, Trash, X } from 'lucide-react'
 
 import {
   Table,
@@ -45,6 +45,7 @@ interface DataTableProps {
   userId: string
   listId: string
   isLoading: boolean
+  title: string
 }
 
 // Helper function for column pinning styles
@@ -66,9 +67,11 @@ export function ListDetailsDataTable({
   userId,
   listId,
   isLoading,
+  title,
 }: DataTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+  const [globalFilter, setGlobalFilter] = React.useState('')
   const [rowSelection, setRowSelection] = React.useState({})
   const [items, setItems] = React.useState(data)
 
@@ -118,13 +121,14 @@ export function ListDetailsDataTable({
   const table = useReactTable({
     data: items,
     columns,
-    state: { sorting, columnFilters, rowSelection },
+    state: { sorting, columnFilters, rowSelection, globalFilter },
     initialState: {
       pagination: { pageSize: 10 }, // Set page size to 10
-      columnPinning: { left: ['drag', 'select', 'NAME'], right: [] },
+      columnPinning: { left: ['drag'], right: [] },
     },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
     onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -173,37 +177,39 @@ export function ListDetailsDataTable({
     const dataToExport = rowsToExport.map(row => row.original)
     const worksheet = XLSX.utils.json_to_sheet(dataToExport)
     const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Saved List Items')
-    XLSX.writeFile(workbook, 'saved_list_items.xlsx')
+    XLSX.utils.book_append_sheet(workbook, worksheet, title || 'Saved List Items')
+    XLSX.writeFile(workbook, `${title}.xlsx` || 'saved_list_items.xlsx')
   }
 
   return (
     <div className="space-y-4 ">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <Input
-          placeholder={`Filter by ${listType} name...`}
-          value={(table.getColumn(filterColumnId)?.getFilterValue() as string) ?? ''}
-          onChange={event => table.getColumn(filterColumnId)?.setFilterValue(event.target.value)}
-          className="max-w-sm ml-0.5"
+          placeholder="Search Any keyword....."
+          value={globalFilter}
+          onChange={e => setGlobalFilter(e.target.value)}
+          className="sm:w-sm w-full ml-0.5"
         />
 
-        <Button
-          variant="danger"
-          size="xs"
-          onClick={handleDelete}
-          disabled={Object.keys(rowSelection).length === 0}
-          className="ml-auto"
-        >
-          <Trash /> Delete
-        </Button>
-        <Button
-          size="xs"
-          variant="blue"
-          onClick={handleDownload}
-          disabled={Object.keys(rowSelection).length === 0}
-        >
-          <Download /> Download
-        </Button>
+        <div className="space-x-4 sm:block flex justify-between">
+          <Button
+            variant="danger"
+            size="xs"
+            onClick={handleDelete}
+            disabled={Object.keys(rowSelection).length === 0}
+            className="ml-auto"
+          >
+            <Trash /> Delete
+          </Button>
+          <Button
+            size="xs"
+            variant="blue"
+            onClick={handleDownload}
+            disabled={Object.keys(rowSelection).length === 0}
+          >
+            <Download /> Download
+          </Button>
+        </div>
       </div>
 
       <div className="rounded-lg border overflow-auto">

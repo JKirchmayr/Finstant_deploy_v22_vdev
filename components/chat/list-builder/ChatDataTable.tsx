@@ -18,8 +18,10 @@ import {
   ArrowLeft,
   ChevronLeft,
   ChevronRight,
+  ChevronsDownUp,
   Download,
   ListChecks,
+  MoveVertical,
   Plus,
   Trash,
   X,
@@ -43,6 +45,7 @@ import { ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from '@heroicons/react/
 import { useIsMobile } from '@/hooks/use-mobile'
 import { AddToListDialog, CreateNewListDialog, Item } from './ListDialogs'
 import { useDeleteSessionListItems } from '@/queries/sessions'
+import { cn } from '@/lib/utils'
 
 interface IChatDataTableProps<T extends any> {
   data: T[]
@@ -58,6 +61,8 @@ interface IChatDataTableProps<T extends any> {
   titleName: string
   noHeader?: boolean
   addColumn?: boolean
+  expand?: boolean
+  toggleExpand: () => void
 }
 
 // Helper function to compute pinning styles for columns
@@ -80,6 +85,8 @@ const ChatDataTable = <T extends any>({
   titleName,
   addColumn = true,
   defaultPinnedColumns,
+  expand,
+  toggleExpand,
 }: IChatDataTableProps<T>) => {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -272,8 +279,8 @@ const ChatDataTable = <T extends any>({
             </div>
           </div>
           <div className="pt-2 pb-0 pr-2 pl-2">
-            <div className="flex justify-between items-center">
-              <div className="flex gap-4 shrink-0 min-h-[28px] items-center">
+            <div className="flex justify-between items-center gap-2 overflow-hidden">
+              <div className="flex gap-2 shrink-0 min-h-[28px] items-center">
                 <Button
                   variant="secondary"
                   size="xs"
@@ -304,6 +311,31 @@ const ChatDataTable = <T extends any>({
                 </AddToListDialog>
               </div>
               <div className="flex gap-2 items-center pr-0">
+                <div className="hidden sm:flex gap-2">
+                  <Button
+                    variant="secondary"
+                    size="xs"
+                    className={cn(
+                      'h-7 hover:bg-gray-300 gap-1'
+                      // { 'bg-foreground/30': !expand }
+                    )}
+                    onClick={toggleExpand}
+                    disabled={isStreaming}
+                  >
+                    <ChevronsDownUp />
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="xs"
+                    className={cn('h-7 hover:bg-foreground/30 gap-1', {
+                      // 'bg-foreground/30': expand,
+                    })}
+                    onClick={toggleExpand}
+                    disabled={isStreaming}
+                  >
+                    <MoveVertical />
+                  </Button>
+                </div>
                 <CreateNewListDialog
                   initialSelected={selectedRows.map(item => ({
                     NAME: (item as any)?.NAME || (item as any)?.TARGET_NAME,
@@ -330,7 +362,7 @@ const ChatDataTable = <T extends any>({
                   onClick={() => handleExport('excel')}
                   disabled={isStreaming}
                 >
-                  Download <Download className="size-4 " />
+                  <span className="hidden sm:block">Download</span> <Download className="size-4 " />
                 </Button>
               </div>
             </div>
@@ -423,7 +455,7 @@ const ChatDataTable = <T extends any>({
                             return (
                               <TableCell
                                 key={cell.id}
-                                className="py-1.5 border-r border-gray-300 bg-background"
+                                className="py-1.5 border-r border-gray-300 bg-background h-auto"
                                 style={{ ...getPinningStyles(column) }}
                                 data-pinned={isPinned || undefined}
                                 data-last-col={
@@ -434,7 +466,7 @@ const ChatDataTable = <T extends any>({
                                     : undefined
                                 }
                               >
-                                <div className="line-clamp-2 w-full max-h-[40px]">
+                                <div className="">
                                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                 </div>
                               </TableCell>

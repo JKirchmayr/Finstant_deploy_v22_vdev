@@ -58,7 +58,7 @@ export function AddToListDialog({
   //   const [selected, setSelected] = useState<Item[]>(initialSelected)
   const [selectedList, setSelectedList] = useState<string>('')
   const { user } = useAuth()
-  const { data, isLoading } = useUserLists(user?.user_id || '', undefined, open)
+  const { data, isLoading } = useUserLists(user?.user_id || '', activeList.type || 'all', 50)
   const lists = ((data?.lists as SavedList[]) || []).filter(
     list => normalizeListType(list.list_type) === activeList?.type
   ) as SavedList[]
