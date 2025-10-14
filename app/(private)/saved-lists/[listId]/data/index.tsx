@@ -141,8 +141,15 @@ export function ListDetailsDataTable({
       return
     }
     const selectedItemIds = selectedRows.map(row => row.original.saved_list_item_id)
+    const selectedEntityIds = selectedRows.map(row => row.original.id)
+
+    const payload = {
+      saved_list_item_ids: selectedItemIds,
+      entity_ids: selectedEntityIds,
+    }
+
     removeItems(
-      { userId, listId, data: { saved_list_item_ids: selectedItemIds } },
+      { userId, listId, data: payload },
       {
         onSuccess: () => {
           toast.success(`${selectedItemIds.length} item(s) deleted successfully.`)

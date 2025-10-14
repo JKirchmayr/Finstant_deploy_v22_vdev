@@ -69,6 +69,7 @@ export const useRemoveItemsFromList = (enabled: boolean) => {
       removeItemsFromUserList(userId, listId, data),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['userListItems', variables.listId] })
+      queryClient.invalidateQueries({ queryKey: ['userLists'] })
     },
   })
 }
