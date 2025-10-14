@@ -40,6 +40,7 @@ import { UpdateUserListAction } from '@/services/saved-lists'
 import { SavedList } from '@/types/saved-list'
 import { toast } from 'sonner'
 import { columns } from './columns'
+import { Skeleton } from '@/components/ui/skeleton'
 
 type TabTypes = 'all' | 'company' | 'investor' | 'people' | 'archive' | 'transaction'
 
@@ -202,11 +203,25 @@ export const SavedListPage = () => {
           </TableHeader>
           <TableBody>
             {isComponentLoading ? (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
-                  Loading lists...
-                </TableCell>
-              </TableRow>
+              [...Array(10)].map((_, index) => (
+                <TableRow key={index}>
+                  <TableCell>
+                    <Skeleton className="h-5 w-5" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-3/4" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-6 w-24" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-6 w-12" />
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Skeleton className="h-6 w-32 mx-auto" />
+                  </TableCell>
+                </TableRow>
+              ))
             ) : table.getRowModel().rows.length ? (
               table.getRowModel().rows.map(row => (
                 <TableRow
