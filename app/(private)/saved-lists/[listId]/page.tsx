@@ -1,20 +1,18 @@
 'use client'
 
-import React, { useMemo } from 'react'
+import React from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Loader2, ArrowLeft, List } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 
 import { useAuth } from '@/hooks/useAuth'
 import { useUserListItems } from '@/queries/saved-lists'
-import { useQueryClient } from '@tanstack/react-query'
-import { ListItemsResponse, ListType, SavedList } from '@/types/saved-list'
-//import { ListItemsResponse, ListType } from '@/types/saved-list'
+import { AnyListItem, ListItemsResponse, ListType, SavedList } from '@/types/saved-list'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 
 import { generateColumns } from './data/columns'
 import { ListDetailsDataTable } from './data'
-import { Skeleton } from '@/components/ui/skeleton'
 
 const normalizeListType = (typeString: string = ''): ListType => {
   const lowerType = typeString.toLowerCase()
@@ -42,16 +40,18 @@ export default function SavedListDetailsPage() {
   }
 
   const isLoading = isAuthLoading || isItemsLoading
-  const listDetails = (listData?.list_details ?? []) as SavedList
-  const items = listData?.items ?? []
+  const listDetails = listData?.list_details as SavedList | undefined
+  const items: AnyListItem[] = listData?.items ?? []
   const title = listDetails?.list_name || searchParams.get('title') || ''
   const type = listDetails?.list_type || searchParams.get('type') || ''
   const totalCount = listData?.pagination?.total_count ?? 0
   const listType = normalizeListType(type)
-  const columns = useMemo(() => generateColumns(listType), [listType])
+
+  const columns = generateColumns(listType)
+  console.log('items', items)
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
       <div className="flex gap-2 items-center">
         <Link href="/saved-lists" className="flex-shrink-0 ">
           <Button variant="secondary" size="sm">
@@ -59,35 +59,26 @@ export default function SavedListDetailsPage() {
           </Button>
         </Link>
         <div>
-          {listDetails ? (
-            <>
-              <h1 className="text-[16px] font-semibold flex items-center gap-x-2 ">{title}</h1>
-              <p className="text-xs ">
-                Type:
-                <span className="capitalize">
-                  {' '}
-                  {listType?.replace('_', ' ')} {totalCount && <span>({totalCount})</span>}
-                </span>
-              </p>
-            </>
-          ) : (
-            <>
-              <Skeleton className="w-[250px] h-4 rounded-sm" />
-              <Skeleton className="w-36 h-3 mt-1 rounded-sm" />
-            </>
-          )}
+          <>
+            <h1 className="text-[16px] font-semibold flex items-center gap-x-2 ">{title}</h1>
+            <p className="text-xs ">
+              Type:
+              <span className="capitalize">
+                {' '}
+                {listType?.replace('_', ' ')} {totalCount > 0 && <span>({totalCount})</span>}
+              </span>
+            </p>
+          </>
         </div>
       </div>
-      <div className="overflow-auto">
-        <ListDetailsDataTable
-          columns={columns}
-          data={items ?? []}
-          listType={listType}
-          userId={userId}
-          listId={listId}
-          isLoading={isLoading}
-        />
-      </div>
+      <ListDetailsDataTable
+        columns={columns}
+        data={items}
+        listType={listType}
+        userId={userId}
+        listId={listId}
+        isLoading={isLoading}
+      />
     </div>
   )
 }

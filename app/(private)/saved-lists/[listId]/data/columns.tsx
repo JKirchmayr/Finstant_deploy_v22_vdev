@@ -1,229 +1,432 @@
 'use client'
 
-import { Row, Table, type ColumnDef } from '@tanstack/react-table'
-import {
-  AlignLeft,
-  ArrowUpDown,
-  Briefcase,
-  Building2,
-  Factory,
-  Globe,
-  GripVertical,
-  Landmark,
-  Linkedin,
-  MapPin,
-  User,
-  Users,
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
-import { AnyListItem, isCompany, isInvestor, isPeople, ListType } from '@/types/saved-list'
+import React from 'react'
+import { ColumnDef } from '@tanstack/react-table'
 import Image from 'next/image'
-import { ExpandableCell } from '@/components/table/expandable-cell'
-import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
-import { useState } from 'react'
+import { Checkbox } from '@/components/ui/checkbox'
+import { ExpandableCell } from '@/components/table/expandable-cell'
+// This import will now work correctly
+import {
+  AnyListItem,
+  isCompany,
+  isInvestor,
+  isPeople,
+  isTransaction,
+  ListType,
+} from '@/types/saved-list'
 
-const getFaviconUrl = (websiteUrl: string | null) => {
-  if (!websiteUrl) return '/default-favicon.png'
-  try {
-    return `https://www.google.com/s2/favicons?domain=${new URL(websiteUrl).hostname}`
-  } catch {
-    return '/default-favicon.png'
-  }
-}
+import {
+  BuildingOffice2Icon,
+  Bars3Icon,
+  MapPinIcon,
+  Bars3BottomLeftIcon,
+  GlobeAltIcon,
+  UsersIcon,
+  BriefcaseIcon,
+  LinkIcon,
+  UserIcon,
+  CurrencyDollarIcon,
+  CalendarDaysIcon,
+} from '@heroicons/react/24/outline'
+import { GripVertical, LandmarkIcon } from 'lucide-react'
 
 const HeaderWithIcon = ({ icon, label }: { icon: React.ReactNode; label: string }) => (
   <div className="inline-flex items-center justify-center gap-2">
     {icon}
-    <span className="truncate text-[13px]">{label}</span>
+    <span className="truncate">{label}</span>
   </div>
 )
 
-const EmptyCell = () => <span className="text-muted-foreground">n/a</span>
+const toTitle = (key: string) => {
+  if (!key) return ''
+  return key
+    .replace(/_/g, ' ')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .toLowerCase()
+    .replace(/\b\w/g, s => s.toUpperCase())
+}
 
-const createEntityColumns = (entityType: 'company' | 'investor'): ColumnDef<AnyListItem>[] => {
-  const Icon = entityType === 'company' ? Building2 : Landmark
+const ensureProtocol = (url?: string | null) => {
+  if (!url) return undefined
+  const u = url.trim()
+  return u.startsWith('http') ? u : `https://${u}`
+}
 
-  return [
-    {
-      accessorKey: `${entityType}_name`,
+export const generateColumns = (listType: ListType): ColumnDef<AnyListItem>[] => {
+  const defaultColumnsConfig: Record<ListType, string[]> = {
+    company: ['NAME', 'DESCRIPTION', 'WEBSITE', 'INDUSTRY', 'EMPLOYEES', 'LOCATION'],
+    transaction: [
+      'DEAL_DATE',
+      'TARGET_NAME',
+      'DESCRIPTION',
+      'BUYER_NAME',
+      'DEAL_SOURCE_URL',
+      'TRANSACTION_VALUE',
+    ],
+    investor: [
+      'NAME',
+      'DESCRIPTION',
+      'WEBSITE',
+      'INDUSTRY',
+      'EMPLOYEES',
+      'LOCATION',
+      'INVESTOR_TYPE',
+    ],
+    people: ['NAME', 'DESCRIPTION', 'POSITION', 'COMPANY_NAME', 'LOCATION', 'PROFILE_URL'],
+    unknown: [],
+  }
+
+  const defaultKeys = defaultColumnsConfig[listType] || []
+  const primaryColumnHeader = toTitle(listType === 'people' ? 'Person Name' : listType)
+
+  const allColumnDefs: Record<string, ColumnDef<AnyListItem>> = {
+    NAME: {
+      id: 'NAME',
+      accessorFn: row => {
+        if (isCompany(row)) return row.company_name
+        if (isInvestor(row)) return row.investor_name
+        if (isPeople(row)) return row.name // CORRECTED
+        return ''
+      },
       size: 250,
-      header: ({ column }) => (
-        <div className="flex items-center gap-1">
-          <Icon className="h-4 w-4" />
-          <span className="capitalize">{entityType}</span>
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className="p-0 hover:bg-transparent"
-          >
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
+      header: () => (
+        <HeaderWithIcon
+          icon={
+            listType === 'people' ? (
+              <UserIcon className="h-4 w-4" />
+            ) : (
+              <BuildingOffice2Icon className="h-4 w-4" />
+            )
+          }
+          label={primaryColumnHeader}
+        />
       ),
       cell: ({ row }) => {
         const item = row.original
-        if (entityType === 'company' && isCompany(item)) {
-          return (
-            <div className="flex items-center gap-3 font-medium min-w-[150px]">
-              <Image
-                src={item.company_logo || getFaviconUrl(item.company_website)}
-                alt={`${item.company_name || 'company'} logo`}
-                width={25}
-                height={25}
-                className="rounded-sm object-contain"
-                unoptimized
-              />
-              <p className="font-semibold">{item.company_name || 'Untitled Company'}</p>
-            </div>
-          )
+        let name: string = 'Details'
+        let logo: string | null | undefined
+        let website: string | null | undefined
+
+        if (isCompany(item)) {
+          name = item.company_name || 'Untitled Company'
+          logo = item.company_logo
+          website = item.company_website
+        } else if (isInvestor(item)) {
+          name = item.investor_name || 'Untitled Investor'
+          logo = item.investor_logo
+          website = item.investor_website
+        } else if (isPeople(item)) {
+          name = item.name
+          logo = item.profile_pic_url
         }
-        if (entityType === 'investor' && isInvestor(item)) {
-          return (
-            <div className="flex items-center gap-3 font-medium min-w-[150px]">
-              <Image
-                src={item.investor_logo || getFaviconUrl(item.investor_website)}
-                alt={`${item.investor_name || 'investor'} logo`}
-                width={25}
-                height={25}
-                className="rounded-sm object-contain"
-                unoptimized
-              />
-              <p className="font-semibold">{item.investor_name || 'Untitled Investor'}</p>
-            </div>
-          )
-        }
-        return <EmptyCell />
+
+        const fallbackUrl =
+          website && URL.canParse(ensureProtocol(website) || '')
+            ? `https://www.google.com/s2/favicons?domain=${
+                new URL(ensureProtocol(website)!).hostname
+              }`
+            : `https://ui-avatars.com/api/?name=${name}&background=random`
+
+        return (
+          <div className="inline-flex items-center gap-2 min-w-0">
+            <Image
+              src={logo || fallbackUrl}
+              alt={`${name} logo`}
+              width={25}
+              height={25}
+              className="mr-1 rounded-sm flex-shrink-0 object-contain"
+              onError={e => {
+                ;(e.currentTarget as HTMLImageElement).src = fallbackUrl
+              }}
+              unoptimized
+            />
+            <span className="truncate font-medium text-gray-900" title={name}>
+              {name}
+            </span>
+          </div>
+        )
       },
     },
-    {
-      accessorKey: `${entityType}_description`,
+    DESCRIPTION: {
+      id: 'DESCRIPTION',
+      accessorFn: row => {
+        if (isCompany(row)) return row.company_description
+        if (isInvestor(row)) return row.investor_description
+        if (isPeople(row)) return row.description
+        if (isTransaction(row)) return row.deal_description
+        return ''
+      },
       size: 400,
-      header: () => <HeaderWithIcon icon={<AlignLeft className="h-4 w-4" />} label="Description" />,
+      header: () => <HeaderWithIcon icon={<Bars3Icon className="h-4 w-4" />} label="Description" />,
       cell: ({ row }) => {
-        const item = row.original
-        let description: string | null | undefined
-        if (entityType === 'company' && isCompany(item)) description = item.company_description
-        else if (entityType === 'investor' && isInvestor(item))
-          description = item.investor_description
-
-        if (!description) return <EmptyCell />
+        const description = row.getValue('DESCRIPTION') as string | null
         return (
           <ExpandableCell
-            TriggerCell={<p className="line-clamp-2 cursor-pointer">{description}</p>}
+            TriggerCell={
+              <p className="line-clamp-2 cursor-pointer">
+                {description || <span className="text-muted-foreground">N/A</span>}
+              </p>
+            }
           >
-            <p>{description}</p>
+            <p>
+              {description || (
+                <span className="text-muted-foreground">No description available.</span>
+              )}
+            </p>
           </ExpandableCell>
         )
       },
     },
-    {
-      accessorKey: `${entityType}_website`,
-      header: () => <HeaderWithIcon icon={<Globe className="h-4 w-4" />} label="Website" />,
+    WEBSITE: {
+      id: 'WEBSITE',
+      accessorFn: row => {
+        if (isCompany(row)) return row.company_website
+        if (isInvestor(row)) return row.investor_website
+        return null
+      },
+      header: () => <HeaderWithIcon icon={<GlobeAltIcon className="h-4 w-4" />} label="Website" />,
       cell: ({ row }) => {
-        const item = row.original
-        let websiteUrl: string | null | undefined
-        if (entityType === 'company' && isCompany(item)) websiteUrl = item.company_website
-        else if (entityType === 'investor' && isInvestor(item)) websiteUrl = item.investor_website
-
-        if (!websiteUrl) return <EmptyCell />
-        let displayUrl = ''
-        try {
-          displayUrl = new URL(websiteUrl).hostname.replace(/^www\./, '')
-        } catch {
-          return <span className="text-xs text-red-500">Invalid URL</span>
-        }
-        return (
+        const url = ensureProtocol(row.getValue('WEBSITE') as string | null)
+        return url ? (
           <Link
-            href={websiteUrl}
+            href={url}
             target="_blank"
-            rel="noopener noreferrer"
-            title={websiteUrl}
-            className="text-blue-500 hover:underline flex items-center gap-1.5"
+            className="text-blue-600 hover:underline truncate"
             onClick={e => e.stopPropagation()}
           >
-            <span className="text-xs truncate font-medium">{displayUrl}</span>
+            {new URL(url).hostname.replace(/^www\./, '')}
           </Link>
-        )
-      },
-    },
-    {
-      accessorKey: `${entityType}_industry`,
-      header: () => <HeaderWithIcon icon={<Factory className="h-4 w-4" />} label="Industry" />,
-      cell: ({ row }) => {
-        const item = row.original
-        let industry: string | null | undefined
-        if (entityType === 'company' && isCompany(item)) industry = item.company_industry
-        else if (entityType === 'investor' && isInvestor(item)) industry = item.investor_industry
-
-        return industry ? (
-          <div className="text-xs text-muted-foreground">{industry}</div>
         ) : (
-          <EmptyCell />
+          <span className="text-muted-foreground">N/A</span>
         )
       },
     },
-    {
-      accessorKey: `${entityType}_employees`,
-      header: () => <HeaderWithIcon icon={<Users className="h-4 w-4" />} label="Employees" />,
+    INDUSTRY: {
+      id: 'INDUSTRY',
+      accessorFn: row => {
+        if (isCompany(row)) return row.company_industry
+        if (isInvestor(row)) return row.investor_industry
+        return null
+      },
+      header: () => (
+        <HeaderWithIcon icon={<Bars3BottomLeftIcon className="h-4 w-4" />} label="Industry" />
+      ),
       cell: ({ row }) => {
-        const item = row.original
-        let employees: number | null | undefined
-        if (entityType === 'company' && isCompany(item)) employees = item.company_employees
-        else if (entityType === 'investor' && isInvestor(item)) employees = item.investor_employees
-
-        return employees ? (
-          <Badge variant="secondary" className="font-medium">
-            {employees.toLocaleString()}
-          </Badge>
-        ) : (
-          <EmptyCell />
-        )
+        const industry = row.getValue('INDUSTRY') as string | null
+        return <span>{industry || <span className="text-muted-foreground">N/A</span>}</span>
       },
     },
-    {
-      accessorKey: `${entityType}_location`,
-      header: () => <HeaderWithIcon icon={<MapPin className="h-4 w-4" />} label="Location" />,
+    EMPLOYEES: {
+      id: 'EMPLOYEES',
+      accessorFn: row => {
+        if (isCompany(row)) return row.company_employees
+        if (isInvestor(row)) return row.investor_employees
+        return null
+      },
+      header: () => <HeaderWithIcon icon={<UsersIcon className="h-4 w-4" />} label="Employees" />,
       cell: ({ row }) => {
-        const item = row.original
-        let location: string | null | undefined
-        if (entityType === 'company' && isCompany(item)) location = item.company_location
-        else if (entityType === 'investor' && isInvestor(item)) location = item.investor_location
-
-        return location ? (
-          <div className="text-xs text-muted-foreground">{location}</div>
-        ) : (
-          <EmptyCell />
+        const val = row.getValue('EMPLOYEES') as number | string | null
+        return (
+          <span>
+            {typeof val === 'number'
+              ? new Intl.NumberFormat().format(val)
+              : val || <span className="text-muted-foreground">N/A</span>}
+          </span>
         )
       },
     },
-  ]
-}
-export const generateColumns = (listType: ListType): ColumnDef<AnyListItem>[] => {
-  const commonStartColumns: ColumnDef<AnyListItem>[] = [
-    {
-      id: 'drag',
-      header: '',
-      cell: ({ row, table }) => (
-        <span className="px-0 group ">
-          <p className="group-hover:hidden text-sm font-semibold w-5 text-center">
-            {row.index + 1}.
-          </p>
-          <GripVertical className="h-5 w-5 cursor-grab active:cursor-grabbing text-muted-foreground hidden group-hover:block" />
+    LOCATION: {
+      id: 'LOCATION',
+      accessorFn: row => {
+        if (isCompany(row)) return row.company_location
+        if (isInvestor(row)) return row.investor_location
+        if (isPeople(row)) return row.location
+        return null
+      },
+      header: () => <HeaderWithIcon icon={<MapPinIcon className="h-4 w-4" />} label="Location" />,
+      cell: ({ row }) => {
+        const location = row.getValue('LOCATION') as string | null
+        return <span>{location || <span className="text-muted-foreground">N/A</span>}</span>
+      },
+    },
+    INVESTOR_TYPE: {
+      accessorKey: 'investor_type',
+      header: () => (
+        <HeaderWithIcon icon={<LandmarkIcon className="h-4 w-4" />} label="Investor Type" />
+      ),
+      cell: ({ row }) => (
+        <span>
+          {(isInvestor(row.original) && row.original.investor_type) || (
+            <span className="text-muted-foreground">N/A</span>
+          )}
         </span>
       ),
-      size: 40,
     },
+    POSITION: {
+      accessorKey: 'position',
+      header: () => (
+        <HeaderWithIcon icon={<BriefcaseIcon className="h-4 w-4" />} label="Position" />
+      ),
+      cell: ({ row }) => (
+        <span>
+          {(isPeople(row.original) && row.original.position) || (
+            <span className="text-muted-foreground">M/A</span>
+          )}
+        </span>
+      ),
+    },
+    COMPANY_NAME: {
+      accessorKey: 'company_name',
+      header: () => (
+        <HeaderWithIcon icon={<BuildingOffice2Icon className="h-4 w-4" />} label="Company Name" />
+      ),
+      cell: ({ row }) => (
+        <span>
+          {(isPeople(row.original) && row.original.company_name) || (
+            <span className="text-muted-foreground">N/A</span>
+          )}
+        </span>
+      ),
+    },
+    PROFILE_URL: {
+      accessorKey: 'linkedin_url',
+      header: () => (
+        <HeaderWithIcon icon={<LinkIcon className="h-4 w-4" />} label="LinkedIn Profile" />
+      ),
+      cell: ({ row }) => {
+        const url = ensureProtocol(isPeople(row.original) ? row.original.linkedin_url : null)
+        return url ? (
+          <Link
+            href={url}
+            target="_blank"
+            className="text-blue-600 hover:underline"
+            onClick={e => e.stopPropagation()}
+          >
+            View Profile
+          </Link>
+        ) : (
+          <span className="text-muted-foreground">N/A</span>
+        )
+      },
+    },
+    DEAL_DATE: {
+      accessorKey: 'deal_date',
+      header: () => (
+        <HeaderWithIcon icon={<CalendarDaysIcon className="h-4 w-4" />} label="Deal Date" />
+      ),
+      cell: ({ row }) => {
+        const item = row.original
+        if (!isTransaction(item)) return null
+        const date = item.deal_date
+        return (
+          <span>
+            {date ? (
+              new Date(date).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+              })
+            ) : (
+              <span className="text-muted-foreground">N/A</span>
+            )}
+          </span>
+        )
+      },
+      size: 150,
+    },
+    TARGET_NAME: {
+      accessorKey: 'target_name',
+      header: () => (
+        <HeaderWithIcon icon={<BuildingOffice2Icon className="h-4 w-4" />} label="Target" />
+      ),
+      cell: ({ row }) => {
+        const item = row.original
+        if (!isTransaction(item)) return null
+        return (
+          <span className="font-medium">
+            {item.target_name || <span className="text-muted-foreground">N/A</span>}
+          </span>
+        )
+      },
+      size: 200,
+    },
+    BUYER_NAME: {
+      accessorKey: 'buyer_name',
+      header: () => (
+        <HeaderWithIcon icon={<BuildingOffice2Icon className="h-4 w-4" />} label="Buyer" />
+      ),
+      cell: ({ row }) => {
+        const item = row.original
+        if (!isTransaction(item)) return null
+        return <span>{item.buyer_name || <span className="text-muted-foreground">N/A</span>}</span>
+      },
+      size: 200,
+    },
+    DEAL_SOURCE_URL: {
+      accessorKey: 'deal_source_url',
+      header: () => <HeaderWithIcon icon={<LinkIcon className="h-4 w-4" />} label="Source" />,
+      cell: ({ row }) => {
+        const item = row.original
+        if (!isTransaction(item)) return null
+        const url = ensureProtocol(item.deal_source_url)
+        return url ? (
+          <Link
+            href={url}
+            target="_blank"
+            className="text-blue-600 hover:underline"
+            onClick={e => e.stopPropagation()}
+          >
+            View Source
+          </Link>
+        ) : (
+          <span className="text-muted-foreground">N/A</span>
+        )
+      },
+      size: 120,
+    },
+    TRANSACTION_VALUE: {
+      accessorKey: 'transaction_value',
+      header: () => (
+        <HeaderWithIcon icon={<CurrencyDollarIcon className="h-4 w-4" />} label="Value (USD)" />
+      ),
+      cell: ({ row }) => {
+        const item = row.original
+        if (!isTransaction(item)) return null
+        const value = item.transaction_value
+        if (value === null || typeof value === 'undefined') {
+          return <span className="text-muted-foreground">N/A</span>
+        }
+        const formattedValue = new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: 'USD',
+          notation: 'compact',
+          maximumFractionDigits: 2,
+        }).format(Number(value))
+        return <span className="font-mono">{formattedValue}</span>
+      },
+      size: 150,
+    },
+  }
 
+  let columns: ColumnDef<AnyListItem>[] = [
+    {
+      id: 'drag',
+      header: () => <p className="w-full text-center">#</p>,
+      cell: ({ row }) => (
+        <div className="text-center font-medium tabular-nums group">
+          <p className="group-hover:hidden">{row.index + 1}</p>
+          <GripVertical className="h-5 w-5 text-muted-foreground hidden group-hover:block mx-auto cursor-grab active:cursor-grabbing" />
+        </div>
+      ),
+      size: 50,
+      maxSize: 50,
+    },
     {
       id: 'select',
       header: ({ table }) => (
         <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && 'indeterminate')
-          }
+          checked={table.getIsAllPageRowsSelected()}
           onCheckedChange={value => table.toggleAllPageRowsSelected(!!value)}
           aria-label="Select all"
         />
@@ -235,145 +438,16 @@ export const generateColumns = (listType: ListType): ColumnDef<AnyListItem>[] =>
           aria-label="Select row"
         />
       ),
-      size: 40,
+      size: 50,
+      maxSize: 50,
     },
   ]
 
-  let specificColumns: ColumnDef<AnyListItem>[] = []
+  defaultKeys.forEach(key => {
+    if (allColumnDefs[key]) {
+      columns.push(allColumnDefs[key])
+    }
+  })
 
-  switch (listType) {
-    case 'company':
-      specificColumns = createEntityColumns('company')
-
-      break
-
-    case 'investor':
-      specificColumns = [
-        ...createEntityColumns('investor'),
-        {
-          accessorKey: 'investor_type',
-          header: () => (
-            <HeaderWithIcon icon={<Briefcase className="h-4 w-4" />} label="Investor Type" />
-          ),
-          cell: ({ row }) => {
-            if (!isInvestor(row.original) || !row.original.investor_type) return <EmptyCell />
-
-            return <div className="text-xs ">{row.original.investor_type}</div>
-          },
-          size: 150,
-        },
-      ]
-
-      break
-
-    case 'people':
-      specificColumns = [
-        {
-          accessorKey: 'person_name',
-          header: ({ column }) => (
-            <div className="flex items-center gap-1">
-              <User className="h-4 w-4" />
-              <span>Name</span>
-              <Button
-                variant="ghost"
-                onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-                className="p-0 hover:bg-transparent"
-              >
-                <ArrowUpDown className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
-          ),
-          cell: ({ row }) => {
-            if (!isPeople(row.original)) return null
-            const { person_name, person_avatar } = row.original
-            return (
-              <div className="flex items-center gap-3 font-medium">
-                <Image
-                  src={
-                    person_avatar ||
-                    `https://ui-avatars.com/api/?name=${person_name}&background=random`
-                  }
-                  alt={`${person_name} avatar`}
-                  width={32}
-                  height={32}
-                  className="h-8 w-8 rounded-full object-cover border"
-                />
-                <p className="font-semibold">{person_name}</p>
-              </div>
-            )
-          },
-        },
-        {
-          accessorKey: 'person_description',
-          header: () => (
-            <HeaderWithIcon icon={<AlignLeft className="h-4 w-4" />} label="Description" />
-          ),
-          cell: ({ row }) => {
-            if (!isPeople(row.original) || !row.original.person_description) return <EmptyCell />
-            return (
-              <ExpandableCell
-                TriggerCell={
-                  <p className="line-clamp-2 cursor-pointer">{row.original.person_description}</p>
-                }
-              >
-                <p>{row.original.person_description}</p>
-              </ExpandableCell>
-            )
-          },
-        },
-        {
-          accessorKey: 'person_title',
-          header: () => (
-            <HeaderWithIcon icon={<Briefcase className="h-4 w-4" />} label="Position" />
-          ),
-          cell: ({ row }) => {
-            if (!isPeople(row.original) || !row.original.person_title) return <EmptyCell />
-            return <div className="text-sm">{row.original.person_title}</div>
-          },
-        },
-        {
-          accessorKey: 'person_company',
-          header: () => <HeaderWithIcon icon={<Building2 className="h-4 w-4" />} label="Company" />,
-          cell: ({ row }) => {
-            if (!isPeople(row.original) || !row.original.person_company) return <EmptyCell />
-            return <div className="text-sm">{row.original.person_company}</div>
-          },
-        },
-        {
-          accessorKey: 'person_location',
-          header: () => <HeaderWithIcon icon={<MapPin className="h-4 w-4" />} label="Location" />,
-          cell: ({ row }) => {
-            if (!isPeople(row.original) || !row.original.person_location) return <EmptyCell />
-            return (
-              <div className="text-xs text-muted-foreground">{row.original.person_location}</div>
-            )
-          },
-        },
-        {
-          accessorKey: 'person_linkedin_url',
-          header: () => <HeaderWithIcon icon={<Linkedin className="h-4 w-4" />} label="LinkedIn" />,
-          cell: ({ row }) => {
-            if (!isPeople(row.original) || !row.original.person_linkedin_url) return <EmptyCell />
-            return (
-              <Link
-                href={row.original.person_linkedin_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                title="View LinkedIn Profile"
-                className="text-blue-500 hover:opacity-80"
-                onClick={e => e.stopPropagation()}
-              >
-                <Linkedin className="h-5 w-5" />
-              </Link>
-            )
-          },
-        },
-      ]
-      break
-
-    default:
-      specificColumns = [{ accessorKey: 'id', header: 'ID' }]
-  }
-
-  return [...commonStartColumns, ...specificColumns]
+  return columns
 }
