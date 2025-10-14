@@ -205,7 +205,7 @@ export function ListDetailsDataTable({
           onValueChange={handlePositionChange}
           getItemValue={item => item.saved_list_item_id}
         >
-          <Table className="min-w-full table-fixed border-separate border-spacing-0">
+          <Table className="table-fixed border-separate border-spacing-0">
             <TableHeader className="sticky top-0 z-10 bg-muted backdrop-blur-sm">
               {table.getHeaderGroups().map(headerGroup => (
                 <TableRow key={headerGroup.id} className="bg-muted border-b-0">
