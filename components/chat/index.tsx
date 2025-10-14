@@ -10,6 +10,7 @@ import { TabKey } from './Suggestions'
 import { usePathname, useRouter } from 'next/navigation'
 import { Loader } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
+import { useStopWebset } from '@/queries/sessions'
 
 const backendURL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
 
@@ -45,19 +46,27 @@ const Chat = ({
     setMarkdownSources,
     setMessages,
     closeListPanel,
+    clearActiveProfile,
+    clearActiveList,
+    clearMarkdown,
+    setIsListPanelOpen,
   } = useChatStore()
 
   const [sessionId, setSessionId] = useState<string | null>(id || null)
   const [streamingMessage, setStreamingMessage] = useState<string>('')
   const [activeTab, setActiveTab] = useState<TabKey>('research')
-  const endRef = useRef<HTMLDivElement>(null)
-  const [streamId, setStreamId] = useState<string>('')
   const [streamingCanvasContent, setStreamingCanvasContent] = useState<string>('')
+  const [streamId, setStreamId] = useState<string>('')
   const [sources, setSources] = useState<Source[]>([])
+  const [websetId, setWebsetId] = useState<string>('')
+
+  const endRef = useRef<HTMLDivElement>(null)
   const controllerRef = useRef<AbortController | null>(null)
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
   const router = useRouter()
   const queryClient = useQueryClient()
+  const { mutate: stopExa, isPending } = useStopWebset()
 
   useEffect(() => {
     if (!isNewSession && initialMessages.length > 0) {
@@ -74,6 +83,11 @@ const Chat = ({
     if (isCopilot && isNewSession) {
       setSessionId(null)
       setMessages([])
+      clearActiveProfile()
+      clearMarkdown()
+      clearActiveList()
+      setIsCanvasOpen(false)
+      setIsListPanelOpen(false)
     }
   }, [isCopilot, isNewSession])
 
@@ -82,6 +96,9 @@ const Chat = ({
   const handleStopStreaming = () => {
     if (controllerRef.current) {
       controllerRef.current.abort()
+      if (sessionId) {
+        stopExa({ sessionId: sessionId, userId, webset_id: sessionId })
+      }
     }
   }
 
@@ -477,6 +494,7 @@ const Chat = ({
       sources={sources}
       handleSend={handleSend}
       userId={userId}
+      isPending={isPending}
       handleInputChange={e => {
         setInput(e.target.value)
       }}

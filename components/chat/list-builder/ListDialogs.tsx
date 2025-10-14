@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Select,
   SelectContent,
@@ -64,21 +64,23 @@ export function AddToListDialog({
   ) as SavedList[]
   const { mutate: addItemsToList, isPending } = useAddItemsToList()
 
+  const itemList = initialSelected.filter(item => !!item.NAME)
+
   const handleSubmit = () => {
     if (!selectedList) {
       toast.error('Please select a list to add')
       return
     }
-    if (initialSelected.length === 0) {
+    if (itemList.length === 0) {
       toast.error('Please select at least one item.')
       return
     }
-    // console.log({ selectedList }, { initialSelected })
+    // console.log({ data }, { itemList })
     addItemsToList(
       {
         userId: user?.user_id || '',
         listId: selectedList,
-        webset_item_ids: initialSelected.map(item => item.ITEM_ID),
+        webset_item_ids: itemList.map(item => item.ITEM_ID),
       },
       {
         onSuccess: () => {
@@ -93,6 +95,8 @@ export function AddToListDialog({
       }
     )
   }
+
+  if (!lists?.length) return null
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -134,10 +138,10 @@ export function AddToListDialog({
             <div className="grid gap-3 ">
               <Label>Selected Items</Label>
               <div className="grid gap-2 max-h-40 overflow-y-auto thin-scroll py-1">
-                {initialSelected.length === 0 ? (
-                  <p>No items initialSelected.</p>
+                {itemList.length === 0 ? (
+                  <p>No items selected.</p>
                 ) : (
-                  initialSelected.map(item => (
+                  itemList.map(item => (
                     <ItemUi
                       key={item.ITEM_ID}
                       id={item.ITEM_ID}
@@ -181,13 +185,15 @@ export function CreateNewListDialog({
   const [name, setName] = useState(activeList?.title || '')
   const { user } = useAuth()
   const { mutate: createUserList, isPending } = useCreateUserList()
+  const itemList = initialSelected.filter(item => !!item.NAME)
+
   // console.log(activeList)
   const handleSubmit = () => {
     if (name.trim()?.length < 4) {
       toast.error('List name must be at least 4 characters long.')
       return
     }
-    if (initialSelected.length === 0) {
+    if (itemList.length === 0) {
       toast.error('Please select at least one item.')
       return
     }
@@ -197,7 +203,7 @@ export function CreateNewListDialog({
         data: {
           list_name: name,
           list_type: listType,
-          webset_item_ids: initialSelected.map(item => item.ITEM_ID),
+          webset_item_ids: itemList.map(item => item.ITEM_ID),
         },
       },
       {
@@ -252,10 +258,10 @@ export function CreateNewListDialog({
             <div className="grid gap-3 ">
               <Label>Selected Items</Label>
               <div className="grid gap-2 max-h-40 overflow-y-auto thin-scroll">
-                {initialSelected.length === 0 ? (
-                  <p>No items initialSelected.</p>
+                {itemList.length === 0 ? (
+                  <p>No items selected.</p>
                 ) : (
-                  initialSelected.map(item => (
+                  itemList.map(item => (
                     <ItemUi
                       key={item.ITEM_ID}
                       id={item.ITEM_ID}

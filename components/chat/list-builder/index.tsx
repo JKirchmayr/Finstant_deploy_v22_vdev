@@ -18,8 +18,8 @@ interface ListBuilderProps {
 export default function ListBuilder({ listData, title, type }: ListBuilderProps) {
   const isMobile = useIsMobile()
   const { isStreaming, isCopilotOpen, activeList } = useChatStore()
-  //console.log(listData)
-  console.log(activeList.isLoading)
+  // console.log(listData)
+  // console.log(activeList.isLoading)
   const columns = () => generateColumns(listData, type)
 
   return (

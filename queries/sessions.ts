@@ -6,13 +6,14 @@ import {
   getSessionListDetails,
   getSessionProfileDetails,
   deleteSessionListItems,
+  stopWebset,
 } from '@/services/sessions'
 
 export const useGetUserSessionsQuery = () => {
   return useQuery({
     queryKey: ['sessions'],
     queryFn: getUserSessions,
-    staleTime: Infinity,
+    staleTime: 5 * 60 * 1000,
   })
 }
 
@@ -80,5 +81,19 @@ export const useDeleteSessionListItems = () => {
         queryKey: ['sessionListDetails', variables.listId],
       })
     },
+  })
+}
+
+export const useStopWebset = () => {
+  return useMutation({
+    mutationFn: ({
+      sessionId,
+      userId,
+      webset_id,
+    }: {
+      sessionId: string
+      userId: string
+      webset_id: string
+    }) => stopWebset(sessionId, userId, webset_id),
   })
 }
