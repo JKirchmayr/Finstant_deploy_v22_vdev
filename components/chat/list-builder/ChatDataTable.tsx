@@ -1,6 +1,13 @@
 'use client'
 
-import React, { CSSProperties, useCallback, useEffect, useRef, useState } from 'react'
+import React, {
+  CSSProperties,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react'
 import * as XLSX from 'xlsx'
 import {
   Column,
@@ -22,6 +29,8 @@ import {
   ChevronsUpDown,
   Download,
   ListChecks,
+  Maximize2,
+  Minimize2,
   MoveVertical,
   Plus,
   Trash,
@@ -63,7 +72,9 @@ interface IChatDataTableProps<T extends any> {
   noHeader?: boolean
   addColumn?: boolean
   expand?: boolean
-  toggleExpand: () => void
+  // toggleExpand: () => void
+  handleExpand: () => void
+  handleCollapse: () => void
 }
 
 // Helper function to compute pinning styles for columns
@@ -87,8 +98,10 @@ const ChatDataTable = <T extends any>({
   addColumn = true,
   defaultPinnedColumns,
   expand,
-  toggleExpand,
-}: IChatDataTableProps<T>) => {
+  handleExpand,
+  handleCollapse,
+}: // toggleExpand,
+IChatDataTableProps<T>) => {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -233,6 +246,21 @@ const ChatDataTable = <T extends any>({
   }
 
   const rowDisabled = selectedRows?.length <= 0 || isStreaming
+  const tableBodyRef = useRef<HTMLTableSectionElement>(null)
+  const [uniformRowHeight, setUniformRowHeight] = useState<number | null>(null)
+
+  useLayoutEffect(() => {
+    if (expand && tableBodyRef.current) {
+      const rows = Array.from(tableBodyRef.current.children) as HTMLTableRowElement[]
+
+      if (rows.length > 0) {
+        const maxHeight = Math.max(...rows.map(row => row.offsetHeight))
+        setUniformRowHeight(maxHeight)
+      }
+    } else {
+      setUniformRowHeight(null)
+    }
+  }, [expand, data])
   // console.log({ activeListItemCount })
   return (
     <div className="w-full flex h-full flex-col gap-3">
@@ -328,10 +356,11 @@ const ChatDataTable = <T extends any>({
                       'h-7 hover:bg-gray-300 gap-1'
                       // { 'bg-foreground/30': !expand }
                     )}
-                    onClick={toggleExpand}
-                    disabled={isStreaming}
+                    onClick={handleExpand}
+                    disabled={isStreaming || expand}
+                    title="Expand all rows"
                   >
-                    <ChevronsDownUp />
+                    <Maximize2 />
                   </Button>
                   <Button
                     variant="secondary"
@@ -339,10 +368,12 @@ const ChatDataTable = <T extends any>({
                     className={cn('h-7 hover:bg-foreground/30 gap-1', {
                       // 'bg-foreground/30': expand,
                     })}
-                    onClick={toggleExpand}
-                    disabled={isStreaming}
+                    // onClick={toggleExpand}
+                    onClick={handleCollapse}
+                    disabled={isStreaming || !expand}
+                    title="Collapse all rows"
                   >
-                    <ChevronsUpDown />
+                    <Minimize2 />
                   </Button>
                 </div>
                 <CreateNewListDialog
@@ -431,7 +462,7 @@ const ChatDataTable = <T extends any>({
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody className="max-h-[400px] overflow-auto">
+          <TableBody className="max-h-[400px] overflow-auto" ref={tableBodyRef}>
             {isLoading ? (
               [...Array(activeListItemCount || 5)].map((_, i) => (
                 <TableRow key={i} className="border-b border-gray-300">
@@ -452,6 +483,7 @@ const ChatDataTable = <T extends any>({
                         <TableRow
                           key={row.id}
                           className="h-auto border-b transition-colors hover:bg-gray-100/80"
+                          style={{ height: uniformRowHeight ? `${uniformRowHeight}px` : 'auto' }}
                         >
                           {row.getVisibleCells().map((cell: any) => {
                             const { column } = cell

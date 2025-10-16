@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
@@ -20,12 +20,17 @@ const normalizeListType = (typeString: string = ''): ListType => {
   if (lowerType.includes('investor')) return 'investor'
   if (lowerType.includes('company')) return 'company'
   if (lowerType.includes('people')) return 'people'
+  if (lowerType.includes('transaction')) return 'transaction'
   return 'unknown'
 }
 
 export default function SavedListDetailsPage() {
   const params = useParams()
   const listId = params?.listId as string
+
+  const [expand, setExpand] = useState<boolean>(false)
+  const handleExpand = () => setExpand(true)
+  const handleCollapse = () => setExpand(false)
 
   const { user, loading: isAuthLoading } = useAuth()
   const userId = user?.user_id ?? ''
@@ -48,7 +53,7 @@ export default function SavedListDetailsPage() {
   const totalCount = listData?.pagination?.total_count ?? 0
   const listType = normalizeListType(type)
 
-  const columns = generateColumns(listType)
+  const columns = generateColumns(listType, expand)
   // console.log('items', items)
 
   return (
@@ -74,6 +79,9 @@ export default function SavedListDetailsPage() {
           listId={listId}
           isLoading={isLoading}
           title={title}
+          expand={expand}
+          handleExpand={handleExpand}
+          handleCollapse={handleCollapse}
         />
       </div>
     </MainLayout>

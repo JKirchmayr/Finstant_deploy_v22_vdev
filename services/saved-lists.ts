@@ -117,6 +117,26 @@ export const updateUserList = async (
   }
 }
 
+export const updateUserListBulk = async (
+  userId: string,
+  action: UpdateUserListAction,
+  saved_list_ids: string[]
+) => {
+  try {
+    const res = await api.patch(
+      `/user-lists`,
+      { action, saved_list_ids },
+      {
+        headers: { 'user-id': userId },
+      }
+    )
+    return res.data
+  } catch (error) {
+    console.log(getApiErrorMessage(error))
+    throw new Error('Failed to perform bulk update on user lists')
+  }
+}
+
 export const updateItemPosition = async (
   userId: string,
   listId: string,

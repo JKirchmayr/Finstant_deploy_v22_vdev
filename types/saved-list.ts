@@ -52,6 +52,7 @@ export interface PeopleListItem extends BaseListItem {
 }
 
 export interface TransactionListItem extends BaseListItem {
+  transaction_value_musd: any
   entity_type: 'transaction'
   entity_id: string
   deal_date: string | null
@@ -77,7 +78,7 @@ export const isCompany = (item: AnyListItem): item is CompanyListItem => {
 }
 
 export const isTransaction = (item: AnyListItem): item is TransactionListItem => {
-  return 'transaction' in item
+  return 'target_name' in item
 }
 
 export type ListType = 'investor' | 'company' | 'people' | 'unknown' | 'transaction'

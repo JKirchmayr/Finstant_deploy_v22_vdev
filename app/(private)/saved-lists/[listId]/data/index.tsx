@@ -8,13 +8,13 @@ import {
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
-  getPaginationRowModel, // Import for pagination
+  getPaginationRowModel,
   getSortedRowModel,
   SortingState,
   useReactTable,
 } from '@tanstack/react-table'
 import * as XLSX from 'xlsx'
-import { Download, Trash, X } from 'lucide-react'
+import { Download, Trash, X, Maximize2, Minimize2 } from 'lucide-react'
 
 import {
   Table,
@@ -37,6 +37,7 @@ import { AnyListItem, ListType } from '@/types/saved-list'
 import { toast } from 'sonner'
 import { useRemoveItemsFromList, useUpdateItemPosition } from '@/queries/saved-lists'
 import Image from 'next/image'
+import { cn } from '@/lib/utils'
 
 interface DataTableProps {
   columns: ColumnDef<AnyListItem>[]
@@ -46,6 +47,9 @@ interface DataTableProps {
   listId: string
   isLoading: boolean
   title: string
+  expand: boolean
+  handleExpand: () => void
+  handleCollapse: () => void
 }
 
 // Helper function for column pinning styles
@@ -68,12 +72,17 @@ export function ListDetailsDataTable({
   listId,
   isLoading,
   title,
+  expand,
+  handleExpand,
+  handleCollapse,
 }: DataTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [globalFilter, setGlobalFilter] = React.useState('')
   const [rowSelection, setRowSelection] = React.useState({})
   const [items, setItems] = React.useState(data)
+  const tableBodyRef = React.useRef<HTMLTableSectionElement>(null)
+  const [uniformRowHeight, setUniformRowHeight] = React.useState<number | null>(null)
 
   const { mutate: removeItems } = useRemoveItemsFromList(true)
   const { mutate: updatePosition } = useUpdateItemPosition(listId)
@@ -83,7 +92,7 @@ export function ListDetailsDataTable({
   }, [data])
 
   const filterColumnId = React.useMemo(() => {
-    return 'NAME' // Always filter by the unified 'NAME' column
+    return 'NAME'
   }, [])
 
   const handlePositionChange = (nextItems: AnyListItem[]) => {
@@ -123,7 +132,7 @@ export function ListDetailsDataTable({
     columns,
     state: { sorting, columnFilters, rowSelection, globalFilter },
     initialState: {
-      pagination: { pageSize: 50 }, // Set page size to 10
+      pagination: { pageSize: 50 },
       columnPinning: { left: ['drag'], right: [] },
     },
     onSortingChange: setSorting,
@@ -133,10 +142,23 @@ export function ListDetailsDataTable({
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(), // Enable pagination
+    getPaginationRowModel: getPaginationRowModel(),
     getRowId: row => row.saved_list_item_id,
     columnResizeMode: 'onChange',
   })
+
+  React.useLayoutEffect(() => {
+    if (expand && tableBodyRef.current) {
+      const rows = Array.from(tableBodyRef.current.children) as HTMLTableRowElement[]
+
+      if (rows.length > 0) {
+        const maxHeight = Math.max(...rows.map(row => row.offsetHeight))
+        setUniformRowHeight(maxHeight)
+      }
+    } else {
+      setUniformRowHeight(null)
+    }
+  }, [expand, items])
 
   const handleDelete = () => {
     const selectedRows = table.getFilteredSelectedRowModel().rows
@@ -192,7 +214,8 @@ export function ListDetailsDataTable({
           className="sm:w-sm w-full ml-0.5"
         /> */}
 
-        <div className="space-x-4 sm:block flex justify-between">
+        {/* <div className="space-x-4 sm:block flex  flex-col justify-between"> */}
+        <div className="flex items-center gap-x-2">
           <Button
             variant="outline"
             size="xs"
@@ -200,6 +223,7 @@ export function ListDetailsDataTable({
             // disabled={Object.keys(rowSelection).length === 0}
             className="ml-auto"
           >
+            <Trash className="h-4 w-4" />
             Delete
           </Button>
           <Button
@@ -208,9 +232,30 @@ export function ListDetailsDataTable({
             onClick={handleDownload}
             // disabled={Object.keys(rowSelection).length === 0}
           >
-            Download
+            <Download className="h-4 w-4" /> Download
           </Button>
         </div>
+        <div className="flex items-center gap-x-2">
+          <Button
+            variant="outline"
+            size="xs"
+            onClick={handleExpand}
+            disabled={expand}
+            title="Expand all rows"
+          >
+            <Maximize2 className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="xs"
+            onClick={handleCollapse}
+            disabled={!expand}
+            title="Collapse all rows"
+          >
+            <Minimize2 className="h-4 w-4" />
+          </Button>
+        </div>
+        {/* </div> */}
       </div>
 
       <div className="rounded-lg border overflow-auto">
@@ -245,7 +290,7 @@ export function ListDetailsDataTable({
               ))}
             </TableHeader>
             <SortableContent asChild items={items.map(item => item.saved_list_item_id)}>
-              <TableBody>
+              <TableBody ref={tableBodyRef}>
                 {isLoading ? (
                   [...Array(10)].map((_, i) => (
                     <TableRow key={i} className="border-b-0">
@@ -266,6 +311,7 @@ export function ListDetailsDataTable({
                       <TableRow
                         data-state={row.getIsSelected() && 'selected'}
                         className="border-b-0"
+                        style={{ height: uniformRowHeight ? `${uniformRowHeight}px` : 'auto' }}
                       >
                         {row.getVisibleCells().map(cell => {
                           const content = (
@@ -274,9 +320,9 @@ export function ListDetailsDataTable({
                               className="py-1.5 border-b border-r border-gray-300 last:border-r-0 bg-background px-4"
                               style={{ ...getPinningStyles(cell.column) }}
                             >
-                              <div className="line-clamp-2 w-full max-h-[40px]">
-                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                              </div>
+                              {/* <div className="line-clamp-2 w-full max-h-[40px]"> */}
+                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                              {/* </div> */}
                             </TableCell>
                           )
                           // Wrap the 'drag' column's cell with the handle

@@ -21,15 +21,17 @@ export default function ListBuilder({ listData, title, type }: ListBuilderProps)
   const { isStreaming, isCopilotOpen, activeList } = useChatStore()
   // console.log(listData)
   // console.log(activeList.isLoading)
-  const columns = () => generateColumns(listData, type, expand)
+  const columns = () => generateColumns(listData, type, expand, isStreaming)
 
-  const toggleExpand = () => {
-    if (expand) {
-      setExpand(false)
-      return
-    }
-    setExpand(true)
-  }
+  // const toggleExpand = () => {
+  //   if (expand) {
+  //     setExpand(false)
+  //     return
+  //   }
+  //   setExpand(true)
+  // }
+  const handleExpand = () => setExpand(true)
+  const handleCollapse = () => setExpand(false)
 
   return (
     <motion.div
@@ -51,7 +53,9 @@ export default function ListBuilder({ listData, title, type }: ListBuilderProps)
             titleName={title}
             defaultPinnedColumns={['select', 'rowNumber', 'NAME']}
             expand={expand}
-            toggleExpand={toggleExpand}
+            handleExpand={handleExpand}
+            handleCollapse={handleCollapse}
+            // toggleExpand={toggleExpand}
           />
         </AddColumnProvider>
       </div>

@@ -10,8 +10,10 @@ import {
   UpdateUserListAction,
   UserListPayload,
   updateItemPosition,
+  updateUserListBulk,
 } from '@/services/saved-lists'
 import { toast } from 'sonner'
+import { string } from 'zod'
 
 // --- Get all user lists ---
 export const useUserLists = (userId: string, type?: string, limit?: number, enabled?: boolean) => {
@@ -109,6 +111,29 @@ export const useUpdateItemPosition = (listId: string) => {
     },
     onError: () => {
       toast.error('could not save the new order.Reverting changes.')
+    },
+  })
+}
+
+export const useUpdateUserListsBulk = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      userId,
+      action,
+      saved_list_ids,
+    }: {
+      userId: string
+      action: UpdateUserListAction
+      saved_list_ids: string[]
+    }) => updateUserListBulk(userId, action, saved_list_ids),
+    onSuccess: () => {
+      toast.success('Action completed successfully!')
+      queryClient.invalidateQueries({ queryKey: ['userLists'] })
+    },
+    onError: error => {
+      toast.error('Failed to update lists.Please try again.')
+      console.error(`Error performing bulk action:`, error)
     },
   })
 }

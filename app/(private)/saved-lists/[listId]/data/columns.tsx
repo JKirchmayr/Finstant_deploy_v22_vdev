@@ -30,6 +30,7 @@ import {
   CalendarDaysIcon,
 } from '@heroicons/react/24/outline'
 import { GripVertical, LandmarkIcon } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 const HeaderWithIcon = ({ icon, label }: { icon: React.ReactNode; label: string }) => (
   <div className="inline-flex items-center justify-center gap-2">
@@ -53,7 +54,7 @@ const ensureProtocol = (url?: string | null) => {
   return u.startsWith('http') ? u : `https://${u}`
 }
 
-export const generateColumns = (listType: ListType): ColumnDef<AnyListItem>[] => {
+export const generateColumns = (listType: ListType, expand: boolean): ColumnDef<AnyListItem>[] => {
   const defaultColumnsConfig: Record<ListType, string[]> = {
     company: ['NAME', 'DESCRIPTION', 'WEBSITE', 'INDUSTRY', 'EMPLOYEES', 'LOCATION'],
     transaction: [
@@ -159,7 +160,7 @@ export const generateColumns = (listType: ListType): ColumnDef<AnyListItem>[] =>
         return (
           <ExpandableCell
             TriggerCell={
-              <p className="line-clamp-2 cursor-pointer">
+              <p className={cn('cursor-pointer', { 'line-clamp-2': !expand })}>
                 {description || <span className="text-muted-foreground">N/A</span>}
               </p>
             }
@@ -381,14 +382,14 @@ export const generateColumns = (listType: ListType): ColumnDef<AnyListItem>[] =>
       size: 120,
     },
     TRANSACTION_VALUE: {
-      accessorKey: 'transaction_value',
+      accessorKey: 'transaction_value_musd',
       header: () => (
         <HeaderWithIcon icon={<CurrencyDollarIcon className="h-4 w-4" />} label="Value (USD)" />
       ),
       cell: ({ row }) => {
         const item = row.original
         if (!isTransaction(item)) return null
-        const value = item.transaction_value
+        const value = item.transaction_value_musd
         if (value === null || typeof value === 'undefined') {
           return <span className="text-muted-foreground">N/A</span>
         }

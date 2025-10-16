@@ -7,11 +7,13 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   flexRender,
+  SortingState,
+  getSortedRowModel,
 } from '@tanstack/react-table'
 import { useRouter } from 'next/navigation'
 import * as XLSX from 'xlsx'
 
-import { useUserLists, useUpdateUserList } from '@/queries/saved-lists'
+import { useUserLists, useUpdateUserList, useUpdateUserListsBulk } from '@/queries/saved-lists'
 import { useAuth } from '@/hooks/useAuth'
 
 import { Button } from '@/components/ui/button'
@@ -30,6 +32,7 @@ import {
   Banknote,
   Building2Icon,
   Download,
+  HandCoins,
   List,
   RefreshCcw,
   Trash,
@@ -48,7 +51,7 @@ const tabsList = [
   { value: 'all', label: 'All', icon: List },
   { value: 'company', label: 'Companies', icon: Building2Icon },
   { value: 'investor', label: 'Investors', icon: Banknote },
-  { value: 'transaction', label: 'Transaction', icon: Building2Icon },
+  { value: 'transaction', label: 'Transaction', icon: HandCoins },
   { value: 'people', label: 'People', icon: Users },
   { value: 'archive', label: 'Archive', icon: Archive },
 ]
@@ -64,13 +67,14 @@ export const SavedListPage = () => {
   const { data: apiResponse, isLoading } = useUserLists(userId, activeTab, 50)
   const displayedLists: SavedList[] = apiResponse?.lists ?? []
   const tabCounts = apiResponse?.count
-  const { mutateAsync: updateUserList, isPending: isUpdating } = useUpdateUserList()
+  const { mutateAsync: updateUserLists, isPending: isUpdating } = useUpdateUserListsBulk()
   const isComponentLoading = isAuthLoading || isLoading
+  const [sorting, setSorting] = useState<SortingState>([])
 
   const table = useReactTable({
     data: displayedLists,
     columns,
-    state: { rowSelection, globalFilter },
+    state: { rowSelection, globalFilter, sorting },
     initialState: {
       pagination: { pageSize: 50 },
     },
@@ -80,6 +84,8 @@ export const SavedListPage = () => {
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     autoResetPageIndex: false,
+    onSortingChange: setSorting,
+    getSortedRowModel: getSortedRowModel(),
   })
 
   useEffect(() => {
@@ -87,15 +93,21 @@ export const SavedListPage = () => {
   }, [activeTab])
 
   const handleBulkAction = async (action: UpdateUserListAction) => {
-    const selectedIds = table.getSelectedRowModel().rows.map(row => row.original.saved_list_id)
+    const selectedIds = table
+      .getFilteredSelectedRowModel()
+      .rows.map(row => row.original.saved_list_id)
+
     if (selectedIds.length === 0) {
-      toast.warning(`Please select items for ${action}. `, { position: 'top-center' })
+      toast.warning(`Please select items for ${action}.`, { position: 'top-center' })
       return
     }
 
     try {
-      await Promise.all(selectedIds.map(listId => updateUserList({ userId, listId, action })))
-      toast.success('Action completed successfully!')
+      await updateUserLists({
+        userId,
+        action,
+        saved_list_ids: selectedIds,
+      })
       table.resetRowSelection()
     } catch (error) {
       toast.error(`Failed to ${action} lists. Please try again.`)
@@ -119,33 +131,37 @@ export const SavedListPage = () => {
   return (
     <div className="p-4 w-full mx-auto">
       <h1 className="text-xl font-semibold pb-2 ">Saved Lists</h1>
-      <div className="flex justify-between items-center border-b-2">
-        <Tabs
-          value={activeTab}
-          onValueChange={value => {
-            setActiveTab(value as TabTypes)
-          }}
-        >
-          <TabsList className="mb-3">
-            {tabsList.map(tab => (
-              <TabsTrigger
-                key={tab.value}
-                value={tab.value}
-                className="cursor-pointer data-[state=active]:bg-muted data-[state=active]:after:bg-primary relative overflow-hidden rounded-none border py-2 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 first:rounded-s last:rounded-e"
-              >
-                <tab.icon className="-ms-0.5 me-1.5 opacity-60" size={16} aria-hidden="true" />
-                {tab.label} ({tabCounts?.[tab.value as keyof typeof tabCounts] || 0})
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-        {/* <div className="w-xs text-md font-semibold">
+
+      <div className="pt-4 border-y-2">
+        <div className="w-xs text-md font-semibold">
           <Input
             placeholder="Search Any keyword....."
             value={globalFilter}
             onChange={e => setGlobalFilter(e.target.value)}
           />
-        </div> */}
+        </div>
+
+        <div className="flex justify-between items-center mt-4">
+          <Tabs
+            value={activeTab}
+            onValueChange={value => {
+              setActiveTab(value as TabTypes)
+            }}
+          >
+            <TabsList className="mb-3">
+              {tabsList.map(tab => (
+                <TabsTrigger
+                  key={tab.value}
+                  value={tab.value}
+                  className="cursor-pointer data-[state=active]:bg-muted data-[state=active]:after:bg-primary relative overflow-hidden rounded-none border py-2 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 first:rounded-s last:rounded-e"
+                >
+                  <tab.icon className="-ms-0.5 me-1.5 opacity-60" size={16} aria-hidden="true" />
+                  {tab.label} ({tabCounts?.[tab.value as keyof typeof tabCounts] || 0})
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+        </div>
       </div>
 
       <div className="flex justify-between items-center py-4">
@@ -157,6 +173,7 @@ export const SavedListPage = () => {
             onClick={() => handleBulkAction('delete')}
             // disabled={!table.getSelectedRowModel().rows.length || isUpdating}
           >
+            <Trash className="h-4 w-4" />
             Delete
           </Button>
           {activeTab !== 'archive' && (
@@ -166,6 +183,7 @@ export const SavedListPage = () => {
               onClick={() => handleBulkAction('archive')}
               // disabled={!table.getSelectedRowModel().rows.length || isUpdating}
             >
+              <Archive className="h-4 w-4" />
               Archive
             </Button>
           )}
@@ -176,6 +194,7 @@ export const SavedListPage = () => {
               onClick={() => handleBulkAction('reactivate')}
               // disabled={!table.getSelectedRowModel().rows.length || isUpdating}
             >
+              <RefreshCcw className="h-4 w-4" />
               Reactivate
             </Button>
           )}
@@ -186,6 +205,7 @@ export const SavedListPage = () => {
           onClick={handleDownload}
           // disabled={!table.getSelectedRowModel().rows.length}
         >
+          <Download className="h-4 w-4" />
           Download
         </Button>
       </div>

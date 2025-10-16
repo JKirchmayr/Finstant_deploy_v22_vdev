@@ -1,9 +1,11 @@
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { SavedList } from '@/types/saved-list'
 import { BanknotesIcon, BuildingOffice2Icon, UserGroupIcon } from '@heroicons/react/24/outline'
 import { ColumnDef } from '@tanstack/react-table'
 import { format } from 'date-fns'
+import { ArrowUpDown, HandCoins } from 'lucide-react'
 
 export const columns: ColumnDef<SavedList>[] = [
   {
@@ -28,7 +30,20 @@ export const columns: ColumnDef<SavedList>[] = [
   },
   {
     accessorKey: 'list_name',
-    header: 'List Name',
+    header: ({ column }) => {
+      return (
+        <div className="text-left">
+          List Name
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className="hover:bg-transparent"
+          >
+            {/* <ArrowUpDown className="h-4 w-4" /> */}
+          </Button>
+        </div>
+      )
+    },
     cell: ({ row }) => {
       const name = row.getValue('list_name') || ''
       return <span className="font-medium text-[14px]">{String(name)}</span>
@@ -36,7 +51,20 @@ export const columns: ColumnDef<SavedList>[] = [
   },
   {
     accessorKey: 'list_type',
-    header: () => <p className="ml-2">Type</p>,
+    header: ({ column }) => {
+      return (
+        <div className="text-left">
+          Type
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className="hover:bg-transparent"
+          >
+            {/* <ArrowUpDown className="h-4 w-4" /> */}
+          </Button>
+        </div>
+      )
+    },
     cell: ({ row }) => {
       const nType = normalizeListType(row.original.list_type) || ''
       return (
@@ -51,12 +79,40 @@ export const columns: ColumnDef<SavedList>[] = [
   },
   {
     accessorKey: 'item_count',
-    header: 'List Items',
-    cell: ({ row }) => <p className="font-medium text-[13px]">{row.original.item_count || 0}</p>,
+    header: ({ column }) => {
+      return (
+        <div className="text-left">
+          List Items
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className="hover:bg-transparent"
+          >
+            {/* <ArrowUpDown className="h-4 w-4" /> */}
+          </Button>
+        </div>
+      )
+    },
+    cell: ({ row }) => (
+      <p className="font-medium ml-6 text-[13px]">{row.original.item_count || 0}</p>
+    ),
   },
   {
     accessorKey: 'created_at',
-    header: () => <p className="text-center">Created on</p>,
+    header: ({ column }) => {
+      return (
+        <div className="text-center">
+          Created On
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className="hover:bg-transparent"
+          >
+            {/* <ArrowUpDown className="h-4 w-4" /> */}
+          </Button>
+        </div>
+      )
+    },
     cell: ({ row }) => (
       <div className="text-center">
         <p className="font-medium text-[13px]">
@@ -78,6 +134,9 @@ const ListTypeIcon: React.FC<{ type: NormalizedType }> = ({ type }) => {
   }
   if (type === 'people') {
     return <UserGroupIcon className="" aria-hidden />
+  }
+  if (type === 'transaction') {
+    return <HandCoins className="" aria-hidden />
   }
   return <span className="inline-block h-6 w-6 rounded bg-gray-300" aria-hidden />
 }
