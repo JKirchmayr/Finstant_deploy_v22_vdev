@@ -121,12 +121,7 @@ export const generateColumns = (listType: ListType): ColumnDef<AnyListItem>[] =>
           logo = item.profile_pic_url
         }
 
-        const fallbackUrl =
-          website && URL.canParse(ensureProtocol(website) || '')
-            ? `https://www.google.com/s2/favicons?domain=${
-                new URL(ensureProtocol(website)!).hostname
-              }`
-            : `https://ui-avatars.com/api/?name=${name}&background=random`
+        const fallbackUrl = `https://ui-avatars.com/api/?name=${name}&background=random`
 
         return (
           <div className="inline-flex items-center gap-2 min-w-0">
@@ -414,13 +409,13 @@ export const generateColumns = (listType: ListType): ColumnDef<AnyListItem>[] =>
       id: 'drag',
       header: () => <p className="w-full text-center">#</p>,
       cell: ({ row }) => (
-        <div className="text-center font-medium tabular-nums group">
-          <p className="group-hover:hidden">{row.index + 1}</p>
-          <GripVertical className="h-5 w-5 text-muted-foreground hidden group-hover:block mx-auto cursor-grab active:cursor-grabbing" />
+        <div className="text-center font-medium tabular-nums group flex items-center">
+          <p className="">{row.index + 1}</p>
+          <GripVertical className="h-4 w-4 shrink-0 text-muted-foreground mx-auto cursor-grab active:cursor-grabbing" />
         </div>
       ),
-      size: 50,
-      maxSize: 50,
+      size: 60,
+      maxSize: 60,
     },
     {
       id: 'select',

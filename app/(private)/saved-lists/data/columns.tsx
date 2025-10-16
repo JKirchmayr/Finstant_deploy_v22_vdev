@@ -51,21 +51,17 @@ export const columns: ColumnDef<SavedList>[] = [
   },
   {
     accessorKey: 'item_count',
-    header: 'Items',
-    cell: ({ row }) => (
-      <Badge className="font-medium" variant="secondary">
-        {row.original.item_count || 0}
-      </Badge>
-    ),
+    header: 'List Items',
+    cell: ({ row }) => <p className="font-medium text-[13px]">{row.original.item_count || 0}</p>,
   },
   {
     accessorKey: 'created_at',
     header: () => <p className="text-center">Created on</p>,
     cell: ({ row }) => (
       <div className="text-center">
-        <Badge variant="secondary" className="font-medium">
+        <p className="font-medium text-[13px]">
           {format(new Date(row.getValue('created_at')), 'dd MMMM yyyy')}
-        </Badge>
+        </p>
       </div>
     ),
   },

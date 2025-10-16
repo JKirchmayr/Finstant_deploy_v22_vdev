@@ -10,9 +10,7 @@ export const metadata: Metadata = {
 
 export default function page() {
   return (
-    <MainLayout
-      headerChildren={<h1 className="sm:text-lg font-medium flex items-center">Saved Lists</h1>}
-    >
+    <MainLayout>
       <SavedListPage />
     </MainLayout>
   )

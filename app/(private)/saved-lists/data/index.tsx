@@ -60,8 +60,8 @@ export const SavedListPage = () => {
   const [globalFilter, setGlobalFilter] = useState('')
   const { user, loading: isAuthLoading } = useAuth()
   const userId = user?.user_id ?? ''
-  const limit = activeTab === 'all' ? 20 : 10
-  const { data: apiResponse, isLoading } = useUserLists(userId, activeTab, limit)
+  // const limit = activeTab === 'all' ? 20 : 10
+  const { data: apiResponse, isLoading } = useUserLists(userId, activeTab, 50)
   const displayedLists: SavedList[] = apiResponse?.lists ?? []
   const tabCounts = apiResponse?.count
   const { mutateAsync: updateUserList, isPending: isUpdating } = useUpdateUserList()
@@ -71,6 +71,9 @@ export const SavedListPage = () => {
     data: displayedLists,
     columns,
     state: { rowSelection, globalFilter },
+    initialState: {
+      pagination: { pageSize: 50 },
+    },
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
@@ -86,7 +89,7 @@ export const SavedListPage = () => {
   const handleBulkAction = async (action: UpdateUserListAction) => {
     const selectedIds = table.getSelectedRowModel().rows.map(row => row.original.saved_list_id)
     if (selectedIds.length === 0) {
-      toast.warning('No items selected for this action.')
+      toast.warning(`Please select items for ${action}. `, { position: 'top-center' })
       return
     }
 
@@ -115,6 +118,7 @@ export const SavedListPage = () => {
 
   return (
     <div className="p-4 w-full mx-auto">
+      <h1 className="text-xl font-semibold pb-2 ">Saved Lists</h1>
       <div className="flex justify-between items-center border-b-2">
         <Tabs
           value={activeTab}
@@ -135,54 +139,54 @@ export const SavedListPage = () => {
             ))}
           </TabsList>
         </Tabs>
-        <div className="w-xs text-md font-semibold">
+        {/* <div className="w-xs text-md font-semibold">
           <Input
             placeholder="Search Any keyword....."
             value={globalFilter}
             onChange={e => setGlobalFilter(e.target.value)}
           />
-        </div>
+        </div> */}
       </div>
 
       <div className="flex justify-between items-center py-4">
         {/* Action Buttons */}
         <div className="flex gap-2">
           <Button
-            variant="danger"
+            variant="outline"
             size="xs"
             onClick={() => handleBulkAction('delete')}
-            disabled={!table.getSelectedRowModel().rows.length || isUpdating}
+            // disabled={!table.getSelectedRowModel().rows.length || isUpdating}
           >
-            <Trash /> Delete
+            Delete
           </Button>
           {activeTab !== 'archive' && (
             <Button
-              variant="warning"
+              variant="outline"
               size="xs"
               onClick={() => handleBulkAction('archive')}
-              disabled={!table.getSelectedRowModel().rows.length || isUpdating}
+              // disabled={!table.getSelectedRowModel().rows.length || isUpdating}
             >
-              <Archive /> Archive
+              Archive
             </Button>
           )}
           {activeTab === 'archive' && (
             <Button
-              variant="success"
+              variant="outline"
               size="xs"
               onClick={() => handleBulkAction('reactivate')}
-              disabled={!table.getSelectedRowModel().rows.length || isUpdating}
+              // disabled={!table.getSelectedRowModel().rows.length || isUpdating}
             >
-              <RefreshCcw /> Reactivate
+              Reactivate
             </Button>
           )}
         </div>
         <Button
-          variant="blue"
+          variant="outline"
           size="xs"
           onClick={handleDownload}
-          disabled={!table.getSelectedRowModel().rows.length}
+          // disabled={!table.getSelectedRowModel().rows.length}
         >
-          <Download /> Download
+          Download
         </Button>
       </div>
 
@@ -250,30 +254,32 @@ export const SavedListPage = () => {
         </Table>
       </div>
 
-      <div className="flex items-center justify-between space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{' '}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
+      {displayedLists?.length > 50 && (
+        <div className="flex items-center justify-between space-x-2 py-4">
+          <div className="flex-1 text-sm text-muted-foreground">
+            {table.getFilteredSelectedRowModel().rows.length} of{' '}
+            {table.getFilteredRowModel().rows.length} row(s) selected.
+          </div>
+          <div className="space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+            >
+              Next
+            </Button>
+          </div>
         </div>
-        <div className="space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
+      )}
     </div>
   )
 }

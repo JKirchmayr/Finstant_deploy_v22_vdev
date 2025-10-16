@@ -89,6 +89,7 @@ const Chat = ({
       clearActiveList()
       setIsCanvasOpen(false)
       setIsListPanelOpen(false)
+      setIsStreaming(false)
     }
   }, [isCopilot, isNewSession])
 
@@ -97,8 +98,11 @@ const Chat = ({
   const handleStopStreaming = () => {
     if (controllerRef.current) {
       controllerRef.current.abort()
-      if (sessionId) {
-        stopExa({ sessionId: sessionId, userId, webset_id: sessionId })
+      if (sessionId && websetId) {
+        stopExa(
+          { sessionId: sessionId, userId, webset_id: sessionId },
+          { onError: e => console.log(e) }
+        )
       }
     }
   }
@@ -126,6 +130,7 @@ const Chat = ({
     setStreamingMessage('')
 
     setStreamId('')
+    setWebsetId('')
     const uuid = v4()
     const listMap = new Map<string, any>()
 
@@ -388,6 +393,10 @@ const Chat = ({
             const rawData = data || {}
             const itemId = rawData.ITEM_ID
 
+            if (rawData?.WEBSET_ID && !websetId) {
+              setWebsetId(rawData?.WEBSET_ID)
+            }
+
             if (itemId) {
               const mapKey = itemId.toLowerCase()
               const currentEntity = listMap.get(mapKey) || {}
@@ -457,6 +466,7 @@ const Chat = ({
       }
     }
   }
+  console.log({ websetId })
 
   useEffect(() => {
     return () => {

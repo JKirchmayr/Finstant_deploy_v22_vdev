@@ -123,7 +123,7 @@ export function ListDetailsDataTable({
     columns,
     state: { sorting, columnFilters, rowSelection, globalFilter },
     initialState: {
-      pagination: { pageSize: 10 }, // Set page size to 10
+      pagination: { pageSize: 50 }, // Set page size to 10
       columnPinning: { left: ['drag'], right: [] },
     },
     onSortingChange: setSorting,
@@ -141,7 +141,7 @@ export function ListDetailsDataTable({
   const handleDelete = () => {
     const selectedRows = table.getFilteredSelectedRowModel().rows
     if (selectedRows.length === 0) {
-      toast.warning('Please select items to delete.')
+      toast.warning('Please select items to delete.', { position: 'top-center' })
       return
     }
     const selectedItemIds = selectedRows.map(row => row.original.saved_list_item_id)
@@ -170,44 +170,45 @@ export function ListDetailsDataTable({
         ? table.getFilteredSelectedRowModel().rows
         : table.getCoreRowModel().rows
 
-    if (rowsToExport.length === 0) {
+    if (data?.length === 0) {
       toast.warning('No items to download.')
       return
     }
-    const dataToExport = rowsToExport.map(row => row.original)
+    const exportItems = rowsToExport?.length ? rowsToExport : data
+    const dataToExport = exportItems.map(row => (row as any).original)
     const worksheet = XLSX.utils.json_to_sheet(dataToExport)
     const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook, worksheet, title || 'Saved List Items')
-    XLSX.writeFile(workbook, `${title}.xlsx` || 'saved_list_items.xlsx')
+    XLSX.utils.book_append_sheet(workbook, worksheet, title?.slice(0, 30) || 'Saved List Items')
+    XLSX.writeFile(workbook, `${title?.slice(0, 30)}.xlsx` || 'saved_list_items.xlsx')
   }
 
   return (
     <div className="space-y-4 ">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <Input
+        {/* <Input
           placeholder="Search Any keyword....."
           value={globalFilter}
           onChange={e => setGlobalFilter(e.target.value)}
           className="sm:w-sm w-full ml-0.5"
-        />
+        /> */}
 
         <div className="space-x-4 sm:block flex justify-between">
           <Button
-            variant="danger"
+            variant="outline"
             size="xs"
             onClick={handleDelete}
-            disabled={Object.keys(rowSelection).length === 0}
+            // disabled={Object.keys(rowSelection).length === 0}
             className="ml-auto"
           >
-            <Trash /> Delete
+            Delete
           </Button>
           <Button
             size="xs"
-            variant="blue"
+            variant="outline"
             onClick={handleDownload}
-            disabled={Object.keys(rowSelection).length === 0}
+            // disabled={Object.keys(rowSelection).length === 0}
           >
-            <Download /> Download
+            Download
           </Button>
         </div>
       </div>
@@ -313,33 +314,35 @@ export function ListDetailsDataTable({
         </Sortable>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-2">
-        <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{' '}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
+      {data.length > 50 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-2">
+          <div className="flex-1 text-sm text-muted-foreground">
+            {table.getFilteredSelectedRowModel().rows.length} of{' '}
+            {table.getFilteredRowModel().rows.length} row(s) selected.
+          </div>
+          <div className="flex items-center space-x-2">
+            <span className="text-sm">
+              Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+            >
+              Next
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <span className="text-sm">
-            Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
+      )}
     </div>
   )
 }

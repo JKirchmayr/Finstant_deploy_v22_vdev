@@ -19,6 +19,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronsDownUp,
+  ChevronsUpDown,
   Download,
   ListChecks,
   MoveVertical,
@@ -225,8 +226,9 @@ const ChatDataTable = <T extends any>({
       toast.warning('No data selected, Please select data to Delete')
       return
     }
-    // console.log({ activeListMessageId })
-    deleteRows(selectedRows)
+    console.log({ selectedRows })
+    const selectedRowsIds = selectedRows.map(row => (row as any).ITEM_ID)
+    deleteRows(selectedRowsIds)
     toast.success('Data Deleted Successfully')
   }
 
@@ -279,13 +281,20 @@ const ChatDataTable = <T extends any>({
             </div>
           </div>
           <div className="pt-2 pb-0 pr-2 pl-2">
-            <div className="flex justify-between items-center gap-2 overflow-hidden">
+            <div
+              className={cn(
+                'flex justify-between items-center gap-2 overflow-hidden transition-transform duration-300',
+                {
+                  hidden: isStreaming,
+                }
+              )}
+            >
               <div className="flex gap-2 shrink-0 min-h-[28px] items-center">
                 <Button
                   variant="secondary"
                   size="xs"
                   disabled={rowDisabled}
-                  className="h-7 hover:bg-gray-300 gap-0.5"
+                  className="h-7 hover:bg-gray-300 gap-0.5 "
                   onClick={handleDeleteSelected}
                 >
                   Delete <Trash className="size-4 ml-1" />
@@ -333,7 +342,7 @@ const ChatDataTable = <T extends any>({
                     onClick={toggleExpand}
                     disabled={isStreaming}
                   >
-                    <MoveVertical />
+                    <ChevronsUpDown />
                   </Button>
                 </div>
                 <CreateNewListDialog

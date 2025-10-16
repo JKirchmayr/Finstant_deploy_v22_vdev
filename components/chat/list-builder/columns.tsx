@@ -112,27 +112,28 @@ export const generateColumns = (
         const { openListItemPopup } = useChatStore.getState()
         const name = row.original.NAME || 'Details'
         const logo = row.original.LOGO || row.original.PROFILE_PIC_URL
-        const website = row.original.WEBSITE
+        const fallbackUrl = `https://ui-avatars.com/api/?name=${name}&background=random`
+
         return (
           <div className="inline-flex items-center cursor-pointer min-w-0">
-            {(website || logo) && (
-              <Image
-                src={logo || 'https://placehold.co/50x50.png'}
-                alt={`${name} logo`}
-                width={25}
-                height={25}
-                className="mr-2 rounded-sm flex-shrink-0"
-                onError={e => {
-                  ;(
-                    e.currentTarget as HTMLImageElement
-                  ).src = `https://www.google.com/s2/favicons?domain=${new URL(website).hostname}`
-                }}
-                unoptimized
-              />
-            )}
+            <Image
+              src={logo || fallbackUrl}
+              alt={`logo`}
+              width={25}
+              height={25}
+              className="mr-2 rounded-sm flex-shrink-0"
+              onError={e => {
+                ;(e.currentTarget as HTMLImageElement).src = fallbackUrl
+              }}
+              unoptimized
+            />
+
             <button
               onClick={() => openListItemPopup(row.original)}
-              className="truncate text-left cursor-pointer font-medium text-gray-900 hover:underline"
+              className={cn(
+                'text-left cursor-pointer font-medium text-gray-900 hover:underline whitespace-pre-wrap line-clamp-2',
+                { 'line-clamp-none': expand }
+              )}
               title={name}
             >
               {name}

@@ -72,14 +72,18 @@ export const deleteSessionListItems = async (
 
 // --- 4. Exa Webset Stop  ---
 export const stopWebset = async (sessionId: string, userId: string, webset_id: string) => {
+  console.log({ userId })
   try {
-    const res = await api.post(`/exa-webset-stop`, {
-      headers: { 'user-id': userId },
-      data: {
+    const res = await api.post(
+      `/exa-webset-stop`,
+      {
         session_id: sessionId,
         webset_id,
       },
-    })
+      {
+        headers: { 'user-id': userId },
+      }
+    )
     return res.data
   } catch (error) {
     console.error('Error deleting session list items:', error)

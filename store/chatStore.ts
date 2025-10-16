@@ -43,7 +43,7 @@ type ChatStore = {
   isSearching: 'idle' | 'web' | 'searching' | 'streaming'
   setIsSearching: (isWebSearching: 'idle' | 'web' | 'searching' | 'streaming') => void
 
-  deleteRows: (rowsToDelete: any[]) => void
+  deleteRows: (rowsToDelete: string[]) => void
   activeListMessageId: string | null
   activeList: {
     title: string
@@ -224,16 +224,16 @@ export const useChatStore = create<ChatStore>((set, get) => ({
       activeListItemCount: 0,
       activeListMessageId: null,
     }),
-  deleteRows: rowsToDelete =>
+  deleteRows: rowsIdsToDelete =>
     set(state => {
-      const namesToDelete = new Set(rowsToDelete.map((row: any) => row.item_id))
+      const idsToDelete = new Set(rowsIdsToDelete)
       const updatedActiveList = state.activeListData.filter(
-        (row: any) => !namesToDelete.has(row?.item_id)
+        (row: any) => !idsToDelete.has(row?.item_id || row?.ITEM_ID)
       )
       const updatedMessages = state.messages.map(message => {
         if (message.id === state.activeListMessageId) {
           const updatedInternalList = message.data.list.filter(
-            (item: any) => !namesToDelete.has(item.item_id)
+            (item: any) => !idsToDelete.has(item.item_id || item.ITEM_ID)
           )
           return { ...message, data: { ...message.data, list: updatedInternalList } }
         }
