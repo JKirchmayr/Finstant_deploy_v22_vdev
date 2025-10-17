@@ -178,8 +178,7 @@
 }
 
 /* Ensure proper spacing when collapsed */
-.group-data-[state='collapsed'].group-data-[collapsible='expand-on-hover']
-  [data-slot='sidebar-menu-button'] {
+.group-data-[state='collapsed'].group-data-[collapsible='expand-on-hover'] [data-slot='sidebar-menu-button'] {
   justify-content: center;
 }
 
@@ -187,6 +186,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -194,6 +194,11 @@
 
 body {
   font-size: 14px;
+}
+
+html,
+body {
+  overscroll-behavior-x: none;
 }
 
 .btn {
@@ -205,6 +210,7 @@ body {
 }
 
 .streamdown {
+
   h1,
   h2,
   h3,
@@ -213,12 +219,15 @@ body {
   h6 {
     @apply text-lg font-medium mt-3;
   }
+
   code {
     @apply bg-muted-foreground/20 cursor-pointer py-0 text-xs font-medium;
   }
+
   img {
     @apply rounded-md shadow-md;
   }
+
   /* 
   h2:nth-of-type(1) {
     @apply text-left mt-6;
@@ -259,12 +268,15 @@ body {
   0% {
     box-shadow: -38px -12px, -14px 0, 14px 0, 38px 0;
   }
+
   33% {
     box-shadow: -38px 0px, -14px -12px, 14px 0, 38px 0;
   }
+
   66% {
     box-shadow: -38px 0px, -14px 0, 14px -12px, 38px 0;
   }
+
   100% {
     box-shadow: -38px 0, -14px 0, 14px 0, 38px -12px;
   }
@@ -298,22 +310,27 @@ body {
     background-position: 0% 50%, 50% 50%, 100% 100%;
   }
 }
+
 .range-slider {
   height: 4px !important;
 }
+
 .range-slider .range-slider__thumb {
   width: 15px !important;
   height: 15px !important;
   background: rgb(0, 0, 0) !important;
 }
+
 .range-slider .range-slider__range {
   background: black !important;
 }
 
 .noscroll {
   /* Firefox + old Edge */
-  scrollbar-width: none !important; /* Firefox */
-  -ms-overflow-style: none !important; /* IE/Edge Legacy */
+  scrollbar-width: none !important;
+  /* Firefox */
+  -ms-overflow-style: none !important;
+  /* IE/Edge Legacy */
 }
 
 /* Target the scroller itself and any descendant scrollers */
@@ -321,7 +338,8 @@ body {
 .noscroll *::-webkit-scrollbar {
   width: 0 !important;
   height: 0 !important;
-  display: none !important; /* Chrome/Safari */
+  display: none !important;
+  /* Chrome/Safari */
 }
 
 .noscroll::-webkit-scrollbar-thumb,

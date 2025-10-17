@@ -62,14 +62,22 @@ export const SavedListPage = () => {
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({})
   const [globalFilter, setGlobalFilter] = useState('')
   const { user, loading: isAuthLoading } = useAuth()
+  const [counts, setCounts] = useState({})
   const userId = user?.user_id ?? ''
   // const limit = activeTab === 'all' ? 20 : 10
   const { data: apiResponse, isLoading } = useUserLists(userId, activeTab, 50)
   const displayedLists: SavedList[] = apiResponse?.lists ?? []
-  const tabCounts = apiResponse?.count
   const { mutateAsync: updateUserLists, isPending: isUpdating } = useUpdateUserListsBulk()
   const isComponentLoading = isAuthLoading || isLoading
   const [sorting, setSorting] = useState<SortingState>([])
+  const tabCounts = apiResponse?.count
+
+  useEffect(() => {
+    if (tabCounts && !counts) {
+      setCounts(tabCounts)
+      console.log({ tabCounts })
+    }
+  }, [tabCounts, counts])
 
   const table = useReactTable({
     data: displayedLists,
@@ -114,6 +122,7 @@ export const SavedListPage = () => {
       console.error(`Error performing bulk action '${action}':`, error)
     }
   }
+  console.log({ counts })
 
   const handleDownload = () => {
     const data = table.getSelectedRowModel().rows.map(row => row.original) as any[]
@@ -171,7 +180,7 @@ export const SavedListPage = () => {
             variant="outline"
             size="xs"
             onClick={() => handleBulkAction('delete')}
-            // disabled={!table.getSelectedRowModel().rows.length || isUpdating}
+          // disabled={!table.getSelectedRowModel().rows.length || isUpdating}
           >
             <Trash className="h-4 w-4" />
             Delete
@@ -181,7 +190,7 @@ export const SavedListPage = () => {
               variant="outline"
               size="xs"
               onClick={() => handleBulkAction('archive')}
-              // disabled={!table.getSelectedRowModel().rows.length || isUpdating}
+            // disabled={!table.getSelectedRowModel().rows.length || isUpdating}
             >
               <Archive className="h-4 w-4" />
               Archive
@@ -192,7 +201,7 @@ export const SavedListPage = () => {
               variant="outline"
               size="xs"
               onClick={() => handleBulkAction('reactivate')}
-              // disabled={!table.getSelectedRowModel().rows.length || isUpdating}
+            // disabled={!table.getSelectedRowModel().rows.length || isUpdating}
             >
               <RefreshCcw className="h-4 w-4" />
               Reactivate
@@ -203,7 +212,7 @@ export const SavedListPage = () => {
           variant="outline"
           size="xs"
           onClick={handleDownload}
-          // disabled={!table.getSelectedRowModel().rows.length}
+        // disabled={!table.getSelectedRowModel().rows.length}
         >
           <Download className="h-4 w-4" />
           Download

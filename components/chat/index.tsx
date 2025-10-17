@@ -100,7 +100,7 @@ const Chat = ({
       controllerRef.current.abort()
       if (sessionId && websetId) {
         stopExa(
-          { sessionId: sessionId, userId, webset_id: sessionId },
+          { sessionId: sessionId, userId, webset_id: websetId },
           { onError: e => console.log(e) }
         )
       }
@@ -466,7 +466,7 @@ const Chat = ({
       }
     }
   }
-  console.log({ websetId })
+  // console.log({ websetId })
 
   useEffect(() => {
     return () => {

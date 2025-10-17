@@ -101,7 +101,7 @@ const ChatDataTable = <T extends any>({
   handleExpand,
   handleCollapse,
 }: // toggleExpand,
-IChatDataTableProps<T>) => {
+  IChatDataTableProps<T>) => {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -225,9 +225,8 @@ IChatDataTableProps<T>) => {
   const selectedRows = table.getSelectedRowModel().rows.map(row => row.original)
   const handleExport = (format: 'csv' | 'excel') => {
     const exportData = selectedRows.length ? selectedRows : data
-    const filename = `${selectedRows.length ? 'selected' : 'all'}-data.${
-      format === 'csv' ? 'csv' : 'xlsx'
-    }`
+    const filename = `${selectedRows.length ? 'selected' : 'all'}-data.${format === 'csv' ? 'csv' : 'xlsx'
+      }`
 
     format === 'csv' ? exportToCSV(exportData, filename) : exportToExcel(exportData, filename)
   }
@@ -318,16 +317,15 @@ IChatDataTableProps<T>) => {
               )}
             >
               <div className="flex gap-2 shrink-0 min-h-[28px] items-center">
-                <Button
+                {!rowDisabled && <Button
                   variant="secondary"
                   size="xs"
-                  disabled={rowDisabled}
                   className="h-7 hover:bg-gray-300 gap-0.5 "
                   onClick={handleDeleteSelected}
                 >
                   Delete <Trash className="size-4 ml-1" />
-                </Button>
-                <AddToListDialog
+                </Button>}
+                {!rowDisabled && <AddToListDialog
                   initialSelected={selectedRows.map(item => ({
                     NAME: (item as any)?.NAME || (item as any)?.TARGET_NAME,
                     ITEM_ID: (item as any)?.ITEM_ID,
@@ -340,12 +338,10 @@ IChatDataTableProps<T>) => {
                     size="xs"
                     disabled={rowDisabled}
                     className="h-7 hover:bg-gray-300"
-
-                    // onClick={handleDeleteSelected}
                   >
                     Add to list <ListChecks />
                   </Button>
-                </AddToListDialog>
+                </AddToListDialog>}
               </div>
               <div className="flex gap-2 items-center pr-0">
                 <div className="hidden sm:flex gap-2">
@@ -360,7 +356,7 @@ IChatDataTableProps<T>) => {
                     disabled={isStreaming || expand}
                     title="Expand all rows"
                   >
-                    <Maximize2 />
+                    <ChevronsUpDown className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="secondary"
@@ -373,10 +369,10 @@ IChatDataTableProps<T>) => {
                     disabled={isStreaming || !expand}
                     title="Collapse all rows"
                   >
-                    <Minimize2 />
+                    <ChevronsDownUp className="h-4 w-4" />
                   </Button>
                 </div>
-                <CreateNewListDialog
+                {!rowDisabled && <CreateNewListDialog
                   initialSelected={selectedRows.map(item => ({
                     NAME: (item as any)?.NAME || (item as any)?.TARGET_NAME,
                     ITEM_ID: (item as any)?.ITEM_ID,
@@ -390,11 +386,11 @@ IChatDataTableProps<T>) => {
                     disabled={rowDisabled}
                     className="h-7 hover:bg-gray-300 gap-1"
 
-                    // onClick={handleDeleteSelected}
+                  // onClick={handleDeleteSelected}
                   >
                     Create List <Plus />
                   </Button>
-                </CreateNewListDialog>
+                </CreateNewListDialog>}
                 <Button
                   variant="secondary"
                   size="xs"
@@ -415,7 +411,7 @@ IChatDataTableProps<T>) => {
       >
         <Table
           className="!w-full bg-background [&_td]:border-border table-fixed border-separate border-spacing-0 [&_tfoot_td]:border-t [&_tr]:border-none [&_tr:not(:last-child)_td]:border-b [&_thead]:border-b-0"
-          // style={{ width: table.getTotalSize() }}
+        // style={{ width: table.getTotalSize() }}
         >
           <TableHeader className="bg-white text-[13px] h-8 sticky top-0 z-10">
             {table.getHeaderGroups().map(headerGroup => (
@@ -503,8 +499,8 @@ IChatDataTableProps<T>) => {
                                   isLastLeftPinned
                                     ? 'left'
                                     : isFirstRightPinned
-                                    ? 'right'
-                                    : undefined
+                                      ? 'right'
+                                      : undefined
                                 }
                               >
                                 <div className="">

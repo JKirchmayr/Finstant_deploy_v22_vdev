@@ -14,7 +14,10 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 import * as XLSX from 'xlsx'
-import { Download, Trash, X, Maximize2, Minimize2 } from 'lucide-react'
+import {
+  Download, Trash, X, Maximize2, Minimize2, ChevronsDownUp,
+  ChevronsUpDown,
+} from 'lucide-react'
 
 import {
   Table,
@@ -230,7 +233,7 @@ export function ListDetailsDataTable({
             size="xs"
             variant="outline"
             onClick={handleDownload}
-            // disabled={Object.keys(rowSelection).length === 0}
+          // disabled={Object.keys(rowSelection).length === 0}
           >
             <Download className="h-4 w-4" /> Download
           </Button>
@@ -243,7 +246,7 @@ export function ListDetailsDataTable({
             disabled={expand}
             title="Expand all rows"
           >
-            <Maximize2 className="h-4 w-4" />
+            <ChevronsUpDown className="h-4 w-4" />
           </Button>
           <Button
             variant="outline"
@@ -252,7 +255,8 @@ export function ListDetailsDataTable({
             disabled={!expand}
             title="Collapse all rows"
           >
-            <Minimize2 className="h-4 w-4" />
+            <ChevronsDownUp className="h-4 w-4" />
+
           </Button>
         </div>
         {/* </div> */}

@@ -23,13 +23,8 @@ export default function ListBuilder({ listData, title, type }: ListBuilderProps)
   // console.log(activeList.isLoading)
   const columns = () => generateColumns(listData, type, expand, isStreaming)
 
-  // const toggleExpand = () => {
-  //   if (expand) {
-  //     setExpand(false)
-  //     return
-  //   }
-  //   setExpand(true)
-  // }
+  console.log(columns())
+
   const handleExpand = () => setExpand(true)
   const handleCollapse = () => setExpand(false)
 
@@ -40,9 +35,9 @@ export default function ListBuilder({ listData, title, type }: ListBuilderProps)
       initial={{ opacity: 0, x: 0 }}
       animate={{ opacity: 1 }}
       exit={{ x: '100%' }}
-      // transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-      // exit={{ opacity: 0, width: 0 }}
-      // transition={{ duration: 0.1 }}
+    // transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+    // exit={{ opacity: 0, width: 0 }}
+    // transition={{ duration: 0.1 }}
     >
       <div className="flex-1 overflow-auto pt-3 pb-0 pl-0 pr-0">
         <AddColumnProvider>
@@ -55,7 +50,7 @@ export default function ListBuilder({ listData, title, type }: ListBuilderProps)
             expand={expand}
             handleExpand={handleExpand}
             handleCollapse={handleCollapse}
-            // toggleExpand={toggleExpand}
+          // toggleExpand={toggleExpand}
           />
         </AddColumnProvider>
       </div>
