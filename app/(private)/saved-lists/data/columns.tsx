@@ -1,11 +1,14 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { SavedList } from '@/types/saved-list'
 import { BanknotesIcon, BuildingOffice2Icon, UserGroupIcon } from '@heroicons/react/24/outline'
 import { ColumnDef } from '@tanstack/react-table'
 import { format } from 'date-fns'
-import { ArrowUpDown, HandCoins } from 'lucide-react'
+import { HandCoins, MoreVertical } from 'lucide-react'
+import Link from 'next/link'
+import ActionsBlock from './actions'
 
 export const columns: ColumnDef<SavedList>[] = [
   {
@@ -34,20 +37,19 @@ export const columns: ColumnDef<SavedList>[] = [
       return (
         <div className="text-left">
           List Name
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className="hover:bg-transparent"
-          >
-            {/* <ArrowUpDown className="h-4 w-4" /> */}
-          </Button>
         </div>
       )
     },
     cell: ({ row }) => {
       const name = row.getValue('list_name') || ''
-      return <span className="font-medium text-[14px]">{String(name)}</span>
+      return (
+        <Link href={`/saved-lists/${row.original.saved_list_id}?title=${row.original.list_name}&type=${row.original.list_type}`}>
+          <span className="font-medium text-[14px]"
+          >{String(name)}</span>
+        </Link>
+      )
     },
+    minSize: 500,
   },
   {
     accessorKey: 'list_type',
@@ -55,13 +57,6 @@ export const columns: ColumnDef<SavedList>[] = [
       return (
         <div className="text-left">
           Type
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className="hover:bg-transparent"
-          >
-            {/* <ArrowUpDown className="h-4 w-4" /> */}
-          </Button>
         </div>
       )
     },
@@ -83,13 +78,6 @@ export const columns: ColumnDef<SavedList>[] = [
       return (
         <div className="text-left">
           List Items
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className="hover:bg-transparent"
-          >
-            {/* <ArrowUpDown className="h-4 w-4" /> */}
-          </Button>
         </div>
       )
     },
@@ -101,16 +89,9 @@ export const columns: ColumnDef<SavedList>[] = [
     accessorKey: 'created_at',
     header: ({ column }) => {
       return (
-        <div className="text-center">
+        <div className="text-center ">
           Created On
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className="hover:bg-transparent"
-          >
-            {/* <ArrowUpDown className="h-4 w-4" /> */}
-          </Button>
-        </div>
+        </div >
       )
     },
     cell: ({ row }) => (
@@ -120,6 +101,28 @@ export const columns: ColumnDef<SavedList>[] = [
         </p>
       </div>
     ),
+  },
+  {
+    accessorKey: 'last_updated',
+    header: () => <div className="text-center ">
+      Last Updated </div>,
+    cell: ({ row }) => (
+      <div className="text-center">
+        <p className="font-medium text-[13px]">
+          {format(new Date(row.getValue('last_updated')), 'dd MMMM yyyy')}
+        </p>
+      </div>
+    ),
+    enableSorting: true,
+  },
+  {
+    id: "actions",
+    enableHiding: false,
+    cell: ({ row }) => {
+      return (
+        <ActionsBlock list_id={row.original.saved_list_id} name={row.original.list_name} />
+      )
+    },
   },
 ]
 

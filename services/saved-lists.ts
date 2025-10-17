@@ -16,7 +16,7 @@ export const createUserList = async (
   type?: 'session' | 'manual'
 ) => {
   try {
-    const res = await api.post(`/user-lists`, data, {
+    const res = await api.post(`/user-lists?source=${type ?? 'session'}`, data, {
       headers: { 'user-id': userId },
     })
     return res.data
@@ -144,6 +144,21 @@ export const updateItemPosition = async (
 ) => {
   try {
     const res = await api.patch(`/user-lists/${listId}/items/position`, payload, {
+      headers: { 'user-id': userId },
+    })
+    return res.data
+  } catch (error) {
+    console.error('Failed to update item position:', getApiErrorMessage(error))
+    throw new Error('Failed to update item position')
+  }
+}
+export const renameList = async (
+  userId: string,
+  listId: string,
+  name: string
+) => {
+  try {
+    const res = await api.patch(`/user-lists/${listId}/name`, { list_name: name }, {
       headers: { 'user-id': userId },
     })
     return res.data

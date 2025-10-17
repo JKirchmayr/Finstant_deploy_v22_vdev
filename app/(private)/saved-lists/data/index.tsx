@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import {
   useReactTable,
   getCoreRowModel,
@@ -44,6 +44,11 @@ import { SavedList } from '@/types/saved-list'
 import { toast } from 'sonner'
 import { columns } from './columns'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Badge } from '@/components/ui/badge'
+import { ButtonGroup } from '@/components/ui/button-group'
+import { CreateNewList } from './create-list'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { useAuthStore } from '@/store/authStore'
 
 type TabTypes = 'all' | 'company' | 'investor' | 'people' | 'archive' | 'transaction'
 
@@ -53,7 +58,6 @@ const tabsList = [
   { value: 'investor', label: 'Investors', icon: Banknote },
   { value: 'transaction', label: 'Transaction', icon: HandCoins },
   { value: 'people', label: 'People', icon: Users },
-  { value: 'archive', label: 'Archive', icon: Archive },
 ]
 
 export const SavedListPage = () => {
@@ -61,23 +65,37 @@ export const SavedListPage = () => {
   const [activeTab, setActiveTab] = useState<TabTypes>('all')
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({})
   const [globalFilter, setGlobalFilter] = useState('')
-  const { user, loading: isAuthLoading } = useAuth()
-  const [counts, setCounts] = useState({})
+  const { user, } = useAuthStore()
+  const [counts, setCounts] = useState(null)
   const userId = user?.user_id ?? ''
   // const limit = activeTab === 'all' ? 20 : 10
   const { data: apiResponse, isLoading } = useUserLists(userId, activeTab, 50)
-  const displayedLists: SavedList[] = apiResponse?.lists ?? []
   const { mutateAsync: updateUserLists, isPending: isUpdating } = useUpdateUserListsBulk()
-  const isComponentLoading = isAuthLoading || isLoading
+  const isComponentLoading = isLoading
   const [sorting, setSorting] = useState<SortingState>([])
+  const [type, setType] = useState<'active' | 'archived'>('active')
   const tabCounts = apiResponse?.count
+  const displayedLists: SavedList[] = (apiResponse as any)?.lists?.filter((list: SavedList) => list.list_status === type) || [];
 
   useEffect(() => {
-    if (tabCounts && !counts) {
+    if (!!tabCounts && !counts) {
       setCounts(tabCounts)
-      console.log({ tabCounts })
     }
   }, [tabCounts, counts])
+
+  const listTypeCounts = useMemo(() => {
+    if (!apiResponse?.lists) return {}
+    const filtered = apiResponse.lists.filter(
+      (list: SavedList) => list.list_status === type
+    )
+    const countsByType = filtered.reduce((acc: Record<string, number>, list: SavedList) => {
+      acc[list.list_type] = (acc[list.list_type] || 0) + (list.item_count || 0)
+      return acc
+    }, {})
+
+    return countsByType
+  }, [apiResponse, type, activeTab])
+
 
   const table = useReactTable({
     data: displayedLists,
@@ -115,6 +133,10 @@ export const SavedListPage = () => {
         userId,
         action,
         saved_list_ids: selectedIds,
+      }, {
+        onSuccess: (data) => {
+          console.log({ data })
+        }
       })
       table.resetRowSelection()
     } catch (error) {
@@ -122,7 +144,6 @@ export const SavedListPage = () => {
       console.error(`Error performing bulk action '${action}':`, error)
     }
   }
-  console.log({ counts })
 
   const handleDownload = () => {
     const data = table.getSelectedRowModel().rows.map(row => row.original) as any[]
@@ -137,17 +158,51 @@ export const SavedListPage = () => {
     XLSX.writeFile(workbook, activeTab + '.xlsx')
   }
 
+  const isDisabled = !table.getSelectedRowModel().rows.length || isUpdating
+
   return (
     <div className="p-4 w-full mx-auto">
       <h1 className="text-xl font-semibold pb-2 ">Saved Lists</h1>
 
       <div className="pt-4 border-y-2">
-        <div className="w-xs text-md font-semibold">
-          <Input
-            placeholder="Search Any keyword....."
-            value={globalFilter}
-            onChange={e => setGlobalFilter(e.target.value)}
-          />
+        <div className='flex justify-between items-center'>
+          <div className="flex gap-2">
+            <Input
+              placeholder="Search by name..."
+              value={(table?.getColumn("list_name")?.getFilterValue() as string) ?? ""}
+              onChange={e => {
+                const value = e.target.value
+                table.getColumn('list_name')?.setFilterValue(value || undefined)
+              }}
+              className='w-xs text-md font-semibold border-border focus-visible:ring-0 '
+
+            />
+            <div>
+              <ToggleGroup
+                type="single"
+                variant="segmented"
+                value={type}
+                onValueChange={(value: "archived" | "active") => {
+                  if (value) {
+                    setType(value)
+                    router.replace(`/saved-lists?status=${value}`)
+                  }
+                }}
+              >
+                <ToggleGroupItem className="flex-1 border cursor-pointer" value="active">
+                  Active
+                </ToggleGroupItem>
+                <ToggleGroupItem className="flex-1 border cursor-pointer" value="archived">
+                  Archive
+                </ToggleGroupItem>
+
+              </ToggleGroup>
+
+            </div>
+          </div>
+          <CreateNewList  >
+            <Button>Create New List</Button>
+          </CreateNewList>
         </div>
 
         <div className="flex justify-between items-center mt-4">
@@ -155,17 +210,19 @@ export const SavedListPage = () => {
             value={activeTab}
             onValueChange={value => {
               setActiveTab(value as TabTypes)
+              table?.getColumn('list_name')?.setFilterValue('')
             }}
           >
-            <TabsList className="mb-3">
+            <TabsList className="h-auto gap-2 rounded-none border-b bg-transparent px-0 py-0.5 text-foreground">
               {tabsList.map(tab => (
                 <TabsTrigger
                   key={tab.value}
                   value={tab.value}
-                  className="cursor-pointer data-[state=active]:bg-muted data-[state=active]:after:bg-primary relative overflow-hidden rounded-none border py-2 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 first:rounded-s last:rounded-e"
+                  className="relative gap-2 cursor-pointer after:absolute after:inset-x-0 after:bottom-0 after:-mb-1 after:h-0.5 hover:bg-accent hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary data-[state=active]:hover:bg-accent"
                 >
-                  <tab.icon className="-ms-0.5 me-1.5 opacity-60" size={16} aria-hidden="true" />
-                  {tab.label} ({tabCounts?.[tab.value as keyof typeof tabCounts] || 0})
+                  {tab.label} <Badge variant='secondary' className='font-medium'>
+                    {counts?.[tab.value as keyof typeof tabCounts] || 0}
+                  </Badge>
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -173,35 +230,34 @@ export const SavedListPage = () => {
         </div>
       </div>
 
-      <div className="flex justify-between items-center py-4">
+      <div className="flex justify-between items-center py-2 pt-4">
         {/* Action Buttons */}
         <div className="flex gap-2">
-          <Button
+          {!isDisabled && <Button
             variant="outline"
             size="xs"
             onClick={() => handleBulkAction('delete')}
-          // disabled={!table.getSelectedRowModel().rows.length || isUpdating}
+
           >
             <Trash className="h-4 w-4" />
             Delete
-          </Button>
-          {activeTab !== 'archive' && (
+          </Button>}
+          {!isDisabled && type !== 'archived' && (
             <Button
               variant="outline"
               size="xs"
               onClick={() => handleBulkAction('archive')}
-            // disabled={!table.getSelectedRowModel().rows.length || isUpdating}
+
             >
               <Archive className="h-4 w-4" />
               Archive
             </Button>
           )}
-          {activeTab === 'archive' && (
+          {!isDisabled && type === 'archived' && (
             <Button
               variant="outline"
               size="xs"
               onClick={() => handleBulkAction('reactivate')}
-            // disabled={!table.getSelectedRowModel().rows.length || isUpdating}
             >
               <RefreshCcw className="h-4 w-4" />
               Reactivate
@@ -221,94 +277,99 @@ export const SavedListPage = () => {
 
       <div className="rounded-md border mt-2 ">
         <Table className="text-sm">
-          <TableHeader className="text-sm">
-            {table.getHeaderGroups().map(headerGroup => (
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map(header => (
-                  <TableHead key={header.id} className="py-2">
-                    {flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                ))}
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                    </TableHead>
+                  )
+                })}
               </TableRow>
             ))}
           </TableHeader>
           <TableBody>
             {isComponentLoading ? (
-              [...Array(10)].map((_, index) => (
-                <TableRow key={index}>
-                  <TableCell>
-                    <Skeleton className="h-5 w-5" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-4 w-3/4" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-6 w-24" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-6 w-12" />
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Skeleton className="h-6 w-32 mx-auto" />
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : table.getRowModel().rows.length ? (
-              table.getRowModel().rows.map(row => (
-                <TableRow
-                  key={row.original.saved_list_id}
-                  data-state={row.getIsSelected() ? 'selected' : undefined}
-                  onClick={() =>
-                    router.push(
-                      `/saved-lists/${row.original.saved_list_id}?title=${row.original.list_name}&type=${row.original.list_type}`
-                    )
-                  }
-                  className="cursor-pointer text-base font-sm"
-                >
-                  {row.getVisibleCells().map(cell => (
-                    <TableCell key={cell.id} className="py-2">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              [...Array(10)].map((_, i) => (
+                <TableRow key={i} className="border-b-0">
+                  {columns.map((column, j) => (
+                    <TableCell
+                      key={j}
+                      className="py-1.5 min-h-[40px] border-b px-4"
+                      style={{ width: (column as any).size }}
+                    >
+                      <Skeleton className="w-full h-4 bg-gray-100" />
                     </TableCell>
                   ))}
                 </TableRow>
               ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No lists found in this category.
-                </TableCell>
-              </TableRow>
-            )}
+            ) :
+              table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id} className='py-1.5'>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    No results.
+                  </TableCell>
+                </TableRow>
+              )}
           </TableBody>
+
         </Table>
       </div>
 
-      {displayedLists?.length > 50 && (
-        <div className="flex items-center justify-between space-x-2 py-4">
-          <div className="flex-1 text-sm text-muted-foreground">
-            {table.getFilteredSelectedRowModel().rows.length} of{' '}
-            {table.getFilteredRowModel().rows.length} row(s) selected.
+      {
+        displayedLists?.length > 50 && (
+          <div className="flex items-center justify-between space-x-2 py-4">
+            <div className="flex-1 text-sm text-muted-foreground">
+              {table.getFilteredSelectedRowModel().rows.length} of{' '}
+              {table.getFilteredRowModel().rows.length} row(s) selected.
+            </div>
+            <div className="space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
+                Next
+              </Button>
+            </div>
           </div>
-          <div className="space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   )
 }

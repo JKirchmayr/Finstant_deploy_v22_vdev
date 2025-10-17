@@ -133,7 +133,7 @@ export const generateColumns = (listType: ListType, expand: boolean): ColumnDef<
               height={25}
               className="mr-1 rounded-sm flex-shrink-0 object-contain"
               onError={e => {
-                ;(e.currentTarget as HTMLImageElement).src = fallbackUrl
+                ; (e.currentTarget as HTMLImageElement).src = fallbackUrl
               }}
               unoptimized
             />
@@ -165,11 +165,11 @@ export const generateColumns = (listType: ListType, expand: boolean): ColumnDef<
               </p>
             }
           >
-            <p>
+            {!expand && <p>
               {description || (
                 <span className="text-muted-foreground">No description available.</span>
               )}
-            </p>
+            </p>}
           </ExpandableCell>
         )
       },

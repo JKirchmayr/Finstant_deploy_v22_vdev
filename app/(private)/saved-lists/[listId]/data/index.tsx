@@ -41,6 +41,8 @@ import { toast } from 'sonner'
 import { useRemoveItemsFromList, useUpdateItemPosition } from '@/queries/saved-lists'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
+import { TableRowsIcon } from '@/components/icons/table-icon'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 
 interface DataTableProps {
   columns: ColumnDef<AnyListItem>[]
@@ -87,16 +89,13 @@ export function ListDetailsDataTable({
   const tableBodyRef = React.useRef<HTMLTableSectionElement>(null)
   const [uniformRowHeight, setUniformRowHeight] = React.useState<number | null>(null)
 
-  const { mutate: removeItems } = useRemoveItemsFromList(true)
+  const { mutate: removeItems, isPending } = useRemoveItemsFromList(true)
   const { mutate: updatePosition } = useUpdateItemPosition(listId)
 
   React.useEffect(() => {
     setItems(data)
   }, [data])
 
-  const filterColumnId = React.useMemo(() => {
-    return 'NAME'
-  }, [])
 
   const handlePositionChange = (nextItems: AnyListItem[]) => {
     const prevItems = items
@@ -150,18 +149,6 @@ export function ListDetailsDataTable({
     columnResizeMode: 'onChange',
   })
 
-  React.useLayoutEffect(() => {
-    if (expand && tableBodyRef.current) {
-      const rows = Array.from(tableBodyRef.current.children) as HTMLTableRowElement[]
-
-      if (rows.length > 0) {
-        const maxHeight = Math.max(...rows.map(row => row.offsetHeight))
-        setUniformRowHeight(maxHeight)
-      }
-    } else {
-      setUniformRowHeight(null)
-    }
-  }, [expand, items])
 
   const handleDelete = () => {
     const selectedRows = table.getFilteredSelectedRowModel().rows
@@ -207,9 +194,12 @@ export function ListDetailsDataTable({
     XLSX.writeFile(workbook, `${title?.slice(0, 30)}.xlsx` || 'saved_list_items.xlsx')
   }
 
+  const disabled = !table.getSelectedRowModel()?.rows.length
+
+
   return (
     <div className="space-y-4 ">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-2">
         {/* <Input
           placeholder="Search Any keyword....."
           value={globalFilter}
@@ -219,16 +209,47 @@ export function ListDetailsDataTable({
 
         {/* <div className="space-x-4 sm:block flex  flex-col justify-between"> */}
         <div className="flex items-center gap-x-2">
-          <Button
+          {!disabled && <Button
             variant="outline"
             size="xs"
             onClick={handleDelete}
-            // disabled={Object.keys(rowSelection).length === 0}
+            disabled={isPending}
             className="ml-auto"
           >
             <Trash className="h-4 w-4" />
             Delete
-          </Button>
+          </Button>}
+        </div>
+        <div className="flex items-center gap-x-4">
+          <div className="flex items-center gap-x-2">
+            <ToggleGroup
+              type="single"
+              variant="default"
+              value={expand ? 'expand' : 'collapse'}
+              onValueChange={(value) => {
+                if (value === 'expand') handleExpand()
+                if (value === 'collapse') handleCollapse()
+              }}
+              className="flex border rounded-md"
+            >
+              <ToggleGroupItem
+                value="collapse"
+                className="flex items-center gap-2 px-2 py-1 h-7 cursor-pointer"
+                title="Collapse all rows"
+
+              >
+                <TableRowsIcon rows={2} size={20} />
+              </ToggleGroupItem>
+
+              <ToggleGroupItem
+                value="expand"
+                className="flex items-center gap-2 px-2 py-1 h-7 cursor-pointer"
+                title="Expand all rows"
+              >
+                <TableRowsIcon rows={3} size={20} />
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </div>
           <Button
             size="xs"
             variant="outline"
@@ -238,37 +259,17 @@ export function ListDetailsDataTable({
             <Download className="h-4 w-4" /> Download
           </Button>
         </div>
-        <div className="flex items-center gap-x-2">
-          <Button
-            variant="outline"
-            size="xs"
-            onClick={handleExpand}
-            disabled={expand}
-            title="Expand all rows"
-          >
-            <ChevronsUpDown className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="xs"
-            onClick={handleCollapse}
-            disabled={!expand}
-            title="Collapse all rows"
-          >
-            <ChevronsDownUp className="h-4 w-4" />
-
-          </Button>
-        </div>
-        {/* </div> */}
       </div>
 
-      <div className="rounded-lg border overflow-auto">
+      <div className="border overflow-auto">
         <Sortable
           value={items}
           onValueChange={handlePositionChange}
           getItemValue={item => item.saved_list_item_id}
         >
-          <Table className="table-fixed border-separate border-spacing-0">
+          <Table
+            className="!w-full bg-background [&_td]:border-border table-fixed border-separate border-spacing-0 [&_tfoot_td]:border-t [&_tr]:border-none [&_tr:not(:last-child)_td]:border-b [&_thead]:border-b-0"
+          >
             <TableHeader className="sticky top-0 z-10 bg-muted backdrop-blur-sm">
               {table.getHeaderGroups().map(headerGroup => (
                 <TableRow key={headerGroup.id} className="bg-muted border-b-0">
@@ -294,14 +295,14 @@ export function ListDetailsDataTable({
               ))}
             </TableHeader>
             <SortableContent asChild items={items.map(item => item.saved_list_item_id)}>
-              <TableBody ref={tableBodyRef}>
+              <TableBody >
                 {isLoading ? (
                   [...Array(10)].map((_, i) => (
                     <TableRow key={i} className="border-b-0">
                       {columns.map((column, j) => (
                         <TableCell
                           key={j}
-                          className="py-4 min-h-[58px] border-b border-r border-gray-300 last:border-r-0 px-4"
+                          className="py-4 min-h-[40px] border-b border-r border-gray-300 last:border-r-0 px-4"
                           style={{ width: (column as any).size }}
                         >
                           <Skeleton className="w-full h-4 bg-gray-100" />
@@ -314,22 +315,27 @@ export function ListDetailsDataTable({
                     <SortableItem key={row.id} value={row.id} asChild>
                       <TableRow
                         data-state={row.getIsSelected() && 'selected'}
-                        className="border-b-0"
-                        style={{ height: uniformRowHeight ? `${uniformRowHeight}px` : 'auto' }}
+                        className="h-auto border-b transition-colors hover:bg-gray-100/80"
                       >
                         {row.getVisibleCells().map(cell => {
                           const content = (
                             <TableCell
                               key={cell.id}
-                              className="py-1.5 border-b border-r border-gray-300 last:border-r-0 bg-background px-4"
+                              className="py-1.5 border-r border-gray-300 bg-background h-auto"
                               style={{ ...getPinningStyles(cell.column) }}
                             >
-                              {/* <div className="line-clamp-2 w-full max-h-[40px]"> */}
-                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                              {/* </div> */}
+                              <div
+                                className={cn(
+                                  'w-full',
+                                  expand
+                                    ? 'whitespace-normal'          // fully expand
+                                    : 'line-clamp-2 max-h-[40px]'  // collapsed view
+                                )}
+                              >
+                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                              </div>
                             </TableCell>
                           )
-                          // Wrap the 'drag' column's cell with the handle
                           return cell.column.id === 'drag' ? (
                             <SortableItemHandle asChild key={cell.id}>
                               {content}

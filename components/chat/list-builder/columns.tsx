@@ -21,6 +21,7 @@ import {
   CalendarDaysIcon,
 } from '@heroicons/react/24/outline'
 import { cn } from '@/lib/utils'
+import { format } from 'date-fns'
 
 const PulseLoading = () => {
   return (
@@ -124,7 +125,7 @@ export const generateColumns = (
               height={25}
               className="mr-2 rounded-sm flex-shrink-0"
               onError={e => {
-                ;(e.currentTarget as HTMLImageElement).src = fallbackUrl
+                ; (e.currentTarget as HTMLImageElement).src = fallbackUrl
               }}
               unoptimized
             />
@@ -249,7 +250,7 @@ export const generateColumns = (
         const { isReading } = useChatStore.getState()
         return isReading ? (
           row.original.DEAL_DATE_ENRICHED ? (
-            <span>{row.original.DEAL_DATE_ENRICHED}</span>
+            <span>{format(row.original.DEAL_DATE_ENRICHED, "DD/MM/YYYY")}</span>
           ) : (
             <PulseLoading />
           )

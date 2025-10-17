@@ -11,6 +11,7 @@ import {
   UserListPayload,
   updateItemPosition,
   updateUserListBulk,
+  renameList,
 } from '@/services/saved-lists'
 import { toast } from 'sonner'
 import { string } from 'zod'
@@ -38,8 +39,8 @@ export const useUserListItems = (userId: string, listId: string, enabled?: boole
 export const useCreateUserList = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ userId, data }: { userId: string; data: UserListPayload }) =>
-      createUserList(userId, data),
+    mutationFn: ({ userId, data, type }: { userId: string; data: UserListPayload, type?: 'session' | 'manual' }) =>
+      createUserList(userId, data, type),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['userLists'] }),
   })
 }
@@ -134,6 +135,28 @@ export const useUpdateUserListsBulk = () => {
     onError: error => {
       toast.error('Failed to update lists.Please try again.')
       console.error(`Error performing bulk action:`, error)
+    },
+  })
+}
+
+export const useRenameList = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      userId,
+      list_id,
+      name,
+    }: {
+      userId: string
+      list_id: string
+      name: string
+    }) => renameList(userId, list_id, name),
+    onSuccess: () => {
+      toast.success('List name updated successfully!')
+      queryClient.invalidateQueries({ queryKey: ['userLists'] })
+    },
+    onError: error => {
+      toast.error('Failed to update list name .Please try again.')
     },
   })
 }

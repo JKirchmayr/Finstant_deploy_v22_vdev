@@ -56,6 +56,8 @@ import { useIsMobile } from '@/hooks/use-mobile'
 import { AddToListDialog, CreateNewListDialog, Item } from './ListDialogs'
 import { useDeleteSessionListItems } from '@/queries/sessions'
 import { cn } from '@/lib/utils'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { TableRowsIcon } from '@/components/icons/table-icon'
 
 interface IChatDataTableProps<T extends any> {
   data: T[]
@@ -345,32 +347,33 @@ const ChatDataTable = <T extends any>({
               </div>
               <div className="flex gap-2 items-center pr-0">
                 <div className="hidden sm:flex gap-2">
-                  <Button
-                    variant="secondary"
-                    size="xs"
-                    className={cn(
-                      'h-7 hover:bg-gray-300 gap-1'
-                      // { 'bg-foreground/30': !expand }
-                    )}
-                    onClick={handleExpand}
-                    disabled={isStreaming || expand}
-                    title="Expand all rows"
+                  <ToggleGroup
+                    type="single"
+                    variant="default"
+                    value={expand ? 'expand' : 'collapse'}
+                    onValueChange={(value) => {
+                      if (value === 'expand') handleExpand()
+                      if (value === 'collapse') handleCollapse()
+                    }}
+                    className="flex border rounded-md"
                   >
-                    <ChevronsUpDown className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="xs"
-                    className={cn('h-7 hover:bg-foreground/30 gap-1', {
-                      // 'bg-foreground/30': expand,
-                    })}
-                    // onClick={toggleExpand}
-                    onClick={handleCollapse}
-                    disabled={isStreaming || !expand}
-                    title="Collapse all rows"
-                  >
-                    <ChevronsDownUp className="h-4 w-4" />
-                  </Button>
+                    <ToggleGroupItem
+                      value="collapse"
+                      className="flex items-center gap-2 px-2 py-1 h-7 cursor-pointer"
+                      title="Collapse all rows"
+
+                    >
+                      <TableRowsIcon rows={2} size={20} />
+                    </ToggleGroupItem>
+
+                    <ToggleGroupItem
+                      value="expand"
+                      className="flex items-center gap-2 px-2 py-1 h-7 cursor-pointer"
+                      title="Expand all rows"
+                    >
+                      <TableRowsIcon rows={3} size={20} />
+                    </ToggleGroupItem>
+                  </ToggleGroup>
                 </div>
                 {!rowDisabled && <CreateNewListDialog
                   initialSelected={selectedRows.map(item => ({
@@ -479,7 +482,6 @@ const ChatDataTable = <T extends any>({
                         <TableRow
                           key={row.id}
                           className="h-auto border-b transition-colors hover:bg-gray-100/80"
-                          style={{ height: uniformRowHeight ? `${uniformRowHeight}px` : 'auto' }}
                         >
                           {row.getVisibleCells().map((cell: any) => {
                             const { column } = cell

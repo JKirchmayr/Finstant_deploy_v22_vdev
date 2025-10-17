@@ -58,13 +58,13 @@ export default function SavedListDetailsPage() {
 
   return (
     <MainLayout>
-      <div className="p-4 space-y-6 oveflow-hidden ">
-        <div className="flex gap-2 items-center w-full">
-          <Link href="/copilot" className="flex-shrink-0 ">
+      <div className="overflow-hidden ">
+        <div className="flex gap-2 items-center w-full p-2">
+          {/* <Link href="/copilot" className="flex-shrink-0 ">
             <Button variant="secondary" size="sm">
               <ArrowLeft className="h-5 w-5" />
             </Button>
-          </Link>
+          </Link> */}
           <div className="max-w-[180px] sm:max-w-full">
             <h1 className="text-xs sm:text-base font-semibold flex items-center gap-x-2 truncate">
               {title}

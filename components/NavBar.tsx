@@ -13,7 +13,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
 import { createClient } from '@/lib/supabase/client'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, usePathname, useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/store/authStore'
 import { useFileStore } from '@/store/useCompanyProfile'
@@ -53,6 +53,9 @@ const FilesDropdown = () => {
   const inlineCards =
     messages.filter(m => m.role === 'inline_card' || m.role === 'inline_list_card').reverse() || []
   // console.log(inlineCards)
+
+  const pathname = usePathname()
+
   return (
     <div className="relative">
       <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -234,6 +237,9 @@ const UserAvatar = () => {
 
 // Main navbar component
 export const TopNavbar = ({ children }: { children?: React.ReactNode }) => {
+  const pathname = usePathname()
+  const showFolder = pathname.includes('copilot') || pathname.includes('session')
+
   return (
     <div className="h-12 border-b border-gray-200 bg-white flex items-center  px-4">
       <div className="flex gap-2">
@@ -242,7 +248,7 @@ export const TopNavbar = ({ children }: { children?: React.ReactNode }) => {
       </div>
 
       <div className="flex items-center gap-4 ml-auto">
-        <FilesDropdown />
+        {showFolder && <FilesDropdown />}
         <UserAvatar />
       </div>
     </div>
